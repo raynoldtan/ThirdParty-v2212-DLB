@@ -9,14 +9,14 @@
 
 * Description
   Scripts for building third-party packages.
-* Order of execution:
+* Build Order:
   + makeGcc   (recommended if the system gcc is < 4.7)
   + Allwmake  (Builds OpenMPI, Scotch etc.)
   + makeCmake (if the system cmake version is < 2.8.8)
   + makeParaView
-*** Optional
-    + AllwmakeLibccmio (Only required for conversion of STAR-CCM+ meshes)
-    + Allclean (Only required to save disk space)
+*** Optional Build Components:
+    + makeCCMIO (Only required for conversion of STAR-CCM+ meshes)
+    + Allclean  (Only required to save disk space)
 * Versions and locations to download the third party packages
 *** Gcc C++ Compiler
     The minimum version of gcc required is 4.5.0

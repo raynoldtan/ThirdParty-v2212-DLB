@@ -1,0 +1,143 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     makeCCMIO
+#
+# Description
+#     Build CD-adapco's ccmio library
+#
+#------------------------------------------------------------------------------
+
+# Get version info
+. $WM_PROJECT_DIR/etc/config.sh/functions
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/libccmio)
+
+ccmio_version=${ccmio_version:-libccmio-2.6.1}
+targetType=libso
+
+#------------------------------------------------------------------------------
+# run from third-party directory only
+cd ${0%/*} || exit 1
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
+    echo "    The environment variables are inconsistent with the installation."
+    echo "    Check the OpenFOAM entries in your dot-files and source them."
+    exit 1
+}
+[ -n "$FOAM_EXT_LIBBIN" ] || {
+    echo "Error: FOAM_EXT_LIBBIN not set"
+    echo "    Check the OpenFOAM entries in your dot-files and source them."
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+
+usage()
+{
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    /bin/cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [lib|libso] [libccmio-VERSION]
+options:
+  -help
+
+* Compile the proprietary libccmio library
+      $ccmio_version
+
+  Users wishing to make use of the library should contact cd-adapco
+  (Siemens PLM) for possible download and terms of use.
+
+  After obtaining the $ccmio_version library, place in folder
+
+      $WM_THIRD_PARTY_DIR/$ccmio_version/
+
+  prior to running this script.
+
+USAGE
+    exit 1
+}
+
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    lib|libso)
+        targetType="$1"
+        shift
+        ;;
+    libccmio-[1-9]*)
+        ccmio_version="${1%%/}"
+        shift
+        ;;
+    *)
+        usage "unknown option/argument: '$*'"
+        ;;
+    esac
+done
+
+# warn if unavailable
+if [ ! -d ${ccmio_version} ]
+then
+    usage "missing source directory '$ccmio_version'"
+fi
+
+
+#------------------------------------------------------------------------------
+CCMIO_ARCH_PATH=$installBASE/$ccmio_version
+
+#
+# Build LIBCCMIO
+#
+echo "---------------"
+(
+    cd $ccmio_version || exit 1
+    incDIR=$CCMIO_ARCH_PATH/include/libccmio
+    libDIR=$CCMIO_ARCH_PATH/lib
+
+    mkdir -p $incDIR 2>/dev/null
+    mkdir -p $libDIR 2>/dev/null
+
+    cpMakeFiles libccmio 2>/dev/null
+    set +x
+    if wmake $targetType
+    then
+        # make headers available:
+        /bin/cp -pv libccmio/ccmio*.h $incDIR
+
+        # relocate static libraries to sub-directory:
+        if [ "$targetType" = lib ]
+        then
+            /bin/mv -v $FOAM_EXT_LIBBIN/libccmio.a $libDIR
+        fi
+    fi
+)
+
+
+#------------------------------------------------------------------------------
