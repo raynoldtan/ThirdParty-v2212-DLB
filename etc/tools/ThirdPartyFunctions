@@ -39,17 +39,16 @@ installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER
 #
 # Mostly building without wmake
 # - disable wmakeScheduler variables
-# - restrict WM_NCOMPPROCS to local number of cores
+# - use max number of cores for building
 #
 unset WM_HOSTS WM_SCHEDULER
-export WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo 2>/dev/null | wc -l)
-if [ $WM_NCOMPPROCS -le 1 ]
+if [ -r /proc/cpuinfo ]
 then
+    WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)
+else
     WM_NCOMPPROCS=1
-elif [ $WM_NCOMPPROCS -ge 8 ]
-then
-    WM_NCOMPPROCS=8
 fi
+export WM_NCOMPPROCS
 # echo "Building on $WM_NCOMPPROCS cores"
 
 
