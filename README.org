@@ -2,7 +2,7 @@
 #
 #+TITLE:                 OpenFOAM Third-Party packages
 #+AUTHOR:                  The OpenFOAM Foundation
-#+DATE:                       31th May 2016
+#+DATE:                           2016-06-14
 #+LINK:                     http://www.openfoam.org
 #+OPTIONS: author:nil ^:{}
 # Copyright (c) 2014-2016 OpenFOAM Foundation.
@@ -15,6 +15,8 @@
   + makeCmake (if the system cmake version is < 2.8.8)
   + makeParaView
 *** Optional Build Components:
+    + makeLLVM  (Replaces makeGcc in the above description
+    - to use clang as compiler)
     + makeCCMIO (Only required for conversion of STAR-CCM+ meshes)
     + Allclean  (Only required to save disk space)
 * Versions and locations to download the third party packages
@@ -65,13 +67,21 @@
     directory:
     + wget https://raw.githubusercontent.com/Kitware/VTK/40937e934308e5009e80769dc0c451ee4f157749/IO/Geometry/vtkSTLReader.cxx -O ParaView-4.4.0/VTK/IO/Geometry/vtkSTLReader.cxx
     See also http://www.openfoam.org/mantisbt/view.php?id=1887
+
+    For ParaView-5.0.1, the necessary patches are supplied with the
+    ThirdParty repository (see the etc/patches directory) and are applied
+    when building paraview.
+
 *** Building ParaView-5.0.1 with gcc-6.1.0
 ***** Add support for gcc-6.?.?
       The following cmake files
       + ParaView-5.0.1/VTK/CMake/vtkCompilerExtras.cmake
       + ParaView-5.0.1/VTK/CMake/GenerateExportHeader.cmake
-      specifically limit the gcc versions supported.  To add support gcc-6.?.?
-      replace '[345]' with '[3456]'
+      specifically limit the gcc versions supported.
+      To add support gcc-6.?.? replace the '[345]' with '[3456]'.
+      This patch is also supplied with the ThirdParty repository and
+      applied when building paraview.
+
 ***** SciberQuestToolKit
       The SciberQuestToolKit plugin fails to compile with gcc-6.1.0 and causes
       the compilation of ParaView to halt.  The easiest solution is to delete

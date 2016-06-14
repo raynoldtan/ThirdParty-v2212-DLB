@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -360,6 +360,34 @@ addQtSupport()
     else
         echo "*** Error: cannot find qmake either at \$QMAKE_PATH or in current \$PATH"
         exit 1
+    fi
+}
+
+
+#
+# Apply source-code patch if possible
+#
+applyPatch()
+{
+    local patch="$WM_THIRD_PARTY_DIR/etc/patches/paraview-$ParaView_VERSION"
+    local sentinel="PATCHED_DURING_OPENFOAM_BUILD"
+
+    if [ -r "$patch" ]
+    then
+    (
+        cd $ParaView_SOURCE_DIR || exit 1
+        if [ -f "$sentinel" ]
+        then
+            echo "patch for paraview-$ParaView_VERSION was already applied"
+        else
+            echo "apply patch for paraview-$ParaView_VERSION"
+            touch "$sentinel"
+            patch -p1 < $patch
+
+        fi
+    )
+    else
+        echo "no patch found for paraview-$ParaView_VERSION"
     fi
 }
 

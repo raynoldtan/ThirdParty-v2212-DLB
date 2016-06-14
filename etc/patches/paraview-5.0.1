@@ -1,0 +1,39 @@
+--- ParaView-5.0.1/VTK/CMake/vtkCompilerExtras.cmake.orig	2016-03-28 17:07:10.000000000 +0200
++++ ParaView-5.0.1/VTK/CMake/vtkCompilerExtras.cmake	2016-06-11 15:10:14.820958942 +0200
+@@ -32,7 +32,7 @@
+     OUTPUT_VARIABLE _gcc_version_info
+     ERROR_VARIABLE _gcc_version_info)
+ 
+-  string (REGEX MATCH "[345]\\.[0-9]\\.[0-9]*"
++  string (REGEX MATCH "[3-6]\\.[0-9]\\.[0-9]*"
+     _gcc_version "${_gcc_version_info}")
+   if(NOT _gcc_version)
+     string (REGEX REPLACE ".*\\(GCC\\).*([34]\\.[0-9]).*" "\\1.0"
+--- ParaView-5.0.1/VTK/CMake/GenerateExportHeader.cmake.orig	2016-03-28 17:07:10.000000000 +0200
++++ ParaView-5.0.1/VTK/CMake/GenerateExportHeader.cmake	2016-06-11 15:12:16.344357746 +0200
+@@ -166,7 +166,7 @@
+     execute_process(COMMAND ${CMAKE_C_COMPILER} ARGS --version
+       OUTPUT_VARIABLE _gcc_version_info
+       ERROR_VARIABLE _gcc_version_info)
+-    string(REGEX MATCH "[345]\\.[0-9]\\.[0-9]*"
++    string(REGEX MATCH "[3-6]\\.[0-9]\\.[0-9]*"
+       _gcc_version "${_gcc_version_info}")
+     # gcc on mac just reports: "gcc (GCC) 3.3 20030304 ..." without the
+     # patch level, handle this here:
+--- ParaView-5.0.1/Qt/Components/CMakeLists.txt.orig	2016-06-13 09:27:27.827849525 +0200
++++ ParaView-5.0.1/Qt/Components/CMakeLists.txt	2016-06-13 09:29:28.599318445 +0200
+@@ -656,10 +656,10 @@
+ #the pqSGExportStateWizard has subclasses that directly access
+ #the UI file, and currently we don't have a clean way to break this hard
+ #dependency, so for no we install this ui file.
+-if(PARAVIEW_INSTALL_DEVELOPMENT_FILES)
+-  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ui_pqExportStateWizard.h"
+-          DESTINATION "${VTK_INSTALL_INCLUDE_DIR}")
+-endif()
++#OPENFOAM patch#if(PARAVIEW_INSTALL_DEVELOPMENT_FILES)
++#OPENFOAM patch#  install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ui_pqExportStateWizard.h"
++#OPENFOAM patch#          DESTINATION "${VTK_INSTALL_INCLUDE_DIR}")
++#OPENFOAM patch#endif()
+ 
+ #IF (NOT PV_INSTALL_NO_DEVELOPMENT)
+ #  # Headers

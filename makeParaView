@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -111,6 +111,7 @@ For example,
 to add tests
 
 For finer control, the build stages can be selected or deselected individually:
+  -patch     -no-patch
   -config    -no-config
   -make      -no-make
   -install   -no-install
@@ -144,7 +145,7 @@ setVersion
 #
 # various building stages
 #
-unset runCONFIG runMAKE runINSTALL
+unset runPATCH runCONFIG runMAKE runINSTALL
 runDEFAULT=true
 buildType=Release
 
@@ -161,6 +162,15 @@ do
         ;;
     -gcc)
         export CXX=g++   # use g++
+        shift
+        ;;
+    -patch)              # stage 0: patch sources
+        runPATCH=true
+        unset runDEFAULT
+        shift
+        ;;
+    -no-patch)
+        runPATCH=false
         shift
         ;;
     -config)             # stage 1: config only
@@ -285,6 +295,7 @@ done
 
 if [ "$runDEFAULT" = true ]
 then
+    : ${runPATCH:=true}
     : ${runCONFIG:=true}
     : ${runMAKE:=true}
     : ${runINSTALL:=true}
@@ -309,6 +320,7 @@ cat<<SUMMARY
 
 Build stages selected
 ---------------------
+    -patch    ${runPATCH:-false}
     -config   ${runCONFIG:-false}
     -make     ${runMAKE:-false}
     -install  ${runINSTALL:-false}
@@ -328,6 +340,7 @@ $(checkVersion)
 ---------------------
 SUMMARY
 
+[ "$runPATCH"   = true ] && applyPatch
 [ "$runCONFIG"  = true ] && configParaView
 [ "$runMAKE"    = true ] && makeParaView
 [ "$runINSTALL" = true ] && installParaView
