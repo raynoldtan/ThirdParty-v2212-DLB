@@ -34,7 +34,7 @@
 . $WM_PROJECT_DIR/etc/config.sh/functions
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/libccmio)
 
-ccmio_version=${ccmio_version:-libccmio-2.6.1}
+ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
 targetType=libso
 
 #------------------------------------------------------------------------------
@@ -65,14 +65,14 @@ options:
   -help
 
 * Compile the proprietary libccmio library
-      $ccmio_version
+      $ccmioPACKAGE
 
   Users wishing to make use of the library should contact cd-adapco
   (Siemens PLM) for possible download and terms of use.
 
-  After obtaining the $ccmio_version library, place in folder
+  After obtaining the $ccmioPACKAGE library, place in folder
 
-      $WM_THIRD_PARTY_DIR/$ccmio_version/
+      $WM_THIRD_PARTY_DIR/$ccmioPACKAGE/
 
   prior to running this script.
 
@@ -93,7 +93,7 @@ do
         shift
         ;;
     libccmio-[1-9]*)
-        ccmio_version="${1%%/}"
+        ccmioPACKAGE="${1%%/}"
         shift
         ;;
     *)
@@ -103,21 +103,21 @@ do
 done
 
 # warn if unavailable
-if [ ! -d ${ccmio_version} ]
+if [ ! -d ${ccmioPACKAGE} ]
 then
-    usage "missing source directory '$ccmio_version'"
+    usage "missing source directory '$ccmioPACKAGE'"
 fi
 
 
 #------------------------------------------------------------------------------
-CCMIO_ARCH_PATH=$installBASE/$ccmio_version
+CCMIO_ARCH_PATH=$installBASE/$ccmioPACKAGE
 
 #
 # Build LIBCCMIO
 #
 echo "---------------"
 (
-    cd $ccmio_version || exit 1
+    cd $ccmioPACKAGE || exit 1
     incDIR=$CCMIO_ARCH_PATH/include/libccmio
     libDIR=$CCMIO_ARCH_PATH/lib
 

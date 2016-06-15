@@ -90,52 +90,22 @@ setVersion()
 #------------------------------------------------------------------------------
 
 #
-# Extract and echo date stamp information from
-#     VTK/Utilities/kwsys/kwsysDateStamp.cmake
-# since the order of the entries is already correct, can use simple sed script
-#
-echoDateStamp()
-{
-    (
-        set -- $(
-            sed -ne 's/^SET(KWSYS_DATE_STAMP_[A-Z]*\([ 0-9]*\)).*$/\1/p' \
-            $ParaView_SOURCE_DIR/VTK/Utilities/kwsys/kwsysDateStamp.cmake
-        )
-
-        IFS='-'
-        echo "date-stamp: $*"
-    )
-}
-
-#
-# Extract version information from
-#     CMakeLists.txt
-# since the order of the entries is already correct, can use simple sed script
-#
-getVersion()
-{
-    (
-        set -- $(
-            sed -ne 's/^SET(PARAVIEW_VERSION_[A-Z]*\([ 0-9]*\)).*$/\1/p' \
-            $ParaView_SOURCE_DIR/CMakeLists.txt
-        )
-
-        IFS='.'
-        echo "$*"
-    )
-}
-
-#
-# Compare version information
+# Compare version information (specified vs what is found in CMakeLists.txt)
+# Parse this type of content:
+#   set (PARAVIEW_VERSION_FULL "5.0.1")
 #
 checkVersion()
 {
-    local ver=$(getVersion)
+    local ver=$(
+        sed -ne 's/^ *set *( *PARAVIEW_VERSION_FULL[ "]*\([.0-9]*\).*$/\1/ip' \
+        $ParaView_SOURCE_DIR/CMakeLists.txt
+    )
+
     if [ "$ParaView_VERSION" != "$ver" ]
     then
         echo "MISMATCH!"
         echo "    specified $ParaView_VERSION"
-        echo "    found     $ver"
+        echo "    found     ${ver:-NONE}"
     fi
 }
 
@@ -511,7 +481,7 @@ cat<< INFO
     ---
     Installation complete for paraview-$ParaView_VERSION
     Now update the environment by running:
-        wmRefresh
+        wmREFRESH
     ---
 INFO
 }

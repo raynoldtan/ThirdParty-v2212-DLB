@@ -96,13 +96,14 @@ options:
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current value: $ParaView_VERSION)
   -major   VER      specify an alternative major version for special builds
+  -buildType NAME   specify the build type (default: Release)
   -mesa-include DIR
                     location of mesa headers (current value: ${MESA_INCLUDE:-none})
   -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
   -python-lib PATH  path to python library   (current value: ${PYTHON_LIBRARY:-none})
   -help
 
-The -no-FEATURE option can be disable these features (if not already disabled):
+The -no-FEATURE option can be used to forcibly disable these features:
   mesa mpi python qt
 
 CMake options start with a capital letter and contain an '='.
@@ -311,7 +312,6 @@ addMesaSupport      # set MESA-specific options
 addQtSupport        # add extra Qt support
 
 setDirs             # where things are or should be put
-echoDateStamp       # report kitware source code date-stamp
 
 
 # Build and install
