@@ -69,12 +69,12 @@ do
         ;;
     gperftools-[0-9]* | gperftools-svn*)
         gperftoolsPACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
 #------------------------------------------------------------------------------

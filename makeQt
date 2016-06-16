@@ -73,17 +73,16 @@ do
         ;;
     -gcc)
         export CXX=g++   # use g++
-        shift
         ;;
     [1-9]* | qt-[1-9]*)
         qtVERSION="${1%%/}";
         qtVERSION="${qtVERSION#qt-}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
 #------------------------------------------------------------------------------

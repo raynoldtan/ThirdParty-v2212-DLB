@@ -91,41 +91,32 @@ do
         ;;
     -no-multi*)
         GCC_BUILD_OPTIONS="--disable-multilib"
-        shift
         ;;
     -sys*)
         gmpPACKAGE="gmp-system"
         mpfrPACKAGE="mpfr-system"
         mpcPACKAGE="mpc-system"
-        shift
         ;;
     gmp-[4-9]* | gmp-system)
         gmpPACKAGE="${1%%/}"
-        shift
         ;;
     mpfr-[2-9]* | mpfr-system)
         mpfrPACKAGE="${1%%/}"
-        shift
         ;;
     mpc-[0-9]* | mpc-system)
         mpcPACKAGE="${1%%/}"
-        shift
         ;;
     gcc-[4-9]*)
         gccPACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
-if [ -z "$gccPACKAGE" ]
-then
-    usage "Please specify gcc-VERSION"
-    exit 1
-fi
+[ -n "$gccPACKAGE" ] || die "The gcc-VERSION was not specified"
 
 cat<<SUMMARY
 GCC configuration
@@ -143,7 +134,7 @@ case "$WM_ARCH_OPTION" in
     ABI=$WM_ARCH_OPTION
     ;;
 *)
-    usage "Please set WM_ARCH_OPTION to either 32 or 64'$*'"
+    die "The WM_ARCH_OPTION ($WM_ARCH_OPTION) must be 32 or 64"
     ;;
 esac
 

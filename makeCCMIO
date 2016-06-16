@@ -90,23 +90,19 @@ do
         ;;
     lib|libso)
         targetType="$1"
-        shift
         ;;
     libccmio-[1-9]*)
         ccmioPACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
-# warn if unavailable
-if [ ! -d ${ccmioPACKAGE} ]
-then
-    usage "missing source directory '$ccmioPACKAGE'"
-fi
+# assert: directory must be available
+[ -d "${ccmioPACKAGE}" ] || die "missing source directory '$ccmioPACKAGE'"
 
 
 #------------------------------------------------------------------------------

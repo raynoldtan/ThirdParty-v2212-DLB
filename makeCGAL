@@ -106,40 +106,32 @@ do
         ;;
     -gcc)
         export CXX=g++   # use g++
-        shift
         ;;
     -sys*)
         gmpPACKAGE="gmp-system"
         mpfrPACKAGE="mpfr-system"
         boostPACKAGE="boost-system"
-        shift
         ;;
     gmp-[4-9]* | gmp-system)
         gmpPACKAGE="${1%%/}"
-        shift
         ;;
     mpfr-[2-9]* | mpfr-system)
         mpfrPACKAGE="${1%%/}"
-        shift
         ;;
     CGAL-[0-9]*)
         cgalPACKAGE="${1%%/}"
-        shift
         ;;
     boost-[0-9]* | boost_[0-9]* | boost-system )
         boostPACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
-if [ -z "$cgalPACKAGE" ]
-then
-    usage "The cgal-VERSION was not specified"
-fi
+[ -n "$cgalPACKAGE" ] || die "The cgal-VERSION was not specified"
 
 #------------------------------------------------------------------------------
 #

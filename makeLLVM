@@ -86,19 +86,15 @@ do
         ;;
     llvm-[0-9]* | llvm-svn*)
         llvmPACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
-if [ -z "$llvmPACKAGE" ]
-then
-    die "The llvm-VERSION was not specified"
-    exit 1
-fi
+[ -n "$llvmPACKAGE" ] || die "The llvm-VERSION was not specified"
 
 #------------------------------------------------------------------------------
 # build/install without compiler name

@@ -74,16 +74,15 @@ do
     -gcc)
         export CC=gcc   # use gcc
         export CXX=g++  # use g++
-        shift
         ;;
     cmake-[1-9]*)
         cmakePACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
 

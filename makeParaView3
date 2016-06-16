@@ -78,6 +78,7 @@ CMAKE_PATH=""
 Script=${0##*/}
 
 usage() {
+    exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
@@ -156,124 +157,106 @@ do
         ;;
     [A-Z]*=*)            # cmake variables
         addCMakeVariable "$1"
-        shift
         ;;
     -gcc)
         export CXX=g++   # use g++
-        shift
         ;;
     -config)             # stage 1: config only
         runCONFIG=true
         unset runDEFAULT
-        shift
         ;;
     -no-config)
         runCONFIG=false
-        shift
         ;;
     -make)               # stage 2: make only
         runMAKE=true
         unset runDEFAULT
-        shift
         ;;
     -no-make)
         runMAKE=false
-        shift
         ;;
     -install)            # stage 3: install only
         runINSTALL=true
         unset runDEFAULT
-        shift
         ;;
     -no-install)
         runINSTALL=false
-        shift
         ;;
     -rebuild)            # shortcut for rebuilding
         runMAKE=true
         runINSTALL=true
         unset runDEFAULT
-        shift
         ;;
     -mesa)
         withMESA=true
-        shift
         ;;
     -no-mesa)
         withMESA=false
-        shift
         ;;
     -mesa-include)
-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         MESA_INCLUDE="$2"
-        shift 2
+        shift
         ;;
     -mesa-lib)
-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         MESA_LIBRARY="$2"
-        shift 2
+        shift
         ;;
     -mpi)
         withMPI=true
-        shift
         ;;
     -no-mpi)
         withMPI=false
-        shift
         ;;
     -python)
         withPYTHON=true
-        shift
         ;;
     -no-python)
         withPYTHON=false
-        shift
         ;;
     -python-lib)
-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         PYTHON_LIBRARY="$2"
-        shift 2
+        shift
         ;;
     -cmake)
-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         CMAKE_PATH=$2
-        shift 2
+        shift
         ;;
     -qmake)
-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         QMAKE_PATH=$2
-        shift 2
+        shift
         ;;
     -qt)
         withQT=true
-        shift
         ;;
     -no-qt)
         withQT=false
-        shift
         ;;
     -qt-[1-9]*)
         QMAKE_PATH="$installBASE/${1##-}"
-        shift
         ;;
     -verbose)
         withVERBOSE=true
-        shift
         ;;
     -version)
-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         setVersion "$2"
-        shift 2
+        shift
         ;;
     -major)
-        [ "$#" -ge 2 ] || usage "'$1' option requires an argument"
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         export ParaView_MAJOR="$2"
-        shift 2
+        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
 

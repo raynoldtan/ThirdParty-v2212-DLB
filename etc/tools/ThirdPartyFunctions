@@ -61,6 +61,17 @@ then
 fi
 
 
+# Report error and exit
+die()
+{
+    exec 1>&2
+    echo
+    echo "Error: see '${0##*/} -help' for usage"
+    while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+    echo
+    exit 1
+}
+
 # Test if it matches "*-none"
 _foamIsNone()
 {
