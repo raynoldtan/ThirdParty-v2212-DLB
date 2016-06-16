@@ -337,28 +337,9 @@ addQtSupport()
 #
 # Apply source-code patch if possible
 #
-applyPatch()
+patchParaView()
 {
-    local patch="$WM_THIRD_PARTY_DIR/etc/patches/paraview-$ParaView_VERSION"
-    local sentinel="PATCHED_DURING_OPENFOAM_BUILD"
-
-    if [ -r "$patch" ]
-    then
-    (
-        cd $ParaView_SOURCE_DIR || exit 1
-        if [ -f "$sentinel" ]
-        then
-            echo "patch for paraview-$ParaView_VERSION was already applied"
-        else
-            echo "apply patch for paraview-$ParaView_VERSION"
-            touch "$sentinel"
-            patch -p1 < $patch
-
-        fi
-    )
-    else
-        echo "no patch found for paraview-$ParaView_VERSION"
-    fi
+    applyPatch "paraview-$ParaView_VERSION" "$ParaView_SOURCE_DIR"
 }
 
 

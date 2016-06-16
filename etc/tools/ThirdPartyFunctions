@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -71,8 +71,8 @@ downloadFile()
         return 1
     }
 
-    file="$1"
-    url="$2"
+    local file="$1"
+    local url="$2"
 
     if [ ! -e download/$file ]
     then
@@ -84,10 +84,10 @@ downloadFile()
 
 
 #
-# Copy Make/{files,options} from wmakeFiles/PACKAGE
+# Copy Make/{files,options} from etc/wmakeFiles/PACKAGE
 #
 # $1 = PACKAGE
-# $2 (optional) TARGET DIRECTORY
+# $2 = TARGET DIRECTORY (optional)
 cpMakeFiles()
 {
     set +x
@@ -97,8 +97,8 @@ cpMakeFiles()
         return 1
     }
 
-    pkg=$1
-    dst=${2:-.}
+    local pkg=$1
+    local dst="${2:-.}"
     echo "cpMakeFiles" $pkg $dst
 
     wmakeFiles=$WM_THIRD_PARTY_DIR/etc/wmakeFiles/$pkg
@@ -127,5 +127,42 @@ cpMakeFiles()
     set -x
 }
 
+
+#
+# Apply source-code patch if possible.
+# Patches are taken from etc/patches/PACKAGE
+#
+# $1 = PACKAGE
+# $2 = TARGET DIRECTORY (optional)
+applyPatch()
+{
+    [ "$#" -eq 1 -o "$#" -eq 2 ] || {
+        echo "applyPatch called with incorrect number of arguments ($#): $@"
+        return 1
+    }
+
+    local pkg="$1"
+    local dst="${2:-.}"
+
+    local patch="$WM_THIRD_PARTY_DIR/etc/patches/$pkg"
+    local sentinel="PATCHED_DURING_OPENFOAM_BUILD"
+
+    if [ -r "$patch" ]
+    then
+    (
+        cd $dst || exit 1
+        if [ -f "$sentinel" ]
+        then
+            echo "patch for $pkg was already applied"
+        else
+            echo "apply patch for $pkg"
+            touch "$sentinel"
+            patch -p1 < $patch
+        fi
+    )
+    else
+        echo "no patch found for $pkg"
+    fi
+}
 
 #------------------------------------------------------------------------------

@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -112,7 +112,6 @@ MPICH)
     then
         echo "    have $WM_MPLIB shared library ($FOAM_MPI)"
         echo
-        echo
     elif [ -r $MPI_ARCH_PATH/lib/libmpich.a ]
     then
         echo "    have $WM_MPLIB static library ($FOAM_MPI)"
@@ -172,6 +171,9 @@ MPICH)
 esac
 
 
+#------------------------------------------------------------------------------
+# building scotch is still a bit of a pain
+
 # get SCOTCH_VERSION, SCOTCH_ARCH_PATH
 if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch`
 then
@@ -182,7 +184,6 @@ else
     echo
 fi
 
-# building scotch is still a bit of a pain
 echo ========================================
 echo "Build Scotch decomposition library $SCOTCH_VERSION"
 echo "    $SCOTCH_ARCH_PATH"
@@ -197,10 +198,11 @@ then
     echo "    scotch header in $SCOTCH_ARCH_PATH/include"
     echo "    scotch libs   in $FOAM_EXT_LIBBIN"
     echo
-else
+elif [ -d "$SCOTCH_VERSION" ]
+then
 (
-    set -x
     cd $SCOTCH_VERSION/src || exit 1
+    applyPatch $SCOTCH_VERSION ..       # patch at parent-level
 
     prefixDIR=$SCOTCH_ARCH_PATH
     libDIR=$FOAM_EXT_LIBBIN
@@ -233,21 +235,22 @@ else
     # cleanup, could also remove Makefile.inc
     make realclean 2>/dev/null
 )
+else
+    echo "    optional component SCOTCH was not found"
 fi
 
-# verify existence of scotch include
-[ -f $SCOTCH_ARCH_PATH/include/scotch.h ] || {
-    echo
-    echo "    WARNING: required include file 'scotch.h' not found!"
-    echo
-}
-
-
 # build ptscotch if MPI (ThirdParty or system) is available
-if [ "${FOAM_MPI:-dummy}" != dummy ]
+# and there is a scotch include available (ie, normal scotch was built)
+if [ "${FOAM_MPI:-dummy}" != dummy ] && \
+   [ -f $SCOTCH_ARCH_PATH/include/scotch.h ] || \
+{
+    echo "    WARNING: skipping pt-scotch - 'scotch.h' include file not found!"
+    echo
+    false
+}
 then
     echo ========================================
-    echo "Build PTScotch decomposition library $SCOTCH_VERSION (uses MPI)"
+    echo "Build pt-scotch decomposition library $SCOTCH_VERSION (with $FOAM_MPI)"
     echo "    $SCOTCH_ARCH_PATH"
     echo
 
@@ -354,9 +357,11 @@ then
     )
     fi
 else
-    echo "    optional component Metis was not found"
+    echo "    optional component METIS was not found"
 fi
 
+
+#------------------------------------------------------------------------------
 
 # CGAL is optional
 echo ========================================
@@ -373,8 +378,11 @@ then
     fi
 )
 else
-    echo "    optional component was not found"
+    echo "    optional component CGAL was not found"
 fi
+
+
+#------------------------------------------------------------------------------
 
 echo
 echo ========================================

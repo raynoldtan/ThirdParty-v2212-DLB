@@ -340,7 +340,7 @@ $(checkVersion)
 ---------------------
 SUMMARY
 
-[ "$runPATCH"   = true ] && applyPatch
+[ "$runPATCH"   = true ] && patchParaView
 [ "$runCONFIG"  = true ] && configParaView
 [ "$runMAKE"    = true ] && makeParaView
 [ "$runINSTALL" = true ] && installParaView
