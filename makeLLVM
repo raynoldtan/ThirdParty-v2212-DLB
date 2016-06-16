@@ -37,12 +37,14 @@
 #        cd -
 #
 #------------------------------------------------------------------------------
+# get default llvm/clang version
+WM_COMPILER_TYPE="ThirdParty"     # ensure we get the correct compiler settings
+WM_COMPILER=Clang                 # force values for 'clang'
 
-# get default llvm version
 . $WM_PROJECT_DIR/etc/config.sh/functions
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
 
-llvmPACKAGE=${clang_version:-llvm-3.7.0}
+llvmPACKAGE=$clang_version
 
 #------------------------------------------------------------------------------
 # run from third-party directory only
@@ -54,13 +56,16 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
+Script=${0##*/}
 
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [llvm-VERSION]
+usage: $Script [OPTION] [llvm-VERSION]
+options:
+  -help
 
 * build llvm/clang
       $llvmPACKAGE
@@ -68,6 +73,8 @@ usage: ${0##*/} [llvm-VERSION]
 USAGE
     exit 1
 }
+
+#-----------------------------------------------------------------------------
 
 
 # parse options
@@ -86,6 +93,12 @@ do
         ;;
     esac
 done
+
+if [ -z "$llvmPACKAGE" ]
+then
+    die "The llvm-VERSION was not specified"
+    exit 1
+fi
 
 #------------------------------------------------------------------------------
 # build/install without compiler name

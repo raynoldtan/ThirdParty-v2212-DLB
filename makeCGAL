@@ -44,12 +44,10 @@ _foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
           $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
 
-set -x
-
-cgalPACKAGE=${cgal_version:-CGAL-4.8}
 boostPACKAGE=${boost_version:-boost-system}
 gmpPACKAGE=${gmp_version:-gmp-system}
 mpfrPACKAGE=${mpfr_version:-mpfr-system}
+cgalPACKAGE=$cgal_version
 
 #------------------------------------------------------------------------------
 # Run from third-party directory only
@@ -88,7 +86,7 @@ Note: mixing system and ThirdParty for gmp/mpfr is not supported.
 USAGE
     exit 1
 }
-
+#------------------------------------------------------------------------------
 
 # Ensure CMake gets the correct C++ compiler
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
@@ -100,6 +98,9 @@ do
     case "$1" in
     -h | -help)
         usage
+        ;;
+    '')
+        # discard empty arguments
         ;;
     -gcc)
         export CXX=g++   # use g++
@@ -127,9 +128,12 @@ do
     esac
 done
 
+if [ -z "$cgalPACKAGE" ]
+then
+    usage "The cgal-VERSION was not specified"
+fi
 
 #------------------------------------------------------------------------------
-
 #
 # Build Boost
 #
@@ -176,6 +180,13 @@ else
     fi
 fi
 
+# nothing left to build
+if [ "$cgal_version" = "cgal-system" ]
+then
+    echo "Using system installation of CGAL"
+    exit 0
+fi
+
 
 # Retrieve boost version:
 if [ -f "$boostInc/boost/version.hpp" ]
@@ -187,12 +198,19 @@ else
     exit 1
 fi
 
-if [ "$cgal_version" = "cgal-system" ]
-then
-    echo "Using system installation of CGAL"
-    exit 0
-fi
+#------------------------------------------------------------------------------
 
+cat<<SUMMARY
+CGAL configuration
+------------------
+    CGAL    = $cgalPACKAGE
+    BOOST   = $boostPACKAGE
+    GMP     = $gmpPACKAGE
+    MPFR    = $mpfrPACKAGE
+------------------
+SUMMARY
+
+#------------------------------------------------------------------------------
 #
 # Build CGAL
 #

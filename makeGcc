@@ -26,19 +26,21 @@
 #     makeGcc
 #
 # Description
-#     Build script for gmp, mpfr and gcc-[4-9].?.?
+#     Build script gcc and gmp, mpfr, mpc.
+#
 #
 #------------------------------------------------------------------------------
-
 # get default GCC, mpfr, gmp and mpc versions
+WM_COMPILER_TYPE="ThirdParty"     # ensure we get the correct compiler settings
+: ${WM_COMPILER:=Gcc}             # this will still fail if 'Clang' was set
+
 . $WM_PROJECT_DIR/etc/config.sh/functions
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
 
-gmpPACKAGE=${gmp_version:-gmp-5.1.2}
-mpfrPACKAGE=${mpfr_version:-mpfr-3.1.2}
-mpcPACKAGE=${mpc_version:-mpc-1.0.1}
+gmpPACKAGE=${gmp_version:-gmp-system}
+mpfrPACKAGE=${mpfr_version:-mpfr-system}
+mpcPACKAGE=${mpc_version:-mpc-system}
 gccPACKAGE=$gcc_version
-
 
 #------------------------------------------------------------------------------
 # Run from third-party directory only
@@ -50,15 +52,16 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
+Script=${0##*/}
 
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [option] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION] <gcc-VERSION>
+usage: $Script [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
 options:
-  -no-multilib      for 64-bit systems that don't have 32-bit support
+  -no-multilib      for 64-bit systems without 32-bit support
   -help
 
 * build combinations of gmp, mpfr, mpc and gcc
@@ -70,8 +73,9 @@ options:
 USAGE
     exit 1
 }
+#------------------------------------------------------------------------------
 
-GCC_BUILD_OPTIONS=""
+unset GCC_BUILD_OPTIONS
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -80,7 +84,7 @@ do
     -h | -help)
         usage
         ;;
-    -no-multilib)
+    -no-multi*)
         GCC_BUILD_OPTIONS="--disable-multilib"
         shift
         ;;
@@ -134,9 +138,9 @@ GMP_ARCH_PATH=$installBASE/$gmpPACKAGE
 MPFR_ARCH_PATH=$installBASE/$mpfrPACKAGE
 MPC_ARCH_PATH=$installBASE/$mpcPACKAGE
 
-#
+# ================
 # Build GMP
-#
+# ================
 echo "---------------"
 if [ -d $GMP_ARCH_PATH ]
 then
@@ -171,9 +175,9 @@ fi
 
 export LD_LIBRARY_PATH="$GMP_ARCH_PATH/lib:$LD_LIBRARY_PATH"
 
-#
+# ================
 # Build MPFR
-#
+# ================
 echo "---------------"
 if [ -d $MPFR_ARCH_PATH ]
 then
@@ -209,9 +213,10 @@ fi
 
 export LD_LIBRARY_PATH="$MPFR_ARCH_PATH/lib:$LD_LIBRARY_PATH"
 
-#
-# Build mpc
-#
+
+# ================
+# Build MPC
+# ================
 echo "---------------"
 if [ -d $MPC_ARCH_PATH ]
 then
@@ -247,17 +252,18 @@ else
 }
 fi
 
-
 if [ -d "$MPC_ARCH_PATH" ]
 then
     export LD_LIBRARY_PATH="$MPC_ARCH_PATH/lib:$LD_LIBRARY_PATH"
 fi
 
 
-#
+# ================
 # Build GCC
-# might need 32-bit glibc-devel headers to compile
+# ================
+# may need 32-bit glibc-devel headers to compile
 # E.g. on ubuntu install g++-multilib
+# or specify -no-multilib on the command-line
 #
 echo "---------------"
 if [ -d $GCC_ARCH_PATH ]
