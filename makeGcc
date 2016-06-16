@@ -28,6 +28,10 @@
 # Description
 #     Build script gcc and gmp, mpfr, mpc.
 #
+#     Normally builds against ThirdParty gmp/mpfr when possible.
+#     To override this behaviour (and use the system gmp/mpfr/mpc),
+#     simply specify a 'system' version. For example,
+#         makeGcc gmp-system
 #
 #------------------------------------------------------------------------------
 # get default GCC, mpfr, gmp and mpc versions
@@ -62,6 +66,7 @@ usage() {
 usage: $Script [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
 options:
   -no-multilib      for 64-bit systems without 32-bit support
+  -system           use system versions for gmp/mpfr/mpc
   -help
 
 * build combinations of gmp, mpfr, mpc and gcc
@@ -88,15 +93,21 @@ do
         GCC_BUILD_OPTIONS="--disable-multilib"
         shift
         ;;
-    gmp-[4-9]*)
+    -sys*)
+        gmpPACKAGE="gmp-system"
+        mpfrPACKAGE="mpfr-system"
+        mpcPACKAGE="mpc-system"
+        shift
+        ;;
+    gmp-[4-9]* | gmp-system)
         gmpPACKAGE="${1%%/}"
         shift
         ;;
-    mpfr-[2-9]*)
+    mpfr-[2-9]* | mpfr-system)
         mpfrPACKAGE="${1%%/}"
         shift
         ;;
-    mpc-[0-9]*)
+    mpc-[0-9]* | mpc-system)
         mpcPACKAGE="${1%%/}"
         shift
         ;;
@@ -116,6 +127,15 @@ then
     exit 1
 fi
 
+cat<<SUMMARY
+GCC configuration
+------------------
+    GCC     = $gccPACKAGE
+    GMP     = $gmpPACKAGE
+    MPFR    = $mpfrPACKAGE
+    MPC     = $mpcPACKAGE
+------------------
+SUMMARY
 
 # Set 32 or 64 bit ABI
 case "$WM_ARCH_OPTION" in
@@ -138,6 +158,7 @@ GMP_ARCH_PATH=$installBASE/$gmpPACKAGE
 MPFR_ARCH_PATH=$installBASE/$mpfrPACKAGE
 MPC_ARCH_PATH=$installBASE/$mpcPACKAGE
 
+
 # ================
 # Build GMP
 # ================
@@ -145,6 +166,9 @@ echo "---------------"
 if [ -d $GMP_ARCH_PATH ]
 then
     echo "Already built: $gmpPACKAGE"
+elif _foamIsSystem $GMP_ARCH_PATH
+then
+    echo "Using gmp-system"
 else
     echo "Starting build: $gmpPACKAGE"
     echo
@@ -186,6 +210,9 @@ echo "---------------"
 if [ -d $MPFR_ARCH_PATH ]
 then
     echo "Already built: $mpfrPACKAGE"
+elif _foamIsSystem $MPFR_ARCH_PATH
+then
+    echo "Using mpfr-system"
 else
     echo "Starting build: $mpfrPACKAGE"
     echo
@@ -228,6 +255,9 @@ echo "---------------"
 if [ -d $MPC_ARCH_PATH ]
 then
     echo "Already built: $mpcPACKAGE"
+elif _foamIsSystem $MPC_ARCH_PATH
+then
+    echo "Using mpc-system"
 else
     echo "Starting build: $mpcPACKAGE"
     echo
@@ -289,6 +319,10 @@ else
     rm -rf $buildDIR
     mkdir -p $buildDIR
     cd $buildDIR
+
+    _foamIsSystem "$GMP_ARCH_PATH"  && GMP_ARCH_PATH=/usr  # revert to system
+    _foamIsSystem "$MPFR_ARCH_PATH" && MPFR_ARCH_PATH=/usr # revert to system
+    _foamIsSystem "$MPC_ARCH_PATH"  && MPC_ARCH_PATH=/usr  # revert to system
 
     set -x
     $sourceDIR/configure \

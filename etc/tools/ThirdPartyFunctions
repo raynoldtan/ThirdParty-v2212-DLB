@@ -61,6 +61,19 @@ then
 fi
 
 
+# Test if it matches "*-none"
+_foamIsNone()
+{
+    test "${1##*-}" = none
+}
+
+# Test if it matches "*-system"
+_foamIsSystem()
+{
+    test "${1##*-}" = system
+}
+
+
 #
 # Download file $1 from url $2 into download/ directory
 #
