@@ -173,7 +173,11 @@ else
 }
 fi
 
-export LD_LIBRARY_PATH="$GMP_ARCH_PATH/lib:$LD_LIBRARY_PATH"
+if [ -d "$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" ]
+then
+    _foamAddLib "$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
+fi
+
 
 # ================
 # Build MPFR
@@ -211,7 +215,10 @@ else
 }
 fi
 
-export LD_LIBRARY_PATH="$MPFR_ARCH_PATH/lib:$LD_LIBRARY_PATH"
+if [ -d "$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" ]
+then
+    _foamAddLib "$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
+fi
 
 
 # ================
@@ -252,9 +259,9 @@ else
 }
 fi
 
-if [ -d "$MPC_ARCH_PATH" ]
+if [ -d "$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" ]
 then
-    export LD_LIBRARY_PATH="$MPC_ARCH_PATH/lib:$LD_LIBRARY_PATH"
+    _foamAddLib "$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
 fi
 
 
