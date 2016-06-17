@@ -34,14 +34,13 @@
 #     simply specify a 'system' version. For example,
 #         makeCGAL boost-system gmp-system
 #
-#     Mixing system and ThirdParty for gmp/mpfr is not supported.
-#
 #------------------------------------------------------------------------------
 
 # Get CGAL, boost and gmp/mpfr versions
 . $WM_PROJECT_DIR/etc/config.sh/functions
-_foamEval SOURCE_CGAL_VERSIONS_ONLY=yes \
-          $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
+unset _foamAddPath _foamAddLib _foamAddMan # get settings only
+
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
 
 boostPACKAGE=${boost_version:-boost-system}
@@ -82,8 +81,6 @@ Normally builds against ThirdParty boost and gmp/mpfr when possible.
 To override this behaviour (and use the system boost and/or gmp/mpfr),
 simply specify a 'system' version. For example,
     $Script boost-system gmp-system
-
-Note: mixing system and ThirdParty for gmp/mpfr is not supported.
 
 USAGE
     exit 1
