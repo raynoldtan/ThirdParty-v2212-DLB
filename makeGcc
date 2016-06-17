@@ -28,14 +28,21 @@
 # Description
 #     Build script gcc and gmp, mpfr, mpc.
 #
-#     Normally builds against ThirdParty gmp/mpfr when possible.
-#     To override this behaviour (and use the system gmp/mpfr/mpc),
-#     simply specify a 'system' version. For example,
+#     To force building against the system gmp/mpfr/mpc libraries,
+#     use a corresponding '*-system' version. For example,
+#
 #         makeGcc gmp-system
+#
+#     or use the '-system' options to use system libraries everywhere.
+#
+#     The WM_COMPILER value can also be used specify a known gcc version.
+#     For example (also compiling against system gmp/mpfr/mpc),
+#
+#         WM_COMPILER=Gcc51 ./makeGcc -system
 #
 #------------------------------------------------------------------------------
 # get default GCC, mpfr, gmp and mpc versions
-WM_COMPILER_TYPE="ThirdParty"     # ensure we get the correct compiler settings
+WM_COMPILER_TYPE=ThirdParty       # ensure we get the correct compiler settings
 : ${WM_COMPILER:=Gcc}             # this will still fail if 'Clang' was set
 
 . $WM_PROJECT_DIR/etc/config.sh/functions
@@ -65,7 +72,8 @@ usage() {
 
 usage: $Script [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
 options:
-  -no-multilib      for 64-bit systems without 32-bit support
+  -multilib         for 64-bit systems with 32-bit support required
+  -no-multilib      for 64-bit systems without 32-bit support (DEFAULT)
   -system           use system versions for gmp/mpfr/mpc
   -help
 
@@ -80,7 +88,8 @@ USAGE
 }
 #------------------------------------------------------------------------------
 
-unset GCC_BUILD_OPTIONS
+# build 32-bit libraries on 64-bit systems (normally not needed)
+optMultilib=disable
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -89,8 +98,11 @@ do
     -h | -help)
         usage
         ;;
+    -multi*)
+        optMultilib=enable
+        ;;
     -no-multi*)
-        GCC_BUILD_OPTIONS="--disable-multilib"
+        optMultilib=disable
         ;;
     -sys*)
         gmpPACKAGE="gmp-system"
@@ -315,6 +327,10 @@ else
     _foamIsSystem "$MPFR_ARCH_PATH" && MPFR_ARCH_PATH=/usr # revert to system
     _foamIsSystem "$MPC_ARCH_PATH"  && MPC_ARCH_PATH=/usr  # revert to system
 
+    unset configOpt
+    # with/without multi-lib (32-bit support on 64-bit systems)
+    [ -n "$optMultilib" ] && configOpt="--${optMultilib}-multilib"
+
     set -x
     $sourceDIR/configure \
         --prefix=$GCC_ARCH_PATH \
@@ -329,7 +345,7 @@ else
         --enable-__cxa_atexit \
         --enable-libstdcxx-allocator=new \
         --with-system-zlib \
-        $GCC_BUILD_OPTIONS \
+        $configOpt \
         MAKEINFO=missing \
     && make -j $WM_NCOMPPROCS \
     && make install \
