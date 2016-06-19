@@ -71,6 +71,12 @@ QMAKE_PATH=""
 # Set the path to cmake
 CMAKE_PATH=""
 
+# new rendering backend (starting with paraview 5.0)
+withGL2=true
+if [ "${ParaView_VERSION%%.*}" = 4 ]
+then withGL2=false
+fi
+
 #
 # NO FURTHER EDITING BELOW THIS LINE
 #
@@ -85,6 +91,7 @@ usage() {
 usage: $Script [OPTION] [CMAKE-OPTION]
 options:
   -rebuild          for repeated builds (-make -install) *use with caution*
+  -gl2              with new rendering backend (if not already enabled)
   -mesa             with mesa (if not already enabled)
   -mpi              with mpi (if not already enabled)
   -python           with python (if not already enabled)
@@ -123,13 +130,17 @@ For finer control, the build stages can be selected or deselected individually:
       \$WM_THIRD_PARTY_DIR/ParaView-$ParaView_VERSION
   ->  \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/paraview-$ParaView_VERSION
 
+To change the paraview version, use the 'foamPV' command prior to '$Script'.
+For example,
+    foamPV 4.4.0 ; ./makeParaview
+
 USAGE
     exit 1
 }
 
 #------------------------------------------------------------------------------
 
-# ensure CMake gets the correct C++ compiler
+# ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 [ -n "$WM_CC" ] && export CC="$WM_CC"
 
@@ -196,6 +207,12 @@ do
         runMAKE=true
         runINSTALL=true
         unset runDEFAULT
+        ;;
+    -gl2)
+        withGL2=true
+        ;;
+    -no-gl2)
+        withGL2=false
         ;;
     -mesa)
         withMESA=true
@@ -290,6 +307,7 @@ addVerbosity        # verbose makefiles
 addMpiSupport       # set MPI-specific options
 addPythonSupport    # set Python-specific options
 addMesaSupport      # set MESA-specific options
+addGL2Support       # new rendering backend
 addQtSupport        # add extra Qt support
 
 setDirs             # where things are or should be put

@@ -1,11 +1,12 @@
 #                            -*- mode: org; -*-
 #
 #+TITLE:                 OpenFOAM Third-Party packages
-#+AUTHOR:                  The OpenFOAM Foundation
-#+DATE:                           2016-06-14
+#+AUTHOR:            The OpenFOAM Foundation / OpenCFD Ltd.
+#+DATE:                           2016-06-19
 #+LINK:                     http://www.openfoam.org
 #+OPTIONS: author:nil ^:{}
 # Copyright (c) 2014-2016 OpenFOAM Foundation.
+# Copyright (c) 2016 OpenCFD Ltd.
 
 * Description
   Scripts for building third-party packages.
@@ -62,15 +63,12 @@
     does not exist and cannot be installed causing the build and installation to
     fail.
 
-    Additionally for ParaView-4.4.0 there is a bug in the STL reader which can
-    be patched by running the following command from within the ThirdParty-???
-    directory:
-    + wget https://raw.githubusercontent.com/Kitware/VTK/40937e934308e5009e80769dc0c451ee4f157749/IO/Geometry/vtkSTLReader.cxx -O ParaView-4.4.0/VTK/IO/Geometry/vtkSTLReader.cxx
-    See also http://www.openfoam.org/mantisbt/view.php?id=1887
+    Additionally for ParaView-4.4.0 there is a bug in the STL reader.
+    (see http://www.openfoam.org/mantisbt/view.php?id=1887).
 
-    For ParaView-5.0.1, the necessary patches are supplied with the
-    ThirdParty repository (see the etc/patches directory) and are applied
-    when building paraview.
+    For ParaView-4.4.0 and ParaView-5.0.1,
+    the necessary patches are supplied with the ThirdParty repository
+    (see the etc/patches directory) and are applied when building paraview.
 
 *** Building ParaView-5.0.1 with gcc-6.1.0
 ***** Add support for gcc-6.?.?
@@ -79,6 +77,7 @@
       + ParaView-5.0.1/VTK/CMake/GenerateExportHeader.cmake
       specifically limit the gcc versions supported.
       To add support gcc-6.?.? replace the '[345]' with '[3456]'.
+
       This patch is also supplied with the ThirdParty repository and
       applied when building paraview.
 

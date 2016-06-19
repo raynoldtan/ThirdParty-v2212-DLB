@@ -178,9 +178,9 @@ addPythonSupport()
             PYTHON_LIBRARY=$(ldd $pythonBin | \
                 sed -ne '/libpython/s/.* => \(.*\) (.*/\1/p')
 
-           [ -e "$PYTHON_LIBRARY" ] || {
-               echo "*** Error: Unable to determine path to python library."
-           }
+            [ -e "$PYTHON_LIBRARY" ] || {
+                echo "*** Error: Unable to determine path to python library."
+            }
         fi
 
         [ -e "$PYTHON_LIBRARY" ] || {
@@ -230,7 +230,7 @@ addMesaSupport()
 {
     if [ "${withMESA:=false}" != true ]
     then
-       return
+        return
     fi
 
     if [ -d "$MESA_INCLUDE" -a -f "$MESA_LIBRARY" ]
@@ -394,6 +394,7 @@ configParaView()
     echo "    MPI    support : ${withMPI:-false}"
     echo "    Python support : ${withPYTHON:-false}"
     echo "    MESA   support : ${withMESA:-false}"
+    echo "    GL2  rendering : false"
     echo "    Qt dev support : ${withQT:-false}"
     echo "    Source         : $ParaView_SOURCE_DIR"
     echo "    Build          : $ParaView_BINARY_DIR"
