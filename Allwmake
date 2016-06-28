@@ -250,7 +250,7 @@ then
     make realclean 2>/dev/null
 )
 else
-    echo "    optional component SCOTCH was not found"
+    echo "    Optional component (SCOTCH) was not found"
 fi
 
 # build ptscotch if MPI (ThirdParty or system) is available
@@ -371,28 +371,58 @@ then
     )
     fi
 else
-    echo "    optional component METIS was not found"
+    echo "    Optional component (METIS) was not found"
 fi
 
 
 #------------------------------------------------------------------------------
 
+warnBuildIssues()
+{
+    echo
+    echo "    ---------------------------------------------------"
+    echo "    Optional component ($1) had build issues"
+    echo "    OpenFOAM will nonetheless remain largely functional"
+    echo "    ---------------------------------------------------"
+    echo
+}
+
+warnNotFound()
+{
+    echo "    Optional component ($1) was not found"
+    echo
+}
+
+
 # CGAL is optional
 echo ========================================
 echo Build CGAL
-if [ -n "$CGAL_ARCH_PATH" ]
+if [ -d "$CGAL_ARCH_PATH/include" \
+  -a -r "$CGAL_ARCH_PATH/lib/libCGAL.so" ]
 then
-(
-    if [ -r $CGAL_ARCH_PATH/lib/libCGAL.so ]
-    then
-        echo "    CGAL headers in $CGAL_ARCH_PATH/include"
-        echo "    CGAL libs    in $CGAL_ARCH_PATH/lib"
-    else
-        ./makeCGAL
-    fi
-)
+    echo "    CGAL headers in $CGAL_ARCH_PATH/include"
+    echo "    CGAL libs    in $CGAL_ARCH_PATH/lib"
+elif [ -n "$CGAL_ARCH_PATH" ]
+then
+    ./makeCGAL || warnBuildIssues CGAL
 else
-    echo "    optional component CGAL was not found"
+    warnNotFound CGAL
+fi
+
+
+# FFTW is optional
+echo ========================================
+echo Build FFTW
+if [ -d "$FFTW_ARCH_PATH/include" \
+  -a -r "$FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libfftw3.so" ]
+then
+    echo "    FFTW headers in $FFTW_ARCH_PATH/include"
+    echo "    FFTW libs    in $FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
+elif [ -n "$FFTW_ARCH_PATH" ]
+then
+    ./makeFFTW || warnBuildIssues FFTW
+else
+    warnNotFound FFTW
 fi
 
 
@@ -403,6 +433,5 @@ echo ========================================
 echo Done ThirdParty Allwmake
 echo ========================================
 echo
-
 
 #------------------------------------------------------------------------------

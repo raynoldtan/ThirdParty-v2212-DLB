@@ -195,13 +195,6 @@ then
     exit 0
 fi
 
-# nothing left to build
-if [ "$cgal_version" = "cgal-system" ]
-then
-    echo "Using system installation of CGAL"
-    exit 0
-fi
-
 
 # Retrieve boost version:
 if [ -f "$boostInc/boost/version.hpp" ]
