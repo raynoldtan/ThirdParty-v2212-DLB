@@ -2,7 +2,7 @@
 #
 #+TITLE:                 OpenFOAM Third-Party packages
 #+AUTHOR:            The OpenFOAM Foundation / OpenCFD Ltd.
-#+DATE:                           2016-06-19
+#+DATE:                           2016-06-28
 #+LINK:                     http://www.openfoam.org
 #+OPTIONS: author:nil ^:{}
 # Copyright (c) 2014-2016 OpenFOAM Foundation.
@@ -44,6 +44,7 @@
     + CGAL        https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.8/CGAL-4.8.tar.xz
     + boost       https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.bz2/download
 *** Miscellaneous
+    + FFTW        http://www.fftw.org/fftw-3.3.4.tar.gz
     + libccmio    http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz
 * Notes
 *** Building ParaView-4.3.1/4.4.0/5.0.0/5.0.1
