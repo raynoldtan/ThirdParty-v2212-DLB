@@ -58,11 +58,11 @@ options:
 USAGE
     exit 1
 }
+#------------------------------------------------------------------------------
 
-
-# ensure configure gets the correct C++ compiler
+# ensure configure gets the correct C/C++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
-
 
 # parse options
 while [ "$#" -gt 0 ]
@@ -72,7 +72,8 @@ do
         usage
         ;;
     -gcc)
-        export CXX=g++   # use g++
+        export CC=gcc    # use gcc/g++
+        export CXX=g++
         ;;
     [1-9]* | qt-[1-9]*)
         qtVERSION="${1%%/}";

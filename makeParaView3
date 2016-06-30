@@ -132,8 +132,8 @@ USAGE
 #------------------------------------------------------------------------------
 
 # ensure CMake gets the correct C/C++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
-[ -n "$WM_CC" ] && export CC="$WM_CC"
 
 #
 # add options based on script name:
@@ -163,7 +163,8 @@ do
         addCMakeVariable "$1"
         ;;
     -gcc)
-        export CXX=g++   # use g++
+        export CC=gcc    # use gcc/g++
+        export CXX=g++
         ;;
     -config)             # stage 1: config only
         runCONFIG=true

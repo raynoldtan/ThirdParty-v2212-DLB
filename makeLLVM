@@ -26,15 +26,29 @@
 #     makeLLVM
 #
 # Description
-#     Build script for llvm/clang etc.
+#     Build script for llvm, clang etc.
 #
-#    - Checkout LLVM:
-#        svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm-svn
+# Note
+#    - Ensure that you always use matching versions between llvm and clang.
+#    - The LLVM components reside in the LLVM tools/ subdirectory
 #
-#    - Checkout Clang:
-#        cd llvm-svn/tools
-#        svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
-#        cd -
+#    Example, building from svn repository:
+#      1) Checkout LLVM:
+#            svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm-svn
+#
+#      2) Checkout Clang, in the correct location
+#            cd llvm-svn/tools
+#            svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
+#            cd -
+#
+#    Example, building from tar files (version 3.8.0)
+#    - Unpack LLVM:
+#        tar -Jvf llvm-3.8.0.src.tar.xz
+#        mv llvm-3.8.0.src  llvm-3.8.0
+#
+#    - Unpack Clang (also know as cfe):
+#        tar -Jvf cfe-3.8.0.src.tar.xz
+#        mv cfe-3.8.0.src  llvm-3.8.0/tools/clang
 #
 #------------------------------------------------------------------------------
 # get default llvm/clang version

@@ -68,6 +68,10 @@ USAGE
 }
 #------------------------------------------------------------------------------
 
+# ensure configure gets the correct C/C++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CC"
+[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -79,8 +83,8 @@ do
         # discard empty arguments
         ;;
     -gcc)
-        export CC=gcc    # use gcc
-        export CXX=g++   # use g++
+        export CC=gcc    # use gcc/g++
+        export CXX=g++
         ;;
     fftw-[0-9]* | fftw_[0-9]* | fftw-system )
         fftwPACKAGE="${1%%/}"

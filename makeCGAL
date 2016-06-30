@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2012-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -87,9 +87,9 @@ USAGE
 }
 #------------------------------------------------------------------------------
 
-# Ensure CMake gets the correct C++ compiler
+# Ensure CMake gets the correct C/C++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CCX"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
-
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -102,7 +102,8 @@ do
         # discard empty arguments
         ;;
     -gcc)
-        export CXX=g++   # use g++
+        export CC=gcc    # use gcc/g++
+        export CXX=g++
         ;;
     -sys*)
         gmpPACKAGE="gmp-system"
