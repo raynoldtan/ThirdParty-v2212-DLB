@@ -38,7 +38,7 @@
 
 # Get CGAL, boost and gmp/mpfr versions
 . $WM_PROJECT_DIR/etc/config.sh/functions
-unset _foamAddPath _foamAddLib _foamAddMan # get settings only
+unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
 
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
