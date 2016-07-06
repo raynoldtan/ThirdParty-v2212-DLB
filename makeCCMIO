@@ -32,7 +32,7 @@
 
 # Get version info
 . $WM_PROJECT_DIR/etc/config.sh/functions
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/libccmio)
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ccmio)
 
 ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
 targetType=libso
