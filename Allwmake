@@ -56,9 +56,9 @@ echo
 echo ========================================
 echo Start ThirdParty Allwmake
 echo ========================================
+
+
 echo
-
-
 echo ========================================
 echo Build MPI libraries if required
 echo "    $MPI_ARCH_PATH"
@@ -189,7 +189,7 @@ esac
 # building scotch is still a bit of a pain
 
 # get SCOTCH_VERSION, SCOTCH_ARCH_PATH
-if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch`
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch)
 then
     . $settings
 else
@@ -198,6 +198,7 @@ else
     echo
 fi
 
+echo
 echo ========================================
 echo "Build Scotch decomposition library $SCOTCH_VERSION"
 echo "    $SCOTCH_ARCH_PATH"
@@ -211,7 +212,6 @@ if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
 then
     echo "    scotch header in $SCOTCH_ARCH_PATH/include"
     echo "    scotch libs   in $FOAM_EXT_LIBBIN"
-    echo
 elif [ -d "$SCOTCH_VERSION" ]
 then
 (
@@ -258,15 +258,15 @@ fi
 if [ "${FOAM_MPI:-dummy}" != dummy ] && \
    [ -f $SCOTCH_ARCH_PATH/include/scotch.h ] || \
 {
-    echo "    WARNING: skipping pt-scotch - 'scotch.h' include file not found!"
     echo
+    echo "    WARNING: skipping pt-scotch - 'scotch.h' include file not found!"
     false
 }
 then
+    echo
     echo ========================================
     echo "Build pt-scotch decomposition library $SCOTCH_VERSION (with $FOAM_MPI)"
     echo "    $SCOTCH_ARCH_PATH"
-    echo
 
     if [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h \
       -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch.so \
@@ -274,9 +274,9 @@ then
     then
         echo "    ptscotch header in $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
         echo "    ptscotch libs   in $FOAM_EXT_LIBBIN/$FOAM_MPI"
-        echo
     else
     (
+        echo
         set -x
         cd $SCOTCH_VERSION/src || exit 1
 
@@ -318,7 +318,6 @@ then
     [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h ] || {
         echo
         echo "    WARNING: required include file 'ptscotch.h' not found!"
-        echo
     }
 fi
 
@@ -326,11 +325,12 @@ fi
 #------------------------------------------------------------------------------
 
 # Metis is optional
+echo
 echo ========================================
 echo Build Metis decomposition
 
 # get METIS_VERSION, METIS_ARCH_PATH
-if settings=`$WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis`
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
 then
     . $settings
 fi
@@ -395,13 +395,26 @@ warnNotFound()
 
 
 # CGAL is optional
+echo
 echo ========================================
 echo Build CGAL
 if [ -d "$CGAL_ARCH_PATH/include" \
   -a -r "$CGAL_ARCH_PATH/lib/libCGAL.so" ]
 then
-    echo "    CGAL headers in $CGAL_ARCH_PATH/include"
-    echo "    CGAL libs    in $CGAL_ARCH_PATH/lib"
+    # first some information about boost
+    if [ -d "$BOOST_ARCH_PATH/include/boost" \
+      -a -r "$BOOST_ARCH_PATH/lib/libboost_system.so" ]
+    then
+        echo "    BOOST headers in $BOOST_ARCH_PATH/include"
+        echo "    BOOST libs    in $BOOST_ARCH_PATH/lib"
+    elif [ -d "/usr/include/boost" \
+        -a -r "/usr/lib${WM_COMPILER_LIB_ARCH}/libboost_system.so" ]
+    then
+        echo "    BOOST headers in /usr/include"
+        echo "    BOOST libs    in /usr/lib${WM_COMPILER_LIB_ARCH}"
+    fi
+    echo "    CGAL  headers in $CGAL_ARCH_PATH/include"
+    echo "    CGAL  libs    in $CGAL_ARCH_PATH/lib"
 elif [ -n "$CGAL_ARCH_PATH" ]
 then
     ./makeCGAL || warnBuildIssues CGAL
@@ -411,13 +424,14 @@ fi
 
 
 # FFTW is optional
+echo
 echo ========================================
 echo Build FFTW
 if [ -d "$FFTW_ARCH_PATH/include" \
   -a -r "$FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libfftw3.so" ]
 then
-    echo "    FFTW headers in $FFTW_ARCH_PATH/include"
-    echo "    FFTW libs    in $FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
+    echo "    FFTW  headers in $FFTW_ARCH_PATH/include"
+    echo "    FFTW  libs    in $FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
 elif [ -n "$FFTW_ARCH_PATH" ]
 then
     ./makeFFTW || warnBuildIssues FFTW

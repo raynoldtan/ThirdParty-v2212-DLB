@@ -81,7 +81,7 @@ options:
       $gmpPACKAGE
       $mpfrPACKAGE
       $mpcPACKAGE
-      $gccPACKAGE
+      ${gccPACKAGE:-'unspecified GCC version'}
 
 USAGE
     exit 1

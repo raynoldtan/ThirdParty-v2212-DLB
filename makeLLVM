@@ -82,7 +82,7 @@ options:
   -help
 
 * build llvm/clang
-      $llvmPACKAGE
+      ${llvmPACKAGE:-'unspecified LLVM version'}
 
 USAGE
     exit 1
@@ -148,7 +148,7 @@ else
     set -x
     $sourceDIR/configure \
         --prefix=$LLVM_ARCH_PATH \
-        --with-gcc-toolchain=`which gcc | sed s%/bin/gcc%%` \
+        --with-gcc-toolchain=$(which gcc | sed s%/bin/gcc%%) \
         --enable-optimized \
     && make -j $WM_NCOMPPROCS \
     && make install \

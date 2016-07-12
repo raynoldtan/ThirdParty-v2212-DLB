@@ -61,7 +61,7 @@ options:
   -help
 
 * build FFTW with
-      $fftwPACKAGE
+      ${fftwPACKAGE:-'unspecified FFTW version'}
 
 USAGE
     exit 1

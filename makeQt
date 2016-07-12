@@ -50,7 +50,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [VERSION]
 options:
-  -gcc              force g++ instead of the value from \$WM_CXX
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
 * build $qtTYPE, version $qtVERSION

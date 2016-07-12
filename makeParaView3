@@ -93,7 +93,7 @@ options:
   -qt               with extra Qt gui support (if not already enabled)
   -qt-VER           with Qt version corresponding to
                         \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/qt-VER/bin/qmake
-  -gcc              force g++ instead of the value from \$WM_CXX
+  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current value: $ParaView_VERSION)
   -major   VER      specify an alternative major version for special builds

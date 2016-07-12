@@ -67,12 +67,12 @@ usage() {
 
 usage: $Script [OPTION] [CGAL-VERSION] [boost-VERSION] [gmp-VERSION] [mpfr-VERSION]
 options:
-  -gcc              force g++ instead of the value from \$WM_CXX
+  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -system           use system versions for boost/gmp/mpfr
   -help
 
 * build CGAL with
-      $cgalPACKAGE
+      ${cgalPACKAGE:-'unspecified CGAL version'}
       $boostPACKAGE
       $gmpPACKAGE
       $mpfrPACKAGE
