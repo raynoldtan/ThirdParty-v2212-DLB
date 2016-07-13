@@ -72,12 +72,16 @@ setDirs()
 #
 # Set ParaView_VERSION and adjust ParaView_MAJOR accordingly
 #
+# $1 can contain something something like 4.4.0, paraview-4.4.0, ParaView-4.0.0
+#
 setVersion()
 {
-    if [ "$#" -ge 1 ]
-    then
-        ParaView_VERSION="${1##paraview-}"
-    fi
+    [ $# -gt 0 ] || {
+        echo "Error: function setVersion() called without an argument"
+        exit 1
+    }
+
+    ParaView_VERSION="${1##*-}"
 
     # The major version is "<digits>.<digits>"
     ParaView_MAJOR=$(echo $ParaView_VERSION | \

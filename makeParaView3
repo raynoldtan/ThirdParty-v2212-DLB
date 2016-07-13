@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -31,7 +31,7 @@
 #       (note capitalisation)
 #
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -82,7 +82,7 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [CMAKE-OPTION]
+usage: $Script [OPTION] [paraview-VERSION] [CMAKE-OPTION]
 options:
   -rebuild          for repeated builds (-make -install) *use with caution*
   -mesa             with mesa (if not already enabled)
@@ -121,9 +121,10 @@ For finer control, the build stages can be selected or deselected individually:
       \$WM_THIRD_PARTY_DIR/ParaView-$ParaView_VERSION
   ->  \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/paraview-$ParaView_VERSION
 
-To make a different paraview version, use the 'foamPV' command prior to '$Script'.
+To make a different paraview version, simply specify on the command-line.
 For example,
-    foamPV 3.14.0 ; ./makeParaview
+
+    ./makeParaview 3.14.1
 
 USAGE
     exit 1
@@ -143,8 +144,8 @@ case "$Script" in *-mpi*)    withMPI=true;; esac
 case "$Script" in *-python*) withPYTHON=true;; esac
 case "$Script" in *-qt*)     withQT=true;; esac
 
-# set ParaView_MAJOR based on current value of ParaView_VERSION
-setVersion
+# Set initial ParaView_MAJOR based on current value of ParaView_VERSION
+setVersion ${ParaView_VERSION:-none}
 
 #
 # various building stages
@@ -158,6 +159,9 @@ do
     case "$1" in
     -h | -help)
         usage
+        ;;
+    [0-9]* | paraview-[0-9]* | ParaView-[0-9]*) # paraview version
+        setVersion "${1%%/}"
         ;;
     [A-Z]*=*)            # cmake variables
         addCMakeVariable "$1"
@@ -249,7 +253,7 @@ do
         ;;
     -version)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        setVersion "$2"
+        setVersion "${2%%/}"
         shift
         ;;
     -major)
@@ -264,6 +268,14 @@ do
     shift
 done
 
+[ -n "$ParaView_VERSION" ] || die "The paraview-VERSION was not specified"
+
+# nothing to build
+if _foamIsNone "$ParaView_VERSION"
+then
+    echo "Using paraview-none (skip ThirdParty build of ParaView)"
+    exit 0
+fi
 
 if [ "$runDEFAULT" = true ]
 then
