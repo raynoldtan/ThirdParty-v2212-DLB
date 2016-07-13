@@ -31,6 +31,15 @@
 #       (note capitalisation)
 #
 #------------------------------------------------------------------------------
+# Get ParaView_DIR location from OpenFOAM config file
+. $WM_PROJECT_DIR/etc/config.sh/functions
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/paraview)
+
+# Determine ParaView_VERSION from ParaView_DIR location:
+ParaView_VERSION="${ParaView_DIR##*/}"; export ParaView_VERSION
+: ${ParaView_VERSION##*-}
+
+#------------------------------------------------------------------------------
 # Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
@@ -82,6 +91,7 @@ withGL2=auto
 Script=${0##*/}
 
 usage() {
+    : ${ParaView_VERSION:=none} # some dummy value for usage information
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
@@ -132,6 +142,8 @@ To make a different paraview version, simply specify on the command-line.
 For example,
 
     ./makeParaview 4.4.0
+
+Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 
 USAGE
     exit 1
