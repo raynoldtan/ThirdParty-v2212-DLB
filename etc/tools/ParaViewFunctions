@@ -279,29 +279,49 @@ addQtSupport()
 
     addCMakeVariable "PARAVIEW_BUILD_QT_GUI=ON"
 
-    unset qmakeExe
+    local candidate
+    local foundExe
     if [ -n "$QMAKE_PATH" ]
     then
+        # check as directory
         if [ -d "$QMAKE_PATH" ]
         then
-            if [ -x "$QMAKE_PATH/qmake" ]
-            then
-                qmakeExe=$QMAKE_PATH/qmake
-            elif [ -x "$QMAKE_PATH/bin/qmake" ]
-            then
-                qmakeExe=$QMAKE_PATH/bin/qmake
-            fi
-        elif [ -x "$QMAKE_PATH" ]
-        then
-            qmakeExe=$QMAKE_PATH
+            for candidate in \
+                $QMAKE_PATH/qmake \
+                $QMAKE_PATH/bin/qmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
         fi
 
-        if [ -n "$qmakeExe" ]
+        # check as file, include ThirdParty installation in the search
+        if [ -z "$foundExe" ]
+        then
+            for candidate in \
+                $QMAKE_PATH \
+                $installBASE/$QMAKE_PATH/bin/qmake \
+                $installBASE/qt-$QMAKE_PATH/bin/qmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
+        fi
+
+        if [ -n "$foundExe" ]
         then
             # Use absolute path
-            if [ "${qmakeExe#/}" = "$qmakeExe" ]
+            if [ "${foundExe#/}" = "$foundExe" ]
             then
-                qmakeExe="$(cd ${qmakeExe%/qmake} 2>/dev/null && pwd)/qmake"
+                foundExe="$(cd ${foundExe%/qmake} 2>/dev/null && pwd)/qmake"
             fi
         else
             echo
@@ -312,21 +332,21 @@ addQtSupport()
         fi
     fi
 
-    # Default to using qmake from the path
-    if [ -n "$qmakeExe" ]
+    # Fallback to qmake from the path
+    if [ -n "$foundExe" ]
     then
-        addCMakeVariable "QT_QMAKE_EXECUTABLE:FILEPATH=$qmakeExe"
+        addCMakeVariable "QT_QMAKE_EXECUTABLE:FILEPATH=$foundExe"
     else
-        qmakeExe=qmake
+        foundExe=qmake
     fi
 
 
     # Check qmake can be found
-    if type $qmakeExe >/dev/null 2>&1
+    if type $foundExe >/dev/null 2>&1
     then
         # Check the Qt version selected
         # parse -> "Using Qt version X.Y.Z in ..."
-        QtVersion=$($qmakeExe -query QT_VERSION)
+        QtVersion=$($foundExe -query QT_VERSION)
 
         # Split Major.Minor.Revision - could also use IFS hacking
         set -- $(echo "$QtVersion" | sed -e 's/\./ /g')
@@ -364,29 +384,49 @@ patchParaView()
 #
 configParaView()
 {
-    unset cmakeExe
+    local candidate
+    local foundExe
     if [ -n "$CMAKE_PATH" ]
     then
+        # check as directory
         if [ -d "$CMAKE_PATH" ]
         then
-            if [ -x "$CMAKE_PATH/cmake" ]
-            then
-                cmakeExe=$CMAKE_PATH/cmake
-            elif [ -x "$CMAKE_PATH/bin/cmake" ]
-            then
-                cmakeExe=$CMAKE_PATH/bin/cmake
-            fi
-        elif [ -x "$CMAKE_PATH" ]
-        then
-            cmakeExe=$CMAKE_PATH
+            for candidate in \
+                $CMAKE_PATH/cmake \
+                $CMAKE_PATH/bin/cmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
         fi
 
-        if [ -n "$cmakeExe" ]
+        # check as file, include ThirdParty installation in the search
+        if [ -z "$foundExe" ]
+        then
+            for candidate in \
+                $CMAKE_PATH \
+                $installBASE/$CMAKE_PATH/bin/cmake \
+                $installBASE/cmake-$CMAKE_PATH/bin/cmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
+        fi
+
+        if [ -n "$foundExe" ]
         then
             # Use absolute path
-            if [ "${cmakeExe#/}" = "$cmakeExe" ]
+            if [ "${foundExe#/}" = "$foundExe" ]
             then
-                cmakeExe="$(cd ${cmakeExe%/cmake} 2>/dev/null && pwd)/cmake"
+                foundExe="$(cd ${foundExe%/cmake} 2>/dev/null && pwd)/cmake"
             fi
         else
             echo
@@ -397,11 +437,8 @@ configParaView()
         fi
     fi
 
-    # Default to using cmake from the path
-    if [ -z "$cmakeExe" ]
-    then
-        cmakeExe=cmake
-    fi
+    # Fallback to cmake from the path
+    [ -n "$foundExe" ] || foundExe=cmake
 
     # Remove any existing build folder and recreate
     if [ -d $ParaView_BINARY_DIR ]
@@ -427,9 +464,10 @@ configParaView()
     echo "    Build          : $ParaView_BINARY_DIR"
     echo "    Target         : $ParaView_DIR"
     echo "    Build type     : $buildType"
+    echo "    Cmake          : $foundExe"
     echo "----"
     echo
-    echo "$cmakeExe" \
+    echo "$foundExe" \
         -DCMAKE_INSTALL_PREFIX:PATH=$ParaView_DIR \
         $CMAKE_VARIABLES \
         $ParaView_SOURCE_DIR
@@ -438,7 +476,7 @@ configParaView()
     echo
 
     # Run cmake to create Makefiles
-    $cmakeExe \
+    $foundExe \
         -DCMAKE_INSTALL_PREFIX:PATH=$ParaView_DIR \
         $CMAKE_VARIABLES \
         $ParaView_SOURCE_DIR
@@ -476,9 +514,12 @@ installParaView()
     make install
 
 cat<< INFO
+
     ---
     Installation complete for paraview-$ParaView_VERSION
-    Now update the environment by running:
+    ParaView_DIR=$ParaView_DIR
+
+    You may need to update the OpenFOAM environment by running:
         wmREFRESH
     ---
 INFO

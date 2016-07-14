@@ -237,12 +237,12 @@ do
         ;;
     -mesa-include)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        MESA_INCLUDE="$2"
+        MESA_INCLUDE="${2%%/}"
         shift
         ;;
     -mesa-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        MESA_LIBRARY="$2"
+        MESA_LIBRARY="${2%%/}"
         shift
         ;;
     -mpi)
@@ -259,17 +259,17 @@ do
         ;;
     -python-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        PYTHON_LIBRARY="$2"
+        PYTHON_LIBRARY="${2%%/}"
         shift
         ;;
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        CMAKE_PATH=$2
+        CMAKE_PATH="${2%%/}"
         shift
         ;;
     -qmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        QMAKE_PATH=$2
+        QMAKE_PATH="${2%%/}"
         shift
         ;;
     -qt)
