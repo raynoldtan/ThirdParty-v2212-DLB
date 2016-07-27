@@ -64,12 +64,12 @@ MPI_MAX_PROCS=32
 #       If it fails, specify the path using the PYTHON_LIBRARY variable
 withPYTHON=false
 PYTHON_LIBRARY=""
-# PYTHON_LIBRARY="/usr/lib64/libpython2.6.so.1.0"
+# PYTHON_LIBRARY="/usr/lib$WM_COMPILER_LIB_ARCH/libpython2.6.so.1.0"
 
 # MESA graphics support:
 withMESA=false
 MESA_INCLUDE="/usr/include/GL"
-MESA_LIBRARY="/usr/lib64/libOSMesa.so"
+MESA_LIBRARY="/usr/lib$WM_COMPILER_LIB_ARCH/libOSMesa.so"
 
 # extra QT gui support (useful for some third party apps)
 withQT=true
@@ -113,8 +113,8 @@ options:
   -version VER      specify an alternative version (current value: $ParaView_VERSION)
   -major   VER      specify an alternative major version for special builds
   -buildType NAME   specify the build type (default: Release)
-  -mesa-include DIR
-                    location of mesa headers (current value: ${MESA_INCLUDE:-none})
+  -mesa-prefix DIR  location of mesa installation (sets -mesa-include, -mesa-lib)
+  -mesa-include DIR location of mesa headers (current value: ${MESA_INCLUDE:-none})
   -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
   -python-lib PATH  path to python library   (current value: ${PYTHON_LIBRARY:-none})
   -help
@@ -164,7 +164,7 @@ case "$Script" in *-python*) withPYTHON=true;; esac
 case "$Script" in *-qt*)     withQT=true;; esac
 
 # Set initial ParaView_MAJOR based on current value of ParaView_VERSION
-setVersion ${ParaView_VERSION:-none}
+setParaViewVersion ${ParaView_VERSION:-none}
 
 #
 # various building stages
@@ -181,7 +181,7 @@ do
         usage
         ;;
     [0-9]* | paraview-[0-9]* | ParaView-[0-9]*) # paraview version
-        setVersion "${1%%/}"
+        setParaViewVersion "${1%%/}"
         ;;
     [A-Z]*=*)            # cmake variables
         addCMakeVariable "$1"
@@ -235,6 +235,13 @@ do
     -no-mesa)
         withMESA=false
         ;;
+    -mesa-prefix)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withMESA=true
+        MESA_INCLUDE="${2%%/}/include"
+        MESA_LIBRARY="${2%%/}/lib$WM_COMPILER_LIB_ARCH/libOSMesa.so"
+        shift
+        ;;
     -mesa-include)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         MESA_INCLUDE="${2%%/}"
@@ -286,7 +293,7 @@ do
         ;;
     -version)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        setVersion "${2%%/}"
+        setParaViewVersion "${2%%/}"
         shift
         ;;
     -major)
@@ -344,7 +351,7 @@ addMesaSupport      # set MESA-specific options
 addGL2Support       # new rendering backend
 addQtSupport        # add extra Qt support
 
-setDirs             # where things are or should be put
+setParaViewDirs     # where things are or should be put
 
 
 # Build and install

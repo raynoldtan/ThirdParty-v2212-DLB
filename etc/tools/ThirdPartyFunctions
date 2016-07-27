@@ -86,6 +86,142 @@ _foamIsSystem()
 
 
 #
+# try to locate cmake according to the CMAKE_PATH
+# or just use what is found in the path
+#
+findCMake()
+{
+    local candidate
+    local foundExe
+
+    if [ -n "$CMAKE_PATH" ]
+    then
+        # check as directory
+        if [ -d "$CMAKE_PATH" ]
+        then
+            for candidate in \
+                $CMAKE_PATH/cmake \
+                $CMAKE_PATH/bin/cmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
+        fi
+
+        # check as file, include ThirdParty installation in the search
+        if [ -z "$foundExe" ]
+        then
+            for candidate in \
+                $CMAKE_PATH \
+                $installBASE/$CMAKE_PATH/bin/cmake \
+                $installBASE/cmake-$CMAKE_PATH/bin/cmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
+        fi
+
+        if [ -n "$foundExe" ]
+        then
+            # Use absolute path
+            if [ "${foundExe#/}" = "$foundExe" ]
+            then
+                foundExe="$(cd ${foundExe%/cmake} 2>/dev/null && pwd)/cmake"
+            fi
+
+            echo "$foundExe"
+            return 0
+        else
+            cat << NOT_FOUND 1>&2
+'cmake' not found under specified CMAKE_PATH
+    CMAKE_PATH=$CMAKE_PATH
+reverting to using command from path
+NOT_FOUND
+        fi
+    fi
+
+    # Default is cmake from the path
+    echo cmake
+}
+
+
+#
+# try to locate qmake according to the QMAKE_PATH
+# or just use what is found in the path
+#
+findQtMake()
+{
+    local candidate
+    local foundExe
+
+    if [ -n "$QMAKE_PATH" ]
+    then
+        # check as directory
+        if [ -d "$QMAKE_PATH" ]
+        then
+            for candidate in \
+                $QMAKE_PATH/qmake \
+                $QMAKE_PATH/bin/qmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
+        fi
+
+        # check as file, include ThirdParty installation in the search
+        if [ -z "$foundExe" ]
+        then
+            for candidate in \
+                $QMAKE_PATH \
+                $installBASE/$QMAKE_PATH/bin/qmake \
+                $installBASE/qt-$QMAKE_PATH/bin/qmake \
+            ;
+            do
+                if [ -f "$candidate" -a -x "$candidate" ]
+                then
+                    foundExe=$candidate
+                    break
+                fi
+            done
+        fi
+
+        if [ -n "$foundExe" ]
+        then
+            # Use absolute path
+            if [ "${foundExe#/}" = "$foundExe" ]
+            then
+                foundExe="$(cd ${foundExe%/qmake} 2>/dev/null && pwd)/qmake"
+            fi
+
+            echo "$foundExe"
+            return 0
+        else
+            cat << NOT_FOUND 1>&2
+'qmake' not found under specified QMAKE_PATH
+    QMAKE_PATH=$QMAKE_PATH
+reverting to using command from path
+NOT_FOUND
+        fi
+    fi
+
+    # Default is qmake from the path
+    echo qmake
+}
+
+
+#
 # Download file $1 from url $2 into download/ directory
 #
 downloadFile()
