@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -90,7 +90,6 @@ USAGE
 
 #-----------------------------------------------------------------------------
 
-
 # parse options
 while [ "$#" -gt 0 ]
 do
@@ -150,6 +149,7 @@ else
         --prefix=$LLVM_ARCH_PATH \
         --with-gcc-toolchain=$(which gcc | sed s%/bin/gcc%%) \
         --enable-optimized \
+        --enable-shared \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $llvmPACKAGE"
