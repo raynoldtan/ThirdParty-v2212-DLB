@@ -6,6 +6,8 @@ mesa=mesa-11.2.2
 
 ./makeVTK \
     $vtk \
-    -osmesa -mesa-prefix $WM_THIRD_PARTY_DIR/platforms/linux64Gcc/$mesa
+    -osmesa \
+    -mesa-prefix $WM_THIRD_PARTY_DIR/platforms/linux64Gcc/$mesa \
+    "$@"
 
 #------------------------------------------------------------------------------
