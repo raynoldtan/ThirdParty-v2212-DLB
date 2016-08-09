@@ -35,7 +35,7 @@
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ccmio)
 
 ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
-targetType=libso
+targetType=lib
 
 #------------------------------------------------------------------------------
 # run from third-party directory only
