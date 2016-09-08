@@ -51,10 +51,10 @@ setParaViewDirs()
         exit 1
     }
 
-    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION-$OBJ_ADD
+    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
     ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION
 
-    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION-$OBJ_ADD
+    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
     ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION
 
     export ParaView_SOURCE_DIR ParaView_BINARY_DIR ParaView_DIR

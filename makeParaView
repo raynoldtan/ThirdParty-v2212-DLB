@@ -56,6 +56,7 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 # ~~~~~~~~~~~~~
 
 # MPI support:
+# use 0 or unset MPI_MAX_PROCS for no upper-limit
 withMPI=false
 MPI_MAX_PROCS=32
 
@@ -102,6 +103,8 @@ options:
   -gl2              with new rendering backend (if not already enabled)
   -mesa             with mesa (if not already enabled)
   -mpi              with mpi (if not already enabled)
+  -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
+                        upper-limit on processes.
   -python           with python (if not already enabled)
   -cmake PATH       with the cmake version corresponding to the cmake path given
   -qmake PATH       with the Qt version corresponding to the qmake path given
@@ -254,6 +257,10 @@ do
         ;;
     -mpi)
         withMPI=true
+        ;;
+    -mpi=[0-9]*) # mpi and max mpi processes
+        withMPI=true
+        MPI_MAX_PROCS="${1##*=}"
         ;;
     -no-mpi)
         withMPI=false

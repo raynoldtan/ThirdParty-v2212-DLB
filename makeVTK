@@ -51,6 +51,11 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 # USER OPTIONS:
 # ~~~~~~~~~~~~~
 
+# MPI support:
+# use 0 or unset MPI_MAX_PROCS for no upper-limit
+withMPI=false
+unset MPI_MAX_PROCS
+
 # MESA graphics support:
 withMESA=false
 MESA_INCLUDE="/usr/include/GL"
@@ -80,6 +85,9 @@ options:
   -rebuild          for repeated builds (-make -install) *use with caution*
   -gl2              with new rendering backend (if not already enabled)
   -mesa             with mesa (if not already enabled)
+  -mpi              with mpi (if not already enabled)
+  -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
+                        upper-limit on processes.
   -osmesa           with off-screen mesa only
   -cmake PATH       with the cmake version corresponding to the cmake path given
   -gcc              force g++ instead of the value from \$WM_CXX
@@ -92,7 +100,7 @@ options:
   -help
 
 The -no-FEATURE option can be disable these features (if not already disabled):
-  mesa
+  mesa mpi
 
 CMake options start with a capital letter and contain an '='.
 For example,
@@ -204,6 +212,16 @@ do
         MESA_LIBRARY="${2%%/}"
         shift
         ;;
+    -mpi)
+        withMPI=true
+        ;;
+    -mpi=[0-9]*) # mpi and max mpi processes
+        withMPI=true
+        MPI_MAX_PROCS="${1##*=}"
+        ;;
+    -no-mpi)
+        withMPI=false
+        ;;
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         CMAKE_PATH="${2%%/}"
@@ -256,6 +274,7 @@ fi
 # Set configure options
 #~~~~~~~~~~~~~~~~~~~~~~
 addVerbosity        # verbose makefiles
+addMpiSupport       # set MPI-specific options
 addMesaSupport      # set MESA-specific options
 addGL2Support       # new rendering backend
 
@@ -285,6 +304,7 @@ Build stages selected
 ---------------------
 Features selected
     mesa      ${withMESA:-false}
+    mpi       ${withMPI:-false}
 ---------------------
 Version information
     version   ${VTK_VERSION:-unknown}

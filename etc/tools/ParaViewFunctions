@@ -51,10 +51,10 @@ setParaViewDirs()
         exit 1
     }
 
-    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION-$OBJ_ADD
+    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
     ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION
 
-    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION-$OBJ_ADD
+    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
     ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION
 
     export ParaView_SOURCE_DIR ParaView_BINARY_DIR ParaView_DIR
@@ -151,7 +151,10 @@ addMpiSupport()
     OBJ_ADD="$OBJ_ADD-mpi"
 
     addCMakeVariable  "PARAVIEW_USE_MPI=ON VTK_USE_MPI=ON"
-    addCMakeVariable  "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
+    if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
+    then
+        addCMakeVariable  "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
+    fi
 }
 
 
