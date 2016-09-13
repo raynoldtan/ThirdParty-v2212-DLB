@@ -202,7 +202,7 @@ addPythonSupport()
         pythonInclude=/usr/include/python$pythonMajor
 
         # Note - we could also allow for a PYTHON_INCLUDE variable ...
-        [ -d "$pythonInclude" ] || {
+        [ -d "$pythonInclude" -a -f "$pythonInclude/Python.h" ] || {
             echo "    No python headers found in $pythonInclude/"
             echo "    Please install python headers or deactivate "
             echo "    python support by not using the -python option"
@@ -210,7 +210,7 @@ addPythonSupport()
         }
 
         addCMakeVariable  "PARAVIEW_ENABLE_PYTHON=ON"
-        addCMakeVariable  "PYTHON_INCLUDE_PATH=$pythonInclude"
+        addCMakeVariable  "PYTHON_INCLUDE_DIRS=$pythonInclude"
         addCMakeVariable  "PYTHON_LIBRARY=$PYTHON_LIBRARY"
 
         echo "----"
