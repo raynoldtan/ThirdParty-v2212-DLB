@@ -23,7 +23,7 @@ CFLAGS     += -DINTSIZE64
 endif
 
 CLIBFLAGS   = -shared
-LDFLAGS     = -Xlinker --no-as-needed $(WM_LDFLAGS) -lz -lm
+LDFLAGS     = -Xlinker --no-as-needed $(WM_LDFLAGS) -lz -lm -lrt
 CP          = cp
 LEX         = flex -Pscotchyy -olex.yy.c
 LN          = ln
