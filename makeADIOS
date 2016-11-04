@@ -127,7 +127,8 @@ if [ -f $ADIOS_ARCH_PATH/include/adios.h \
   -a -r $ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libadios_${FOAM_MPI}.a ]
 then
     echo "    ADIOS header in $ADIOS_ARCH_PATH/include"
-    echo "    ADIOS libs   in $FOAM_EXT_LIBBIN"
+    ### echo "    ADIOS libs   in $FOAM_EXT_LIBBIN"           # dynamic
+    echo "    ADIOS libs   in $ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" # static
     echo
 else
 (

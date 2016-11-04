@@ -52,6 +52,25 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 [ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
 [ -n "$WM_LDFLAGS" ]    &&  export LDFLAGS="$WM_LDFLAGS"
 
+
+warnBuildIssues()
+{
+    echo
+    echo "    ---------------------------------------------------"
+    echo "    Optional component ($1) had build issues"
+    echo "    OpenFOAM will nonetheless remain largely functional"
+    echo "    ---------------------------------------------------"
+    echo
+}
+
+warnNotFound()
+{
+    echo "    Optional component ($1) was not found"
+    echo
+}
+
+#------------------------------------------------------------------------------
+
 echo
 echo ========================================
 echo Start ThirdParty Allwmake
@@ -216,6 +235,8 @@ elif [ -d "$SCOTCH_VERSION" ]
 then
 (
     cd $SCOTCH_VERSION/src || exit 1
+    rm -rf $SCOTCH_ARCH_PATH
+
     applyPatch $SCOTCH_VERSION ..       # patch at parent-level
 
     prefixDIR=$SCOTCH_ARCH_PATH
@@ -248,15 +269,16 @@ then
 
     # cleanup, could also remove Makefile.inc
     make realclean 2>/dev/null
-)
+) || warnBuildIssues SCOTCH
 else
-    echo "    Optional component (SCOTCH) was not found"
+    warnNotFound SCOTCH
 fi
 
-# build ptscotch if MPI (ThirdParty or system) is available
-# and there is a scotch include available (ie, normal scotch was built)
+# Build ptscotch if MPI (ThirdParty or system) is available
+# and normal scotch was build (has include and library)
 if [ "${FOAM_MPI:-dummy}" != dummy ] && \
-   [ -f $SCOTCH_ARCH_PATH/include/scotch.h ] || \
+   [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
+  -a -r $FOAM_EXT_LIBBIN/libscotch.so ] || \
 {
     echo
     echo "    WARNING: skipping pt-scotch - 'scotch.h' include file not found!"
@@ -314,7 +336,7 @@ then
     )
     fi
 
-    # verify existence of scotch include
+    # verify existence of ptscotch include
     [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h ] || {
         echo
         echo "    WARNING: required include file 'ptscotch.h' not found!"
@@ -334,65 +356,52 @@ if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
 then
     . $settings
 fi
-if [ -d "$METIS_VERSION" ]
+
+if [ -f $METIS_ARCH_PATH/include/metis.h \
+  -a -r $FOAM_EXT_LIBBIN/libmetis.so ]
 then
+    echo "    metis header in $METIS_ARCH_PATH/include"
+    echo "    metis libs   in $FOAM_EXT_LIBBIN"
+    echo
+elif [ -d "$METIS_VERSION" ]
+then
+(
+    cd $METIS_VERSION || exit 1
+    rm -rf $METIS_ARCH_PATH
 
-    if [ -f $METIS_ARCH_PATH/include/metis.h \
-      -a -r $FOAM_EXT_LIBBIN/libmetis.so ]
-    then
-        echo "    metis header in $METIS_ARCH_PATH/include"
-        echo "    metis libs   in $FOAM_EXT_LIBBIN"
-        echo
-    else
-    (
-        set -x
-        cd $METIS_VERSION  || exit 1
+    case "$WM_PRECISION_OPTION" in
+    SP)
+        WM_SCALAR_SIZE=32
+        ;;
+    DP)
+        WM_SCALAR_SIZE=64
+        ;;
+    *)
+        echo " Metis pre-configure error:"
+        echo "    WM_PRECISION_OPTION neither DP nor SP"
+        exit 1
+    esac
 
-        if [ "$WM_PRECISION_OPTION" = "DP" ]
-        then
-            FLOAT_PRECISION=64
-        elif [ "$WM_PRECISION_OPTION" = "SP" ]
-        then
-            FLOAT_PRECISION=32
-        else
-            echo " Metis pre-configure error:"
-            echo "    WM_PRECISION_OPTION is neither DP nor SP"
-            exit 1
-        fi
+    # Change user settings automatically
+    sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
+           -e 's=\(#define REALTYPEWIDTH\).*=\1 '$WM_SCALAR_SIZE'=' \
+        include/metis.h
 
-        # Change user settings automatically
-        sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
-               -e 's=\(#define REALTYPEWIDTH\).*=\1 '$FLOAT_PRECISION'=' \
-            include/metis.h
+    # No config option for the library location.
+    # - build normally and use mv to relocate it
 
-        make config shared=1 prefix=$METIS_ARCH_PATH
-        make -j $WM_NCOMPPROCS install
-        cp $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
-    )
-    fi
+    make config shared=true prefix=$METIS_ARCH_PATH \
+    && make -j $WM_NCOMPPROCS install \
+    && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
+
+    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # failure is not critical
+) || warnBuildIssues METIS
 else
-    echo "    Optional component (METIS) was not found"
+    warnNotFound METIS
 fi
 
 
 #------------------------------------------------------------------------------
-
-warnBuildIssues()
-{
-    echo
-    echo "    ---------------------------------------------------"
-    echo "    Optional component ($1) had build issues"
-    echo "    OpenFOAM will nonetheless remain largely functional"
-    echo "    ---------------------------------------------------"
-    echo
-}
-
-warnNotFound()
-{
-    echo "    Optional component ($1) was not found"
-    echo
-}
-
 
 # CGAL is optional
 echo
