@@ -3,8 +3,8 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -26,18 +26,39 @@
 #     makeLLVM
 #
 # Description
-#     Build script for llvm/clang etc.
+#     Build script for llvm, clang etc.
 #
-#    - Checkout LLVM:
-#        svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm-svn
+# Note
+#    - Ensure that you always use matching versions between llvm and clang.
+#    - The LLVM components reside in the LLVM tools/ subdirectory
 #
-#    - Checkout Clang:
-#        cd llvm-svn/tools
-#        svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
-#        cd -
+#    Example, building from svn repository:
+#      1) Checkout LLVM:
+#            svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm-svn
+#
+#      2) Checkout Clang, in the correct location
+#            cd llvm-svn/tools
+#            svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
+#            cd -
+#
+#    Example, building from tar files (version 3.8.0)
+#    - Unpack LLVM:
+#        tar -Jvf llvm-3.8.0.src.tar.xz
+#        mv llvm-3.8.0.src  llvm-3.8.0
+#
+#    - Unpack Clang (also know as cfe):
+#        tar -Jvf cfe-3.8.0.src.tar.xz
+#        mv cfe-3.8.0.src  llvm-3.8.0/tools/clang
 #
 #------------------------------------------------------------------------------
-llvmPACKAGE=llvm-3.6.0
+# get default llvm/clang version
+WM_COMPILER_TYPE="ThirdParty"     # ensure we get the correct compiler settings
+WM_COMPILER=Clang                 # force values for 'clang'
+
+. $WM_PROJECT_DIR/etc/config.sh/functions
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
+
+llvmPACKAGE=$clang_version
 
 #------------------------------------------------------------------------------
 # run from third-party directory only
@@ -49,21 +70,25 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
+Script=${0##*/}
 
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [llvm-VERSION]
+usage: $Script [OPTION] [llvm-VERSION]
+options:
+  -help
 
 * build llvm/clang
-      $llvmPACKAGE
+      ${llvmPACKAGE:-'unspecified LLVM version'}
 
 USAGE
     exit 1
 }
 
+#-----------------------------------------------------------------------------
 
 # parse options
 while [ "$#" -gt 0 ]
@@ -74,13 +99,15 @@ do
         ;;
     llvm-[0-9]* | llvm-svn*)
         llvmPACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
+
+[ -n "$llvmPACKAGE" ] || die "The llvm-VERSION was not specified"
 
 #------------------------------------------------------------------------------
 # build/install without compiler name
@@ -120,8 +147,9 @@ else
     set -x
     $sourceDIR/configure \
         --prefix=$LLVM_ARCH_PATH \
-        --with-gcc-toolchain=`which gcc | sed s%/bin/gcc%%` \
+        --with-gcc-toolchain=$(which gcc | sed s%/bin/gcc%%) \
         --enable-optimized \
+        --enable-shared \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $llvmPACKAGE"
@@ -131,4 +159,4 @@ else
 }
 fi
 
-# ----------------------------------------------------------------- end-of-file
+#------------------------------------------------------------------------------

@@ -1,0 +1,217 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     makeADIOS
+#
+# Description
+#     Build script for ADIOS (and MXML)
+#
+#------------------------------------------------------------------------------
+adiosPACKAGE=adios-git
+mxmlPACKAGE=mxml-2.9
+
+#------------------------------------------------------------------------------
+# run from third-party directory only
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
+    echo "    The environment variables are inconsistent with the installation."
+    echo "    Check the OpenFOAM entries in your dot-files and source them."
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION] [adios-VERSION] [mxml-VERSION]
+options:
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -help
+
+* Build ADIOS+MXML
+      $adiosPACKAGE
+      $mxmlPACKAGE
+
+USAGE
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+# ensure configure gets the correct C/C++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CC"
+[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+
+
+# parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    -gcc)
+        export CC=gcc    # use gcc/g++
+        export CXX=g++
+        ;;
+    adios-[1-9]* | adios-git)
+        adiosPACKAGE="${1%%/}"
+        ;;
+    mxml-[1-9]*)
+        mxmlPACKAGE="${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
+
+MXML_ARCH_PATH=$installBASE/$mxmlPACKAGE
+ADIOS_ARCH_PATH=$installBASE/$adiosPACKAGE
+
+# build MXML - not needed with more recent ADIOS
+if false
+then
+    echo
+    echo ========================================
+    echo "Build mxml library $mxmlPACKAGE"
+    echo
+
+    if [ -f $MXML_ARCH_PATH/include/mxml.h \
+      -a -r $FOAM_EXT_LIBBIN/libmxml.so ]
+    then
+        echo "    MXML header in $MXML_ARCH_PATH/include"
+        echo "    MXML libs   in $FOAM_EXT_LIBBIN"
+        echo
+    else
+    (
+        # use mxml packaged with adios (if possible)
+        # or revert to top-level
+        sourceDIR=$WM_THIRD_PARTY_DIR/$adiosPACKAGE/src/mxml/$mxmlPACKAGE
+        [ -d "$sourceDIR" ] || sourceDIR=$WM_THIRD_PARTY_DIR/$mxmlPACKAGE
+
+        cd $sourceDIR || exit 1
+
+        # Remove any existing build folder and recreate
+        \rm -rf $buildDIR 2>/dev/null
+        mkdir -p $buildDIR
+
+        [ -e Makefile ] && make clean 2>/dev/null # for safety
+        mkdir -p $FOAM_EXT_LIBBIN  2>/dev/null
+
+        # handle non-gcc compilers
+        unset configEnv
+        if [ "${WM_CC:-gcc}" != gcc ]
+        then
+            export CC=$WM_CC
+            export CCS=$WM_CC
+        fi
+
+        # installs into lib64/
+        cd $buildDIR && \
+        $sourceDIR/configure --prefix=$MXML_ARCH_PATH \
+        && make -j $WM_NCOMPPROCS all \
+        && make install \
+        && echo "Built: $mxmlPACKAGE" \
+        && rsync -a $MXML_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/*.so* $FOAM_EXT_LIBBIN/
+    ) || {
+        echo "Error building: $mxmlPACKAGE"
+    }
+    fi
+fi
+
+# build ADIOS
+echo
+echo ========================================
+echo "Build adios library $adiosPACKAGE"
+echo
+
+# Needs future adjustment for shared library, for mpi-specific library location
+if [ -f $ADIOS_ARCH_PATH/include/adios.h \
+  -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libadios.so ]
+then
+    echo "    ADIOS header in $ADIOS_ARCH_PATH/include"
+    echo "    ADIOS libs   in $FOAM_EXT_LIBBIN"
+    echo
+else
+(
+    # configuration options:
+    # Start with GridEngine support - builds without external libraries
+    unset configOpt
+
+    # Add InfiniBand support
+    ibDir=/usr/local/ofed
+    if [ -d "$ibDir/include" ]
+    then
+        configOpt="$configOpt --with-infiniband=$ibDir"
+    fi
+    ## $configOpt="$configOpt --with-hdf5=..."
+
+    # for externally compiled MXML
+    # configOpt="$configOpt --with-mxml=$MXML_ARCH_PATH"
+
+    # end of configuration options
+    # ----------------------------
+
+    sourceDIR=$WM_THIRD_PARTY_DIR/$adiosPACKAGE
+    buildDIR=$buildBASE/$adiosPACKAGE
+
+    cd $sourceDIR || exit 1
+    export GIT_DIR=$sourceDIR/.git
+
+    # Remove any existing build folder and recreate
+    \rm -rf $buildDIR 2>/dev/null
+    mkdir -p $buildDIR
+
+    [ -e Makefile ] && make clean 2>/dev/null # for safety
+
+    [ -f configure ] || {
+        echo "no configure for $adiosPACKAGE ... trying autogen"
+        ./autogen.sh
+    }
+
+    # installs into lib64/
+    cd $buildDIR && \
+    CC=mpicc CXX=mpicxx CFLAGS="-fPIC" $sourceDIR/configure \
+        --prefix=$ADIOS_ARCH_PATH \
+        --disable-fortran \
+        --with-pic \
+        --without-fastbit \
+        $configOpt \
+    && make -j $WM_NCOMPPROCS all \
+    && make install \
+    && echo "Built: $adiosPACKAGE" \
+    && rsync -a --no-r $ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/ $FOAM_EXT_LIBBIN/$FOAM_MPI/
+) || {
+    echo "Error building: $adiosPACKAGE"
+}
+fi
+
+# ----------------------------------------------------------------- end-of-file

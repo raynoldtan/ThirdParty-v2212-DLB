@@ -2,8 +2,8 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011-2015 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -32,14 +32,14 @@
 # buildBASE, installBASE defined from tools/ThirdPartyFunctions
 
 #
-# where things are or should be put
+# Where things are or should be put
 #   ParaView_VERSION and ParaView_MAJOR should already have been set
 #
 #   ParaView_SOURCE_DIR : location of the original sources
 #   ParaView_BINARY_DIR : location of the build
 #   ParaView_DIR        : location of the installed program
 #
-setDirs()
+setParaViewDirs()
 {
     ParaView_SOURCE_DIR=$WM_THIRD_PARTY_DIR/ParaView-$ParaView_VERSION
 
@@ -51,10 +51,10 @@ setDirs()
         exit 1
     }
 
-    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION-$OBJ_ADD
+    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
     ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION
 
-    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION-$OBJ_ADD
+    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
     ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION
 
     export ParaView_SOURCE_DIR ParaView_BINARY_DIR ParaView_DIR
@@ -63,17 +63,27 @@ setDirs()
     echo "ParaView_SOURCE_DIR=$ParaView_SOURCE_DIR"
     echo "ParaView_BINARY_DIR=$ParaView_BINARY_DIR"
     echo "ParaView_DIR=$ParaView_DIR"
+
+    # Forcefully override the .git path for the ParaView source code directory
+    export GIT_DIR=$ParaView_SOURCE_DIR/.git
 }
 
 
 #
-# set ParaView_VERSION and adjust ParaView_MAJOR accordingly
+# Set ParaView_VERSION and adjust ParaView_MAJOR accordingly
 #
-setVersion()
+# $1 can contain something something like 4.4.0, paraview-4.4.0, ParaView-4.0.0
+#
+setParaViewVersion()
 {
-    [ "$#" -ge 1 ] && ParaView_VERSION="${1##paraview-}"
+    [ $# -gt 0 ] || {
+        echo "Error: function setParaViewVersion() called without an argument"
+        exit 1
+    }
 
-    # the major version is "<digits>.<digits>"
+    ParaView_VERSION="${1##*-}"
+
+    # The major version is "<digits>.<digits>"
     ParaView_MAJOR=$(echo $ParaView_VERSION | \
         sed -e 's/^\([0-9][0-9]*\.[0-9][0-9]*\).*$/\1/')
 
@@ -84,58 +94,27 @@ setVersion()
 #------------------------------------------------------------------------------
 
 #
-# extract and echo date stamp information from
-#     VTK/Utilities/kwsys/kwsysDateStamp.cmake
-# since the order of the entries is already correct, can use simple sed script
-#
-echoDateStamp()
-{
-    (
-        set -- $(
-            sed -ne 's/^SET(KWSYS_DATE_STAMP_[A-Z]*\([ 0-9]*\)).*$/\1/p' \
-            $ParaView_SOURCE_DIR/VTK/Utilities/kwsys/kwsysDateStamp.cmake
-        )
-
-        IFS='-'
-        echo "date-stamp: $*"
-    )
-}
-
-
-#
-# extract version information from
-#     CMakeLists.txt
-# since the order of the entries is already correct, can use simple sed script
-#
-getVersion()
-{
-    (
-        set -- $(
-            sed -ne 's/^SET(PARAVIEW_VERSION_[A-Z]*\([ 0-9]*\)).*$/\1/p' \
-            $ParaView_SOURCE_DIR/CMakeLists.txt
-        )
-
-        IFS='.'
-        echo "$*"
-    )
-}
-
-#
-# compare version information
+# Compare version information (specified vs what is found in CMakeLists.txt)
+# Parse this type of content:
+#   set (PARAVIEW_VERSION_FULL "3.98.1")
 #
 checkVersion()
 {
-    local ver=$(getVersion)
+    local ver=$(
+        sed -ne 's/^ *set *( *PARAVIEW_VERSION_FULL[ "]*\([.0-9]*\).*$/\1/ip' \
+        $ParaView_SOURCE_DIR/CMakeLists.txt
+    )
+
     if [ "$ParaView_VERSION" != "$ver" ]
     then
         echo "MISMATCH!"
         echo "    specified $ParaView_VERSION"
-        echo "    found     $ver"
+        echo "    found     ${ver:-NONE}"
     fi
 }
 
 #
-# set CMake cache variables
+# Set CMake cache variables
 #
 addCMakeVariable()
 {
@@ -148,20 +127,27 @@ addCMakeVariable()
 
 
 #
-# verbose makefiles
+# Verbose makefiles
 #
 addVerbosity()
 {
-    [ "$withVERBOSE" = true ] && addCMakeVariable  "CMAKE_VERBOSE_MAKEFILE=TRUE"
+    if [ "${withVERBOSE:=false}" = true ]
+    then
+        addCMakeVariable  "CMAKE_VERBOSE_MAKEFILE=TRUE"
+    fi
 }
 
 
 #
-# define options for mpi support
+# Define options for mpi support
 #
 addMpiSupport()
 {
-    [ "${withMPI:=false}" = true ] || return
+    if [ "${withMPI:=false}" != true ]
+    then
+        return
+    fi
+
     OBJ_ADD="$OBJ_ADD-mpi"
 
     addCMakeVariable  "PARAVIEW_USE_MPI=ON VTK_USE_MPI=ON"
@@ -170,18 +156,22 @@ addMpiSupport()
 
 
 #
-# define options for python support
+# Define options for python support
 #
 addPythonSupport()
 {
-    [ "${withPYTHON:=false}" = true ] || return
+    if [ "${withPYTHON:=false}" != true ]
+    then
+        return
+    fi
+
     OBJ_ADD="$OBJ_ADD-py"
 
     if pythonBin=$(which python 2>/dev/null)
     then
         if [ -n "$PYTHON_LIBRARY" ]
         then
-            # check $PYTHON_LIBRARY if it has been set
+            # Check $PYTHON_LIBRARY if it has been set
             if [ ! -e "$PYTHON_LIBRARY" ]
             then
                 echo "*** Error: libpython not found at location specified " \
@@ -192,9 +182,9 @@ addPythonSupport()
             PYTHON_LIBRARY=$(ldd $pythonBin | \
                 sed -ne '/libpython/s/.* => \(.*\) (.*/\1/p')
 
-           [ -e "$PYTHON_LIBRARY" ] || {
-               echo "*** Error: Unable to determine path to python library."
-           }
+            [ -e "$PYTHON_LIBRARY" ] || {
+                echo "*** Error: Unable to determine path to python library."
+            }
         fi
 
         [ -e "$PYTHON_LIBRARY" ] || {
@@ -208,7 +198,7 @@ addPythonSupport()
         pythonMajor=$(echo $PYTHON_LIBRARY | sed 's/.*libpython\(.*\)\.so.*/\1/')
         pythonInclude=/usr/include/python$pythonMajor
 
-        # note - we could also allow for a PYTHON_INCLUDE variable ...
+        # Note - we could also allow for a PYTHON_INCLUDE variable ...
         [ -d "$pythonInclude" ] || {
             echo "    No python headers found in $pythonInclude/"
             echo "    Please install python headers or deactivate "
@@ -238,17 +228,20 @@ addPythonSupport()
 
 
 #
-# define options for mesa support
+# Define options for mesa support
 #
 addMesaSupport()
 {
-    [ "${withMESA:=false}" = true ] || return
+    if [ "${withMESA:=false}" != true ]
+    then
+        return
+    fi
 
     if [ -d "$MESA_INCLUDE" -a -f "$MESA_LIBRARY" ]
     then
         OBJ_ADD="$OBJ_ADD-mesa"
 
-        addCMakeVariable  "VTK_OPENGL_HAS_OSMESA=ON"
+        addCMakeVariable  "VTK_OPENGL_HAS_OSMESA:BOOL=ON"
         addCMakeVariable  "OSMESA_INCLUDE_DIR=$MESA_INCLUDE"
         addCMakeVariable  "OSMESA_LIBRARY=$MESA_LIBRARY"
 
@@ -266,69 +259,33 @@ addMesaSupport()
 addQtSupport()
 {
     QtVersion=none
-    [ "${withQT:=false}" = true ] || return
+
+    if [ "${withQT:=false}" != true ]
+    then
+        return
+    fi
 
     addCMakeVariable "PARAVIEW_BUILD_QT_GUI=ON"
 
-    unset qmakeExe
-    if [ -n "$QMAKE_PATH" ]
-    then
-        if [ -d "$QMAKE_PATH" ]
-        then
-            if [ -x "$QMAKE_PATH/qmake" ]
-            then
-                qmakeExe=$QMAKE_PATH/qmake
-            elif [ -x "$QMAKE_PATH/bin/qmake" ]
-            then
-                qmakeExe=$QMAKE_PATH/bin/qmake
-            fi
-        elif [ -x "$QMAKE_PATH" ]
-        then
-            qmakeExe=$QMAKE_PATH
-        fi
-
-        if [ -n "$qmakeExe" ]
-        then
-            # use absolute path
-            if [ "${qmakeExe#/}" = "$qmakeExe" ]
-            then
-                qmakeExe="$(cd ${qmakeExe%/qmake} 2>/dev/null && pwd)/qmake"
-            fi
-        else
-            echo
-            echo "qmake not found under specified QMAKE_PATH"
-            echo "    QMAKE_PATH=$QMAKE_PATH"
-            echo "leaving unspecified"
-            echo
-        fi
-    fi
-
-    # default to using qmake from the path
-    if [ -n "$qmakeExe" ]
-    then
-        addCMakeVariable "QT_QMAKE_EXECUTABLE:FILEPATH=$qmakeExe"
-    else
-        qmakeExe=qmake
-    fi
-
+    local qmake=$(findQtMake)
 
     # Check qmake can be found
-    if type $qmakeExe >/dev/null 2>&1
+    if type $qmake >/dev/null 2>&1
     then
         # Check the Qt version selected
         # parse -> "Using Qt version X.Y.Z in ..."
-        QtVersion=$($qmakeExe -query QT_VERSION)
+        QtVersion=$($qmake -query QT_VERSION)
 
-        # split Major.Minor.Revision - could also use IFS hacking
+        # Split Major.Minor.Revision - could also use IFS hacking
         set -- $(echo "$QtVersion" | sed -e 's/\./ /g')
 
         QtMajor=$1
         QtMinor=$2
 
-        if [ $QtMajor -lt 4 ] || [ $QtMajor -eq 4 -a $QtMinor -lt 5 ]
+        if [ $QtMajor -ne 4 -o $QtMajor -eq 4 -a $QtMinor -lt 5 ]
         then
             echo "*** Error: Qt version provided < 4.5"
-            echo "***     Please use the -qmake option to specify the location of a version of Qt >= 4.5 "
+            echo "***     Please use the -qmake option to specify the location of a version of Qt >= 4.5 and < 5.0"
             echo "***     e.g."
             echo "***         -qmake /usr/local/qt-4.6.2/bin/qmake"
             echo "***         -qmake $installBASE/qt-4.6.2/bin/qmake"
@@ -342,47 +299,13 @@ addQtSupport()
 
 
 #
-# configure via cmake, but don't actually build anything
+# Configure via cmake, but don't actually build anything
 #
 configParaView()
 {
-    unset cmakeExe
-    if [ -n "$CMAKE_PATH" ]
-    then
-        if [ -d "$CMAKE_PATH" ]
-        then
-            if [ -x "$CMAKE_PATH/cmake" ]
-            then
-                cmakeExe=$CMAKE_PATH/cmake
-            elif [ -x "$CMAKE_PATH/bin/cmake" ]
-            then
-                cmakeExe=$CMAKE_PATH/bin/cmake
-            fi
-        elif [ -x "$CMAKE_PATH" ]
-        then
-            cmakeExe=$CMAKE_PATH
-        fi
+    local cmake=$(findCMake)
 
-        if [ -n "$cmakeExe" ]
-        then
-            # use absolute path
-            if [ "${cmakeExe#/}" = "$cmakeExe" ]
-            then
-                cmakeExe="$(cd ${cmakeExe%/cmake} 2>/dev/null && pwd)/cmake"
-            fi
-        else
-            echo
-            echo "cmake not found under specified CMAKE_PATH"
-            echo "    CMAKE_PATH=$CMAKE_PATH"
-            echo "leaving unspecified"
-            echo
-        fi
-    fi
-
-    # default to using cmake from the path
-    [ -n "$cmakeExe" ] || cmakeExe=cmake
-
-    # remove any existing build folder and recreate
+    # Remove any existing build folder and recreate
     if [ -d $ParaView_BINARY_DIR ]
     then
         echo "removing old build directory"
@@ -391,23 +314,22 @@ configParaView()
     fi
     mkdir -p $ParaView_BINARY_DIR
 
-    addCMakeVariable  "CMAKE_BUILD_TYPE:STRING=$buildType"
-
-    cd $ParaView_BINARY_DIR || exit 1  # change to build folder
+    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
 
     echo "----"
     echo "Configuring paraview-$ParaView_VERSION (major version: $ParaView_MAJOR)"
     echo "    MPI    support : ${withMPI:-false}"
     echo "    Python support : ${withPYTHON:-false}"
     echo "    MESA   support : ${withMESA:-false}"
+    echo "    GL2  rendering : false"
     echo "    Qt dev support : ${withQT:-false}"
     echo "    Source         : $ParaView_SOURCE_DIR"
     echo "    Build          : $ParaView_BINARY_DIR"
     echo "    Target         : $ParaView_DIR"
-    echo "    Build type     : $buildType"
+    echo "    Cmake          : $cmake"
     echo "----"
     echo
-    echo "$cmakeExe" \
+    echo "$cmake" \
         -DCMAKE_INSTALL_PREFIX:PATH=$ParaView_DIR \
         $CMAKE_VARIABLES \
         $ParaView_SOURCE_DIR
@@ -415,8 +337,8 @@ configParaView()
     echo "----"
     echo
 
-    # run cmake to create Makefiles
-    $cmakeExe \
+    # Run cmake to create Makefiles
+    $cmake -Wno-dev \
         -DCMAKE_INSTALL_PREFIX:PATH=$ParaView_DIR \
         $CMAKE_VARIABLES \
         $ParaView_SOURCE_DIR
@@ -424,40 +346,53 @@ configParaView()
 
 
 #
-# invoke make
+# Invoke make
 # also link bin/ to lib/paraview-* for development without installation
 #
 makeParaView()
 {
-    cd $ParaView_BINARY_DIR || exit 1  # change to build folder
+    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
     echo "    Done make"
 
-    # remove lib if it is a link
+    # Remove lib if it is a link
     # (how this was previously handled before 'make install' worked)
-    [ -L lib ] && rm lib 2>/dev/null
+    if [ -L lib ]
+    then
+        rm lib 2>/dev/null
+    fi
 }
 
 
 #
-# install the program
+# Install the program
 #
 installParaView()
 {
-    cd $ParaView_BINARY_DIR || exit 1  # change to build folder
+    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
     echo "    Installing ParaView to $ParaView_DIR"
 
     make install
 
+# hack for missing files after install of version 3.14.1
+    echo "Copying missing files to install folder"
+    CMAKE_SRC_DIR=$ParaView_SOURCE_DIR/CMake
+    CMAKE_INSTALL_DIR=$ParaView_DIR/lib/paraview-$ParaView_MAJOR/CMake
+    cp -f $ParaView_SOURCE_DIR/ParaViewUse.cmake $CMAKE_INSTALL_DIR
+    cp -f $CMAKE_SRC_DIR/generate_proxydocumentation.cmake $CMAKE_INSTALL_DIR
+    cp -f $CMAKE_SRC_DIR/smxml_to_xml.xsl $CMAKE_INSTALL_DIR
+    cp -f $CMAKE_SRC_DIR/xml_to_html.xsl $CMAKE_INSTALL_DIR
+    cp -f $CMAKE_SRC_DIR/xml_to_wiki.xsl.in $CMAKE_INSTALL_DIR
+    cp -f $CMAKE_SRC_DIR/generate_qhp.cmake $CMAKE_INSTALL_DIR
+    unset CMAKE_SRC_DIR CMAKE_INSTALL_DIR
+# --- end hack
+
 cat<< INFO
     ---
     Installation complete for paraview-$ParaView_VERSION
-    Set environment variables:
-
-        export ParaView_DIR=$ParaView_DIR
-        export PATH=\$ParaView_DIR/bin:\$PATH
-        export PV_PLUGIN_PATH=\$FOAM_LIBBIN/paraview-$ParaView_MAJOR
+    Now update the environment by running:
+        wmREFRESH
     ---
 INFO
 }
@@ -465,23 +400,27 @@ INFO
 
 #------------------------------------------------------------------------------
 
-# clear the referenced variables before using any of the functions
+# Clear the referenced variables before using any of the functions
 unset withMPI  withVERBOSE
 unset withQT      QMAKE_PATH
 unset withMESA    MESA_INCLUDE    MESA_LIBRARY
 unset withPYTHON  PYTHON_INCLUDE  PYTHON_LIBRARY
 unset CMAKE_VARIABLES
 unset OBJ_ADD
-unset buildType
 
-# start with these general settings
+
+# Start with these general settings
+addCMakeVariable  "VTK_USE_TK:BOOL=OFF"
 addCMakeVariable  "BUILD_SHARED_LIBS:BOOL=ON  VTK_USE_RPATH:BOOL=OFF"
+addCMakeVariable  "CMAKE_BUILD_TYPE:STRING=Release"
 
-# include development files in "make install"
-addCMakeVariable  "PARAVIEW_INSTALL_DEVELOPMENT_FILES:BOOL=ON"
+# Include development files in "make install"
+addCMakeVariable  "PARAVIEW_INSTALL_DEVELOPMENT:BOOL=ON"
 
-# don't build test tree
+# Don't build test tree
 addCMakeVariable  "BUILD_TESTING:BOOL=OFF"
 
+# remove dependency on WebKit
+# addCMakeVariable  VTK_QT_USE_WEBKIT:BOOL=OFF
 
-# ----------------------------------------------------------------- end-of-file
+#------------------------------------------------------------------------------

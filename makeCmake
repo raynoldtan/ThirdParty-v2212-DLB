@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -29,7 +29,8 @@
 #     Build script for cmake
 #
 #------------------------------------------------------------------------------
-cmakePACKAGE=cmake-3.2.1
+# Special purpose script, no default cmake version.
+unset cmakePACKAGE
 
 #------------------------------------------------------------------------------
 # run from third-party directory only
@@ -49,20 +50,20 @@ usage() {
 
 usage: ${0##*/} [OPTION] [cmake-VERSION]
 options:
-  -gcc              force g++ instead of the value from \$WM_CXX
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
 * build cmake
-      $cmakePACKAGE
+      ${cmakePACKAGE:-'unspecified version'}
 
 USAGE
     exit 1
 }
+#------------------------------------------------------------------------------
 
-# ensure CMake gets the correct C++ compiler
+# ensure CMake gets the correct C/CC++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
-[ -n "$WM_CC" ] && export CC="$WM_CC"
-
 
 # parse options
 while [ "$#" -gt 0 ]
@@ -72,29 +73,29 @@ do
         usage
         ;;
     -gcc)
-        export CC=gcc   # use gcc
-        export CXX=g++  # use g++
-        shift
+        export CC=gcc   # use gcc/g++
+        export CXX=g++
         ;;
     cmake-[1-9]*)
         cmakePACKAGE="${1%%/}"
-        shift
         ;;
     *)
-        usage "unknown option/argument: '$*'"
+        die "unknown option/argument: '$1'"
         ;;
     esac
+    shift
 done
 
+[ -n "$cmakePACKAGE" ] || die "The cmake-VERSION was not specified"
 
 #------------------------------------------------------------------------------
-prefixDIR=$installBASE/$cmakePACKAGE
+CMAKE_ARCH_PATH=$installBASE/$cmakePACKAGE
 
 #
 # Build CMAKE
 #
 echo "---------------"
-if [ -d "$prefixDIR" -a -r "$prefixDIR/bin/cmake" ]
+if [ -d "$CMAKE_ARCH_PATH" -a -r "$CMAKE_ARCH_PATH/bin/cmake" ]
 then
     echo "Already built: $cmakePACKAGE"
 else
@@ -110,7 +111,7 @@ else
     mkdir -p $buildDIR
     cd $buildDIR
 
-    $sourceDIR/bootstrap --prefix=$prefixDIR \
+    $sourceDIR/bootstrap --prefix=$CMAKE_ARCH_PATH \
     && time make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $cmakePACKAGE"
@@ -120,4 +121,4 @@ else
 }
 fi
 
-# ----------------------------------------------------------------- end-of-file
+#------------------------------------------------------------------------------

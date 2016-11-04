@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# simple script to generate patches
+paraview=ParaView-5.0.1
+
+for i in \
+    $paraview/VTK/CMake/vtkCompilerExtras.cmake \
+    $paraview/VTK/CMake/GenerateExportHeader.cmake \
+    $paraview/Qt/Components/CMakeLists.txt \
+    ;
+do
+    diff -uw $i.orig $i
+done

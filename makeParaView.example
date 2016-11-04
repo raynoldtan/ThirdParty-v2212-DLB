@@ -1,0 +1,13 @@
+#!/bin/sh
+# An example for building particular combinations of ParaView with
+# - mpi (0 = no upper-limit on processes)
+# - off-screen mesa
+
+mesa=mesa-11.2.2
+
+./makeParaView \
+    -mpi=0 \
+    -mesa-prefix $WM_THIRD_PARTY_DIR/platforms/linux64Gcc/$mesa \
+    "$@"
+
+#------------------------------------------------------------------------------

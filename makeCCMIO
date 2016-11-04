@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
+#   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -23,56 +23,76 @@
 #     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Script
-#     etc/relocateQt
+#     makeCCMIO
 #
 # Description
-#     Change prefix when relocating qt installation
+#     Build CD-adapco's ccmio library
 #
 #------------------------------------------------------------------------------
-qtVERSION=4.7.2
+
+# Get version info
+. $WM_PROJECT_DIR/etc/config.sh/functions
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ccmio)
+
+ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
+targetType=lib
+
 #------------------------------------------------------------------------------
 # run from third-party directory only
+cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    The environment variables are inconsistent with the installation."
     echo "    Check the OpenFOAM entries in your dot-files and source them."
     exit 1
 }
+[ -n "$FOAM_EXT_LIBBIN" ] || {
+    echo "Error: FOAM_EXT_LIBBIN not set"
+    echo "    Check the OpenFOAM entries in your dot-files and source them."
+    exit 1
+}
 . etc/tools/ThirdPartyFunctions
-. etc/tools/QtFunctions
 #------------------------------------------------------------------------------
 
-usage() {
+usage()
+{
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
-    cat<<USAGE
+    /bin/cat<<USAGE
 
-usage: ${0##*/} [OPTION] [VERSION]
+Usage: ${0##*/} [OPTION] [lib|libso] [libccmio-VERSION]
 options:
-  -force            create qt.conf and edit pkgconfig to use \${prefix}
   -help
 
-* adjust relocation prefix for $qtVERSION
+* Compile the proprietary libccmio library
+      $ccmioPACKAGE
+
+  Users wishing to make use of the library should contact cd-adapco
+  (Siemens PLM) for possible download and terms of use.
+
+  After obtaining the $ccmioPACKAGE library, place in folder
+
+      $WM_THIRD_PARTY_DIR/$ccmioPACKAGE/
+
+  prior to running this script.
 
 USAGE
     exit 1
 }
 
 
-unset forceOpt
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
     -h | -help)
         usage
         ;;
-    -f | -force)
-        forceOpt=true
+    lib|libso)
+        targetType="$1"
         ;;
-    [1-9]* | qt-[1-9]*)
-        qtVERSION="${1%%/}";
-        qtVERSION="${qtVERSION#qt-}"
+    libccmio-[1-9]*)
+        ccmioPACKAGE="${1%%/}"
         ;;
     *)
         die "unknown option/argument: '$1'"
@@ -81,11 +101,39 @@ do
     shift
 done
 
+# assert: directory must be available
+[ -d "${ccmioPACKAGE}" ] || die "missing source directory '$ccmioPACKAGE'"
+
+
 #------------------------------------------------------------------------------
-prefixDIR=$installBASE/qt-$qtVERSION
+CCMIO_ARCH_PATH=$installBASE/$ccmioPACKAGE
 
-[ "${forceOpt:-false}" = true ] && finalizeQt
-changePrefix
+#
+# Build LIBCCMIO
+#
+echo "---------------"
+(
+    cd $ccmioPACKAGE || exit 1
+    incDIR=$CCMIO_ARCH_PATH/include/libccmio
+    libDIR=$CCMIO_ARCH_PATH/lib
+
+    mkdir -p $incDIR 2>/dev/null
+    mkdir -p $libDIR 2>/dev/null
+
+    cpMakeFiles libccmio 2>/dev/null
+    set +x
+    if wmake $targetType
+    then
+        # make headers available:
+        /bin/cp -pv libccmio/ccmio*.h $incDIR
+
+        # relocate static libraries to sub-directory:
+        if [ "$targetType" = lib ]
+        then
+            /bin/mv -v $FOAM_EXT_LIBBIN/libccmio.a $libDIR
+        fi
+    fi
+)
 
 
-# ----------------------------------------------------------------- end-of-file
+#------------------------------------------------------------------------------

@@ -23,10 +23,10 @@
 #     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
 #
 # Script
-#     makeParaView
+#     makeParaView3
 #
 # Description
-#     Make and install paraview 4 or 5
+#     Make and install paraview for version 3.14.1 and higher
 #     - place the paraview source under $WM_THIRD_PARTY_DIR/ParaView-VERSION
 #       (note capitalisation)
 #
@@ -49,14 +49,13 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
-. etc/tools/ParaViewFunctions
+. etc/tools/ParaView3Functions
 #------------------------------------------------------------------------------
 #
 # USER OPTIONS:
 # ~~~~~~~~~~~~~
 
 # MPI support:
-# use 0 or unset MPI_MAX_PROCS for no upper-limit
 withMPI=false
 MPI_MAX_PROCS=32
 
@@ -81,10 +80,6 @@ QMAKE_PATH=""
 # Set the path to cmake
 CMAKE_PATH=""
 
-# New rendering backend (starting with paraview 5.0).
-# Default to auto-config based on paraview version
-withGL2=auto
-
 #
 # NO FURTHER EDITING BELOW THIS LINE
 #
@@ -100,11 +95,8 @@ usage() {
 usage: $Script [OPTION] [paraview-VERSION] [CMAKE-OPTION]
 options:
   -rebuild          for repeated builds (-make -install) *use with caution*
-  -gl2              with new rendering backend (if not already enabled)
   -mesa             with mesa (if not already enabled)
   -mpi              with mpi (if not already enabled)
-  -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
-                        upper-limit on processes.
   -python           with python (if not already enabled)
   -cmake PATH       with the cmake version corresponding to the cmake path given
   -qmake PATH       with the Qt version corresponding to the qmake path given
@@ -115,8 +107,6 @@ options:
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current value: $ParaView_VERSION)
   -major   VER      specify an alternative major version for special builds
-  -buildType NAME   specify the build type (default: Release)
-  -mesa-prefix DIR  location of mesa installation (sets -mesa-include, -mesa-lib)
   -mesa-include DIR location of mesa headers (current value: ${MESA_INCLUDE:-none})
   -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
   -python-lib PATH  path to python library   (current value: ${PYTHON_LIBRARY:-none})
@@ -127,11 +117,10 @@ The -no-FEATURE option can be used to forcibly disable these features:
 
 CMake options start with a capital letter and contain an '='.
 For example,
-    $Script BUILD_TESTING=ON
-to add tests
+    $Script BUILD_TESTING=ON PARAVIEW_GENERATE_PROXY_DOCUMENTATION=OFF
+to add tests and avoid building documentation
 
 For finer control, the build stages can be selected or deselected individually:
-  -patch     -no-patch
   -config    -no-config
   -make      -no-make
   -install   -no-install
@@ -144,7 +133,7 @@ For finer control, the build stages can be selected or deselected individually:
 To make a different paraview version, simply specify on the command-line.
 For example,
 
-    ./makeParaview 4.4.0
+    ./makeParaview 3.14.1
 
 Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 
@@ -172,9 +161,8 @@ setParaViewVersion ${ParaView_VERSION:-none}
 #
 # various building stages
 #
-unset runPATCH runCONFIG runMAKE runINSTALL
+unset runCONFIG runMAKE runINSTALL
 runDEFAULT=true
-buildType=Release
 
 # parse options
 while [ "$#" -gt 0 ]
@@ -192,13 +180,6 @@ do
     -gcc)
         export CC=gcc    # use gcc/g++
         export CXX=g++
-        ;;
-    -patch)              # stage 0: patch sources
-        runPATCH=true
-        unset runDEFAULT
-        ;;
-    -no-patch)
-        runPATCH=false
         ;;
     -config)             # stage 1: config only
         runCONFIG=true
@@ -226,41 +207,24 @@ do
         runINSTALL=true
         unset runDEFAULT
         ;;
-    -gl2)
-        withGL2=true
-        ;;
-    -no-gl2)
-        withGL2=false
-        ;;
     -mesa)
         withMESA=true
         ;;
     -no-mesa)
         withMESA=false
         ;;
-    -mesa-prefix)
-        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        withMESA=true
-        MESA_INCLUDE="${2%%/}/include"
-        MESA_LIBRARY="${2%%/}/lib$WM_COMPILER_LIB_ARCH/libOSMesa.so"
-        shift
-        ;;
     -mesa-include)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        MESA_INCLUDE="${2%%/}"
+        MESA_INCLUDE="$2"
         shift
         ;;
     -mesa-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        MESA_LIBRARY="${2%%/}"
+        MESA_LIBRARY="$2"
         shift
         ;;
     -mpi)
         withMPI=true
-        ;;
-    -mpi=[0-9]*) # mpi and max mpi processes
-        withMPI=true
-        MPI_MAX_PROCS="${1##*=}"
         ;;
     -no-mpi)
         withMPI=false
@@ -273,17 +237,17 @@ do
         ;;
     -python-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        PYTHON_LIBRARY="${2%%/}"
+        PYTHON_LIBRARY="$2"
         shift
         ;;
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        CMAKE_PATH="${2%%/}"
+        CMAKE_PATH=$2
         shift
         ;;
     -qmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        QMAKE_PATH="${2%%/}"
+        QMAKE_PATH=$2
         shift
         ;;
     -qt)
@@ -308,11 +272,6 @@ do
         export ParaView_MAJOR="$2"
         shift
         ;;
-    -buildType)
-        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        buildType="$2"
-        shift
-        ;;
     *)
         die "unknown option/argument: '$1'"
         ;;
@@ -329,20 +288,8 @@ then
     exit 0
 fi
 
-# Version-specific adjustments
-if [ "$withGL2" = auto ]
-then
-    if [ "${ParaView_VERSION%%.*}" = 4 ]
-    then
-        withGL2=false
-    else
-        withGL2=true
-    fi
-fi
-
 if [ "$runDEFAULT" = true ]
 then
-    : ${runPATCH:=true}
     : ${runCONFIG:=true}
     : ${runMAKE:=true}
     : ${runINSTALL:=true}
@@ -355,7 +302,6 @@ addVerbosity        # verbose makefiles
 addMpiSupport       # set MPI-specific options
 addPythonSupport    # set Python-specific options
 addMesaSupport      # set MESA-specific options
-addGL2Support       # new rendering backend
 addQtSupport        # add extra Qt support
 
 setParaViewDirs     # where things are or should be put
@@ -367,7 +313,6 @@ cat<<SUMMARY
 
 Build stages selected
 ---------------------
-    -patch    ${runPATCH:-false}
     -config   ${runCONFIG:-false}
     -make     ${runMAKE:-false}
     -install  ${runINSTALL:-false}
@@ -382,12 +327,10 @@ Version information
     qt        ${QtVersion:-none}
     version   ${ParaView_VERSION:-unknown}
     major     ${ParaView_MAJOR:-unknown}
-    build     ${buildType:-Release}
 $(checkVersion)
 ---------------------
 SUMMARY
 
-[ "$runPATCH"   = true ] && patchParaView
 [ "$runCONFIG"  = true ] && configParaView
 [ "$runMAKE"    = true ] && makeParaView
 [ "$runINSTALL" = true ] && installParaView
