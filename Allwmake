@@ -399,22 +399,21 @@ echo
 echo ========================================
 echo Build CGAL
 if [ -d "$CGAL_ARCH_PATH/include" \
-  -a -r "$CGAL_ARCH_PATH/lib/libCGAL.so" ]
+  -a -r "$CGAL_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libCGAL.so" ]
 then
     # first some information about boost
-    if [ -d "$BOOST_ARCH_PATH/include/boost" \
-      -a -r "$BOOST_ARCH_PATH/lib/libboost_system.so" ]
-    then
-        echo "    BOOST headers in $BOOST_ARCH_PATH/include"
-        echo "    BOOST libs    in $BOOST_ARCH_PATH/lib"
-    elif [ -d "/usr/include/boost" \
-        -a -r "/usr/lib${WM_COMPILER_LIB_ARCH}/libboost_system.so" ]
-    then
-        echo "    BOOST headers in /usr/include"
-        echo "    BOOST libs    in /usr/lib${WM_COMPILER_LIB_ARCH}"
-    fi
+    for root in "$BOOST_ARCH_PATH" /usr
+    do
+        if [ -d "$root/include/boost" \
+          -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.so" ]
+        then
+            echo "    BOOST headers in $root/include"
+            echo "    BOOST libs    in $root/lib$WM_COMPILER_LIB_ARCH"
+            break
+        fi
+    done
     echo "    CGAL  headers in $CGAL_ARCH_PATH/include"
-    echo "    CGAL  libs    in $CGAL_ARCH_PATH/lib"
+    echo "    CGAL  libs    in $CGAL_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
 elif [ -n "$CGAL_ARCH_PATH" ]
 then
     ./makeCGAL || warnBuildIssues CGAL
