@@ -29,8 +29,10 @@
 #     Build script for Mesa
 #
 # Note
-#     Building with mesa-12.0.1 failed to install an "osmesa.h" file,
-#     which renders it useless for off-screen VTK.
+#     Building with mesa-12.x.x fails to create an include/GL directory and
+#     an "osmesa.h" file. Both make it fairly useless for off-screen VTK.
+#
+#     Building with mesa-11.x is fine and mesa-13.0.0 also seems to be okay.
 #
 #------------------------------------------------------------------------------
 mesaPACKAGE=mesa-11.2.2

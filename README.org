@@ -51,6 +51,10 @@
     + FFTW        http://www.fftw.org/fftw-3.3.4.tar.gz
     + libccmio    http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz
 * Notes
+*** Building ADIOS
+    + Currently requires GNU autoconf tools (eg, autoconf, autoheader, automake)
+    for its configuration.
+    + Optionally uses zlib, bzip2 development headers (eg, zlib-devel, libbz2-devel).
 *** Building Scotch
     + The zlib library and zlib development headers are required.
 * Notes
