@@ -1,0 +1,198 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     makeTecio
+#
+# Description
+#     Build Tecplot library
+#
+#------------------------------------------------------------------------------
+
+# Get boost versions
+. $WM_PROJECT_DIR/etc/config.sh/functions
+unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
+
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
+
+boostPACKAGE=${boost_version:-boost-system}
+tecioPACKAGE=tecio
+targetType=lib
+
+#------------------------------------------------------------------------------
+# run from third-party directory only
+cd ${0%/*} || exit 1
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
+    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
+    echo "    The environment variables are inconsistent with the installation."
+    echo "    Check the OpenFOAM entries in your dot-files and source them."
+    exit 1
+}
+[ -n "$FOAM_EXT_LIBBIN" ] || {
+    echo "Error: FOAM_EXT_LIBBIN not set"
+    echo "    Check the OpenFOAM entries in your dot-files and source them."
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+
+usage()
+{
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    /bin/cat<<USAGE
+
+Usage: ${0##*/} [OPTION] [boost-VERSION] [tecio-VERSION]
+options:
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -help
+
+
+* Compile the proprietary libtecio library
+      $tecioPACKAGE
+  with $boostPACKAGE
+
+USAGE
+    exit 1
+}
+
+#------------------------------------------------------------------------------
+# Ensure CMake gets the correct C/C++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CCX"
+[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+
+# parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    -gcc)
+        export CC=gcc    # use gcc/g++
+        export CXX=g++
+        ;;
+    boost-[0-9]* | boost_[0-9]* | boost-system )
+        boostPACKAGE="${1%%/}"
+        ;;
+    tecio*)
+        tecioPACKAGE="${1%%/}"
+        ;;
+    *)
+        die "unknown option/argument: '$1'"
+        ;;
+    esac
+    shift
+done
+
+# assert: directory must be available
+[ -d "$tecioPACKAGE" ] || die "missing source directory '$tecioPACKAGE'"
+
+
+#------------------------------------------------------------------------------
+#
+# Get Boost information
+# - only headers are required
+
+BOOST_ARCH_PATH=$installBASE/$boostPACKAGE
+
+boostInc="$BOOST_ARCH_PATH/include"
+
+if _foamIsSystem $BOOST_ARCH_PATH
+then
+    echo "Using boost-system"
+
+    boostInc="/usr/include"
+elif [ -f "$boostInc/boost/version.hpp" -a -d "$boostLib" ]
+then
+    echo "Using $boostPACKAGE"
+fi
+
+
+# Build TECIO library
+#
+#   TECIO_SOURCE_DIR : location of the original sources
+#   TECIO_BINARY_DIR : location of the build
+#   TECIO_DIR        : location of the installed program
+
+TECIO_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$tecioPACKAGE/teciosrc
+TECIO_BINARY_DIR=$buildBASE/$tecioPACKAGE
+TECIO_ARCH_PATH=$installBASE/$tecioPACKAGE
+
+if [ -d "$TECIO_SOURCE_DIR" ]
+then
+(
+    # Remove any existing build folder and recreate
+    if [ -d $TECIO_BINARY_DIR ]
+    then
+        echo "removing old build directory"
+        echo "    $TECIO_BINARY_DIR"
+        rm -rf $TECIO_BINARY_DIR
+    fi
+    mkdir -p $TECIO_BINARY_DIR
+
+    rm -rf $TECIO_ARCH_PATH
+
+    unset configBoost
+    echo "----"
+    echo "Configuring $tecioPACKAGE with boost $BOOST_VERSION"
+    echo "    Source         : $TECIO_SOURCE_DIR"
+    echo "    Build          : $TECIO_BINARY_DIR"
+    echo "    Target         : $TECIO_ARCH_PATH"
+
+    if [ -d "$BOOST_ARCH_PATH" ]
+    then
+        echo "    Boost          : ThirdParty (${BOOST_ARCH_PATH##*/})"
+    else
+        echo "    Boost          : system"
+    fi
+
+    echo "----"
+    set -x
+    cd $TECIO_BINARY_DIR && cmake \
+        -DCMAKE_INSTALL_PREFIX=$TECIO_ARCH_PATH \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBoost_INCLUDE_DIR=$boostInc \
+        $TECIO_SOURCE_DIR \
+    && make -j $WM_NCOMPPROCS \
+    && { \
+        # Tecio doesn't offer to install, but fortunately only a few files,
+        # so just install in a single directory
+        mkdir -p $TECIO_ARCH_PATH 2>/dev/null
+
+        /bin/cp -pv \
+            $TECIO_BINARY_DIR/libtecio.a \
+            $TECIO_SOURCE_DIR/TECIO.h \
+            $TECIO_SOURCE_DIR/tecio_Exports.h \
+            $TECIO_ARCH_PATH
+
+        chmod 0644 $TECIO_ARCH_PATH/*
+    } \
+    && echo "Built: $tecioPACKAGE"
+) || {
+    echo "Error building: $tecioPACKAGE"
+}
+fi
+
+#------------------------------------------------------------------------------
