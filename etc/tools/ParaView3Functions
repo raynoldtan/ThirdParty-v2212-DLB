@@ -391,8 +391,8 @@ installParaView()
 cat<< INFO
     ---
     Installation complete for paraview-$ParaView_VERSION
-    Now update the environment by running:
-        wmREFRESH
+    You may need to update the OpenFOAM environment by running:
+        wmRefresh
     ---
 INFO
 }

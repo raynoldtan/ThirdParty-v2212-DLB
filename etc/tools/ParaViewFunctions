@@ -415,7 +415,7 @@ cat<< INFO
     ParaView_DIR=$ParaView_DIR
 
     You may need to update the OpenFOAM environment by running:
-        wmREFRESH
+        wmRefresh
     ---
 INFO
 }

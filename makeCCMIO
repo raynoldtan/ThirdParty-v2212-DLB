@@ -102,7 +102,7 @@ do
 done
 
 # assert: directory must be available
-[ -d "${ccmioPACKAGE}" ] || die "missing source directory '$ccmioPACKAGE'"
+[ -d "$ccmioPACKAGE" ] || die "missing source directory '$ccmioPACKAGE'"
 
 
 #------------------------------------------------------------------------------
