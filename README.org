@@ -11,19 +11,18 @@
 * Description
   Scripts for building third-party packages.
 * Build Order:
-  + makeGcc   (recommended if the system gcc is < 4.7)
+  + makeGcc   (recommended if the system gcc is < 4.8)
   + Allwmake  (Builds OpenMPI, Scotch etc.)
   + makeCmake (if the system cmake version is < 2.8.8)
   + makeParaView
 *** Optional Build Components:
-    + makeLLVM  (Replaces makeGcc in the above description
-    - to use clang as compiler)
+    + makeLLVM  (Replaces makeGcc in the above description to use clang as compiler)
     + makeADIOS (Only required for ADIOS support)
     + makeCCMIO (Only required for conversion of STAR-CCM+ meshes)
     + Allclean  (Only required to save disk space)
 * Versions and locations to download the third party packages
 *** Gcc C++ Compiler
-    The minimum version of gcc required is 4.5.0
+    The minimum version of gcc required is 4.8.0
     + gcc   http://gcc.gnu.org/releases.html
     + gmp   http://gmplib.org/
             ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.0.tar.bz2
@@ -31,6 +30,10 @@
             ftp://ftp.gnu.org/gnu/mpfr/mpfr-3.1.4.tar.bz2
     + mpc   http://www.multiprecision.org/
             ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz
+*** Clang/LLVM C++ Compiler
+    The minimum version of clang required is 3.3
+    + clang http://llvm.org/releases/3.9.0/cfe-3.9.0.src.tar.xz
+    + llvm  http://llvm.org/releases/3.9.0/llvm-3.9.0.src.tar.xz
 *** Parallel Processing
 ***** Scotch
       + Scotch/PtScotch: https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
