@@ -89,6 +89,7 @@ _foamIsSystem()
 # try to locate cmake according to the CMAKE_PATH
 # or just use what is found in the path
 #
+unset CMAKE_PATH # clear when first loaded
 findCMake()
 {
     local candidate
@@ -157,6 +158,7 @@ NOT_FOUND
 # try to locate qmake according to the QMAKE_PATH
 # or just use what is found in the path
 #
+unset QMAKE_PATH # clear when first loaded
 findQtMake()
 {
     local candidate

@@ -106,7 +106,7 @@ options:
   -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
                         upper-limit on processes.
   -python           with python (if not already enabled)
-  -cmake PATH       with the cmake version corresponding to the cmake path given
+  -cmake PATH       with cmake from the path given
   -qmake PATH       with the Qt version corresponding to the qmake path given
   -qt               with extra Qt gui support (if not already enabled)
   -qt-VER           with Qt version corresponding to

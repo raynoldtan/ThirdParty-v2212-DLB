@@ -2,7 +2,7 @@
 #
 #+TITLE:                 OpenFOAM Third-Party packages
 #+AUTHOR:            The OpenFOAM Foundation / OpenCFD Ltd.
-#+DATE:                           2016-10-14
+#+DATE:                           2016-11-11
 #+LINK:                     http://www.openfoam.org
 #+OPTIONS: author:nil ^:{}
 # Copyright (c) 2014-2016 OpenFOAM Foundation.
@@ -40,6 +40,8 @@
     + cmake          http://www.cmake.org/files/v3.5/cmake-3.5.2.tar.gz
     + ParaView-4.4.0 http://www.paraview.org/files/v4.4/ParaView-v4.4.0-source.tar.gz
     + ParaView-5.0.1 http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
+    + ParaView-5.1.2 http://www.paraview.org/files/v5.1/ParaView-v5.1.2.tar.gz
+    + ParaView-5.2.0 http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz
     but may need patching to compile (See [[Notes]]).
 *** ADIOS
     + https://github.com/ornladios/ADIOS/archive/v1.10.0.tar.gz
@@ -50,6 +52,7 @@
 *** Miscellaneous
     + FFTW        http://www.fftw.org/fftw-3.3.4.tar.gz
     + libccmio    http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz
+    + tecio       http://www.tecplot.com/my/tecio-library/ (needs registration)
 * Notes
 *** Building ADIOS
     + Currently requires GNU autoconf tools (eg, autoconf, autoheader, automake)
@@ -58,45 +61,18 @@
 *** Building Scotch
     + The zlib library and zlib development headers are required.
 * Notes
-*** Building ParaView-4.3.1/4.4.0/5.0.0/5.0.1
-    The ParaView-4.3.1/4.4.0/5.0.0 source-pack provided by KitWare will not
-    build and install correctly without a minor correction: lines 653-656
-    (650-653 in ParaView-5.0.0, 659-662 in ParaView-5.0.1) must be removed or
-    commented from file
-    /ThirdParty-???/ParaView-[45].?.?/Qt/Components/CMakeLists.txt/ after
-    unpacking and renaming the ParaView-[45].?.? directory.  This is because the
-    file ui_pqExportStateWizard.h referred to in
-    #+begin_src C
-    if(PARAVIEW_INSTALL_DEVELOPMENT_FILES)
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/ui_pqExportStateWizard.h"
-              DESTINATION "${VTK_INSTALL_INCLUDE_DIR}")
-    endif()
-    #+end_src
-    does not exist and cannot be installed causing the build and installation to
-    fail.
-
-    Additionally for ParaView-4.4.0 there is a bug in the STL reader.
-    (see http://www.openfoam.org/mantisbt/view.php?id=1887).
-
-    For ParaView-4.4.0 and ParaView-5.0.1,
-    the necessary patches are supplied with the ThirdParty repository
-    (see the etc/patches directory) and are applied when building paraview.
-
-*** Building ParaView-5.0.1 with gcc-6.1.0
-***** Add support for gcc-6.?.?
-      The following cmake files
-      + ParaView-5.0.1/VTK/CMake/vtkCompilerExtras.cmake
-      + ParaView-5.0.1/VTK/CMake/GenerateExportHeader.cmake
-      specifically limit the gcc versions supported.
-      To add support gcc-6.?.? replace the '[345]' with '[3456]'.
-
-      This patch is also supplied with the ThirdParty repository and
-      applied when building paraview.
-
+*** Building ParaView-4.4.0/5.0.0/5.0.1/5.1.2
+    If using makeParaView, the following patches will be automatically
+    applied (see the etc/patches directory):
+    + Bugfix for STL reader - affects 4.4.0 only.
+    + Broken installation [ui_pqExportStateWizard.h] - affects 4.4.0/5.0.0/5.0.1/5.1.x
+    + Building with gcc-6.1.0 - affects 4.4.0/5.0.0/5.0.1 (patch applied for 5.0.1)
 ***** SciberQuestToolKit
       The SciberQuestToolKit plugin fails to compile with gcc-6.1.0 and causes
       the compilation of ParaView to halt.  The easiest solution is to delete
       the ParaView-5.0.1/Plugins/SciberQuestToolKit directory.
+*** Building ParaView-5.2.0
+    Now compiles without patching.
 *** Building ParaView-4.1.0
     On Ubuntu 14.10 and higher, OpenSuSE 13.2 and probably other recent
     GNU/Linux distributions there is an issue in the GL libraries requiring a

@@ -89,7 +89,7 @@ options:
   -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
                         upper-limit on processes.
   -osmesa           with off-screen mesa only
-  -cmake PATH       with the cmake version corresponding to the cmake path given
+  -cmake PATH       with cmake from the path given
   -gcc              force g++ instead of the value from \$WM_CXX
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current value: $VTK_VERSION)

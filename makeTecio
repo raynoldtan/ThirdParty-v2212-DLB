@@ -65,7 +65,8 @@ usage()
 
 Usage: ${0##*/} [OPTION] [boost-VERSION] [tecio-VERSION]
 options:
-  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -cmake PATH       with cmake from the path given
+  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
 
@@ -92,6 +93,11 @@ do
     -gcc)
         export CC=gcc    # use gcc/g++
         export CXX=g++
+        ;;
+    -cmake)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        CMAKE_PATH="${2%%/}"
+        shift
         ;;
     boost-[0-9]* | boost_[0-9]* | boost-system )
         boostPACKAGE="${1%%/}"
@@ -168,9 +174,11 @@ then
         echo "    Boost          : system"
     fi
 
+    cmake=$(findCMake)
+
     echo "----"
     set -x
-    cd $TECIO_BINARY_DIR && cmake \
+    cd $TECIO_BINARY_DIR && $cmake \
         -DCMAKE_INSTALL_PREFIX=$TECIO_ARCH_PATH \
         -DCMAKE_BUILD_TYPE=Release \
         -DBoost_INCLUDE_DIR=$boostInc \
