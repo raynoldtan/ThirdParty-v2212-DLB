@@ -369,28 +369,14 @@ then
     cd $METIS_VERSION || exit 1
     rm -rf $METIS_ARCH_PATH
 
-    case "$WM_PRECISION_OPTION" in
-    SP)
-        WM_SCALAR_SIZE=32
-        ;;
-    DP)
-        WM_SCALAR_SIZE=64
-        ;;
-    *)
-        echo " Metis pre-configure error:"
-        echo "    WM_PRECISION_OPTION neither DP nor SP"
-        exit 1
-    esac
-
-    # Change user settings automatically
+    # Adjust metis integer size to match OpenFOAM label-size
     sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
-           -e 's=\(#define REALTYPEWIDTH\).*=\1 '$WM_SCALAR_SIZE'=' \
         include/metis.h
 
     # No config option for the library location.
     # - build normally and use mv to relocate it
 
-    make config shared=true prefix=$METIS_ARCH_PATH \
+    make config shared=1 prefix=$METIS_ARCH_PATH \
     && make -j $WM_NCOMPPROCS install \
     && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
 
