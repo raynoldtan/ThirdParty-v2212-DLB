@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -30,41 +30,41 @@
 #------------------------------------------------------------------------------
 
 #
-# create a qt.conf file in the QT bin/
-# this can be modified easily if the qt installation gets relocated
+# Create a qt.conf file in the QT bin/
+# - this can be modified easily if the qt installation is relocated
 #
 createQtConf()
 {
     echo "create:"
-    echo "    $prefixDIR/bin/qt.conf"
+    echo "    $QT_ARCH_PATH/bin/qt.conf"
 
-    [ -n "$prefixDIR" -a -d "$prefixDIR/bin" ] || {
-        echo "Error: prefixDIR not correctly set"
+    [ -n "$QT_ARCH_PATH" -a -d "$QT_ARCH_PATH/bin" ] || {
+        echo "Error: QT_ARCH_PATH not correctly set"
         return
     }
 
-    echo "[Paths]"            > $prefixDIR/bin/qt.conf
-    echo "Prefix=$prefixDIR" >> $prefixDIR/bin/qt.conf
+    echo "[Paths]"            > $QT_ARCH_PATH/bin/qt.conf
+    echo "Prefix=$QT_ARCH_PATH" >> $QT_ARCH_PATH/bin/qt.conf
 }
 
 
 #
-# adjust pkgconfig information
+# Adjust pkgconfig information
 # to generalize *location=, -L/... and -I/...
 # to use ${prefix}
 #
 adjustPkgConfig()
 {
     echo "edit pkgconfig:"
-    echo "    $prefixDIR/lib/pkgconfig/*.pc"
+    echo "    $QT_ARCH_PATH/lib/pkgconfig/*.pc"
 
-    [ -n "$prefixDIR" -a -d "$prefixDIR/lib/pkgconfig" ] || {
-        echo "Error: prefixDIR not correctly set"
+    [ -n "$QT_ARCH_PATH" -a -d "$QT_ARCH_PATH/lib/pkgconfig" ] || {
+        echo "Error: QT_ARCH_PATH not correctly set"
         return
     }
 
     (
-        cd $prefixDIR/lib/pkgconfig || exit
+        cd $QT_ARCH_PATH/lib/pkgconfig || exit
 
         unset nfiles
         for i in *.pc
@@ -73,8 +73,8 @@ adjustPkgConfig()
             then
                 nfiles="x$nfiles"
                 sed -i \
-                    -e 's@\(location=\)'"$prefixDIR/"'@\1${prefix}/@' \
-                    -e 's@\(-[IL]\)'"$prefixDIR/"'@\1${prefix}/@g'    \
+                    -e 's@\(location=\)'"$QT_ARCH_PATH/"'@\1${prefix}/@' \
+                    -e 's@\(-[IL]\)'"$QT_ARCH_PATH/"'@\1${prefix}/@g'    \
                     $i
             fi
         done
@@ -84,29 +84,29 @@ adjustPkgConfig()
 
 
 #
-# change prefix=... and Prefix=... to use ${prefix}
+# Change prefix=... and Prefix=... to use ${prefix}
 #
 changePrefix()
 {
     echo "relocate QT installation to new prefix directory:"
-    echo "    $prefixDIR"
+    echo "    $QT_ARCH_PATH"
     echo "edit:"
-    echo "    $prefixDIR/bin/qt.conf"
-    echo "    $prefixDIR/lib/pkgconfig/*.pc"
+    echo "    $QT_ARCH_PATH/bin/qt.conf"
+    echo "    $QT_ARCH_PATH/lib/pkgconfig/*.pc"
 
-    [ -n "$prefixDIR" -a -d "$prefixDIR/bin" -a -d "$prefixDIR/lib/pkgconfig" ] || {
-        echo "Error: prefixDIR not correctly set"
+    [ -n "$QT_ARCH_PATH" -a -d "$QT_ARCH_PATH/bin" -a -d "$QT_ARCH_PATH/lib/pkgconfig" ] || {
+        echo "Error: QT_ARCH_PATH not correctly set"
         return
     }
 
     # adjust qt.conf
-    for i in $prefixDIR/bin/qt.conf
+    for i in $QT_ARCH_PATH/bin/qt.conf
     do
         if [ -f "$i" ]
         then
             nfiles="x$nfiles"
             sed -i \
-                -e 's@^\([Pp]refix=\).*$@\1'"$prefixDIR@" \
+                -e 's@^\([Pp]refix=\).*$@\1'"$QT_ARCH_PATH@" \
                 $i
             echo "    edited 1 file"
         fi
@@ -114,7 +114,7 @@ changePrefix()
 
     # adjust pkgconfig files
     (
-        cd $prefixDIR/lib/pkgconfig || exit
+        cd $QT_ARCH_PATH/lib/pkgconfig || exit
 
         unset nfiles
         for i in *.pc
@@ -123,7 +123,7 @@ changePrefix()
             then
                 nfiles="x$nfiles"
                 sed -i \
-                    -e 's@^\([Pp]refix=\).*$@\1'"$prefixDIR@" \
+                    -e 's@^\([Pp]refix=\).*$@\1'"$QT_ARCH_PATH@" \
                     $i
             fi
         done
