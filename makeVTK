@@ -26,16 +26,18 @@
 #     makeVTK
 #
 # Description
-#     Make and install VTK
-#     - place the VTK source under $WM_THIRD_PARTY_DIR/VTK-VERSION
+#     Make and install VTK.
+#     The VTK sources should be located under one of these locations:
+#       - $WM_THIRD_PARTY_DIR/ParaView-VERSION
+#       - $WM_THIRD_PARTY_DIR/ParaView-vVERSION
 #
 #     To use the VTK source from the ParaView source tree, simply make an
 #     appropriate link first. For example,
 #
-#        ln -s ParaView-5.1.0/VTK  VTK-7.1.0
+#        ln -s ParaView-v5.2.0/VTK  VTK-7.1.0
 #
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"

@@ -42,11 +42,21 @@
 #
 setVtkDirs()
 {
-    VTK_SOURCE_DIR=$WM_THIRD_PARTY_DIR/VTK-$VTK_VERSION
+    set -- "VTK-$VTK_VERSION" "VTK-v$VTK_VERSION"
+    unset VTK_SOURCE_DIR
+
+    for i
+    do
+        VTK_SOURCE_DIR="$WM_THIRD_PARTY_DIR/$i"
+        [ -d "$VTK_SOURCE_DIR" ] && break
+    done
 
     [ -d "$VTK_SOURCE_DIR" ] || {
-        echo "did not find VTK-$VTK_VERSION in these directories:"
-        echo "  WM_THIRD_PARTY_DIR=$WM_THIRD_PARTY_DIR"
+        echo "Did not locate VTK version:"
+        while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+        echo
+        echo "In the directory:"
+        echo "    WM_THIRD_PARTY_DIR=$WM_THIRD_PARTY_DIR"
         echo
         echo "abort build"
         exit 1
