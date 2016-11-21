@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -26,12 +26,13 @@
 #     etc/relocateQt
 #
 # Description
-#     Change prefix when relocating qt installation
+#     Change prefix when relocating QT installation
 #
 #------------------------------------------------------------------------------
-qtVERSION=4.7.2
+qtVERSION=4.8.7
+
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    The environment variables are inconsistent with the installation."
@@ -49,15 +50,18 @@ usage() {
 
 usage: ${0##*/} [OPTION] [VERSION]
 options:
-  -force            create qt.conf and edit pkgconfig to use \${prefix}
+  -force            Create qt.conf and edit pkgconfig to use \${prefix}
   -help
+
+Adjust prefix in qt.conf and pkgconfig files after relocating third-party
+with a QT installation.
 
 * adjust relocation prefix for $qtVERSION
 
 USAGE
     exit 1
 }
-
+#------------------------------------------------------------------------------
 
 unset forceOpt
 # parse options
@@ -70,9 +74,10 @@ do
     -f | -force)
         forceOpt=true
         ;;
-    [1-9]* | qt-[1-9]*)
+    -qt-[1-9]* | [1-9]* | qt-*)
+        # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
         qtVERSION="${1%%/}";
-        qtVERSION="${qtVERSION#qt-}"
+        qtVERSION="${qtVERSION##*-}"
         ;;
     *)
         die "unknown option/argument: '$1'"
@@ -82,9 +87,12 @@ do
 done
 
 #------------------------------------------------------------------------------
-prefixDIR=$installBASE/qt-$qtVERSION
+QT_ARCH_PATH=$installBASE/qt-$qtVERSION
 
-[ "${forceOpt:-false}" = true ] && finalizeQt
+if [ "${forceOpt:-false}" = true ]
+then
+    finalizeQt
+fi
 changePrefix
 
 
