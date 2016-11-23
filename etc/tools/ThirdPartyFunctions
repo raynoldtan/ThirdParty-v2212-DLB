@@ -137,6 +137,7 @@ findCMake()
                 foundExe="$(cd ${foundExe%/cmake} 2>/dev/null && pwd)/cmake"
             fi
 
+            echo "Using cmake=$foundExe" 1>&2
             echo "$foundExe"
             return 0
         else
@@ -148,8 +149,10 @@ NOT_FOUND
         fi
     fi
 
-    # Default is cmake from the path
-    echo cmake
+    # Default to use the path, try resolving (so we know what we are using)
+    foundExe=$(command -v cmake 2> /dev/null) || foundExe=qmake
+    echo "Using cmake=${foundExe:-NotFound}"  1>&2
+    echo "${foundExe:-cmake}"
 }
 
 
@@ -205,6 +208,7 @@ findQtMake()
                 foundExe="$(cd ${foundExe%/qmake} 2>/dev/null && pwd)/qmake"
             fi
 
+            echo "Using qmake=$foundExe" 1>&2
             echo "$foundExe"
             return 0
         else
@@ -216,8 +220,10 @@ NOT_FOUND
         fi
     fi
 
-    # Default is qmake from the path
-    echo qmake
+    # Default to use the path, try resolving (so we know what we are using)
+    foundExe=$(command -v qmake 2> /dev/null) || foundExe=qmake
+    echo "Using qmake=${foundExe:-NotFound}"  1>&2
+    echo "${foundExe:-qmake}"
 }
 
 
