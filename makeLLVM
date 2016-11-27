@@ -51,7 +51,7 @@
 #        mv cfe-3.8.0.src  llvm-3.8.0/tools/clang
 #
 #------------------------------------------------------------------------------
-# get default llvm/clang version
+# Get default llvm/clang version
 WM_COMPILER_TYPE=ThirdParty       # ensure we get the correct compiler settings
 WM_COMPILER=Clang                 # force values for 'clang'
 
@@ -70,14 +70,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [llvm-VERSION]
+usage: ${0##*/} [OPTION] [llvm-VERSION]
 options:
   -cmake PATH       with cmake from the path given
   -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
@@ -89,14 +87,12 @@ options:
 USAGE
     exit 1
 }
-
 #-----------------------------------------------------------------------------
 # Ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CCX"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
-
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -138,7 +134,6 @@ installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH
 LLVM_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$llvmPACKAGE
 LLVM_BINARY_DIR=$buildBASE/${llvmPACKAGE%%.src}
 LLVM_ARCH_PATH=$installBASE/${llvmPACKAGE%%.src}
-
 
 #
 # Build LLVM

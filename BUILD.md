@@ -295,7 +295,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 |-----------------------|------------------------|
 | [CMake][page cmake]   | [download][link cmake] |
 | [boost][page boost]   | [download][link boost] |
-| [CGAL][page CGAL]     | [download][link CGAL] or [newer][newer CGAL] |
+| [CGAL][page CGAL]     | [download][link CGAL] or [older][older CGAL] |
 | [FFTW][page FFTW]     | [download][link FFTW]  |
 | [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio] |
 | [tecio][page tecio]   | [link tecio][link tecio] |
@@ -368,8 +368,8 @@ The minimum CMake requirements for building various components.
 [link boost]:     https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2
 
 [page CGAL]:      http://cgal.org
-[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.8.2/CGAL-4.8.2.tar.xz
-[newer CGAL]:     https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9/CGAL-4.9.tar.xz
+[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9/CGAL-4.9.tar.xz
+[older CGAL]:     https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.8.2/CGAL-4.8.2.tar.xz
 
 [page FFTW]:      http://www.fftw.org/
 [link FFTW]:      http://www.fftw.org/fftw-3.3.5.tar.gz

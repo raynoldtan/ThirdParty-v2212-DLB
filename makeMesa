@@ -48,14 +48,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [mesa-VERSION]
+usage: ${0##*/} [OPTION] [mesa-VERSION]
 options:
   -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
@@ -67,8 +65,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-
-# ensure configure gets the correct C/C++ compiler
+# Ensure configure gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
@@ -79,7 +76,7 @@ then
     thirdPartyClang=true
 fi
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -103,14 +100,12 @@ done
 
 [ -n "$mesaPACKAGE" ] || die "The mesa-VERSION was not specified"
 
-# nothing to build
+# Nothing to build
 if _foamIsNone "$mesaPACKAGE"
 then
     echo "Using mesa-none (skip ThirdParty build of MESA)"
     exit 0
-fi
-
-if _foamIsSystem "$mesaPACKAGE"
+elif _foamIsSystem "$mesaPACKAGE"
 then
     echo "Using mesa-system (skip ThirdParty build of MESA)"
     exit 0

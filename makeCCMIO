@@ -29,7 +29,6 @@
 #     Build CD-adapco's ccmio library
 #
 #------------------------------------------------------------------------------
-
 # Get version info
 . $WM_PROJECT_DIR/etc/config.sh/functions
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ccmio)
@@ -38,7 +37,7 @@ ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
 targetType=lib
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -53,7 +52,6 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
 usage()
 {
     exec 1>&2
@@ -79,6 +77,7 @@ options:
 USAGE
     exit 1
 }
+#------------------------------------------------------------------------------
 
 
 # Parse options
@@ -104,16 +103,16 @@ done
 # assert: directory must be available
 [ -d "$ccmioPACKAGE" ] || die "missing source directory '$ccmioPACKAGE'"
 
-
 #------------------------------------------------------------------------------
 CCMIO_ARCH_PATH=$installBASE/$ccmioPACKAGE
+CCMIO_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$ccmioPACKAGE
 
 #
 # Build LIBCCMIO
 #
 echo "---------------"
 (
-    cd $ccmioPACKAGE || exit 1
+    cd $CCMIO_SOURCE_DIR || exit 1
     incDIR=$CCMIO_ARCH_PATH/include/libccmio
     libDIR=$CCMIO_ARCH_PATH/lib
 
@@ -134,6 +133,5 @@ echo "---------------"
         fi
     fi
 )
-
 
 #------------------------------------------------------------------------------

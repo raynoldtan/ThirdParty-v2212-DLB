@@ -29,7 +29,6 @@
 #     Build script for ADIOS
 #
 #------------------------------------------------------------------------------
-
 # Get version info
 . $WM_PROJECT_DIR/etc/config.sh/functions
 unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
@@ -38,7 +37,7 @@ _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ADIOS)
 adiosPACKAGE=${adios_version:-adios-none}
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    The environment variables are inconsistent with the installation."
@@ -47,7 +46,6 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
@@ -64,15 +62,14 @@ options:
 USAGE
     exit 1
 }
-
 #------------------------------------------------------------------------------
-# export WM settings in a form that GNU configure recognizes
+# Export WM settings in a form that GNU configure recognizes
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
 [ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -109,6 +106,8 @@ fi
 #------------------------------------------------------------------------------
 #
 # Build ADIOS
+#   ADIOS_ARCH_PATH  : installation directory
+#   ADIOS_SOURCE_DIR : location of the original sources
 
 ADIOS_ARCH_PATH=$installBASE/$adiosPACKAGE
 ADIOS_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$adiosPACKAGE
@@ -186,9 +185,10 @@ else
         CXX=mpicxx
     fi
 
-    # installs into lib64/
+    # Install into lib64/
     cd $buildDIR && $ADIOS_SOURCE_DIR/configure \
         --prefix=$ADIOS_ARCH_PATH \
+        --libdir=$ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
         --disable-fortran \
         --with-pic \
         --without-fastbit \
@@ -214,7 +214,9 @@ else
     {
         # We don't need/use XML things
         \rm -f adios_lint
-    } && $ADIOS_ARCH_PATH/bin/adios_config -m
+        $ADIOS_ARCH_PATH/bin/adios_config -m 2>/dev/null || \
+            echo "Warning: Problems running adios_config"
+    }
 ) || {
     echo "Error building: $adiosPACKAGE"
 }

@@ -93,7 +93,6 @@ withGL2=auto
 #
 #-----------------------------------------------------------------------------
 Script=${0##*/}
-
 usage() {
     : ${ParaView_VERSION:=none} # some dummy value for usage information
     exec 1>&2
@@ -154,15 +153,13 @@ Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 USAGE
     exit 1
 }
-
 #------------------------------------------------------------------------------
-
-# ensure CMake gets the correct C/C++ compiler
+# Ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
 #
-# add options based on script name:
+# Add options based on script name:
 #
 case "$Script" in *-mesa*)   withMESA=true;; esac
 case "$Script" in *-mpi*)    withMPI=true;; esac
@@ -173,13 +170,13 @@ case "$Script" in *-qt*)     withQT=true;; esac
 setParaViewVersion ${ParaView_VERSION:-none}
 
 #
-# various building stages
+# Various building stages
 #
 unset runPATCH runCONFIG runMAKE runINSTALL
 runDEFAULT=true
 buildType=Release
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in

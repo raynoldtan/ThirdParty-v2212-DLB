@@ -29,8 +29,7 @@
 #     Build Tecplot library
 #
 #------------------------------------------------------------------------------
-
-# Get boost versions
+# Get boost version (headers only)
 . $WM_PROJECT_DIR/etc/config.sh/functions
 unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
 
@@ -41,7 +40,7 @@ tecioPACKAGE=tecio
 targetType=lib
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -56,7 +55,6 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
 usage()
 {
     exec 1>&2
@@ -65,8 +63,8 @@ usage()
 
 Usage: ${0##*/} [OPTION] [boost-VERSION] [tecio-VERSION]
 options:
-  -cmake PATH       with cmake from the path given
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -cmake PATH       With cmake from the path given
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
 
@@ -77,13 +75,12 @@ options:
 USAGE
     exit 1
 }
-
 #------------------------------------------------------------------------------
 # Ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CCX"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -121,16 +118,19 @@ done
 # Get Boost information
 # - only headers are required
 
-BOOST_ARCH_PATH=$installBASE/$boostPACKAGE
+: ${BOOST_ARCH_PATH:=$installBASE/$boostPACKAGE}    # Fallback
 
 boostInc="$BOOST_ARCH_PATH/include"
 
-if _foamIsSystem $BOOST_ARCH_PATH
+if _foamIsSystem $boostPACKAGE
 then
     echo "Using boost-system"
 
-    boostInc="/usr/include"
-elif [ -f "$boostInc/boost/version.hpp" -a -d "$boostLib" ]
+    # Tagged as 'system' but could actually point to a central location
+    [ -d "$BOOST_ARCH_PATH/include" ] || {
+        boostInc="/usr/include"
+    }
+elif [ -f "$boostInc/boost/version.hpp" ]
 then
     echo "Using $boostPACKAGE"
 fi
@@ -140,7 +140,7 @@ fi
 #
 #   TECIO_SOURCE_DIR : location of the original sources
 #   TECIO_BINARY_DIR : location of the build
-#   TECIO_DIR        : location of the installed program
+#   TECIO_ARCH_PATH  : location of the installed program
 
 TECIO_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$tecioPACKAGE/teciosrc
 TECIO_BINARY_DIR=$buildBASE/$tecioPACKAGE
@@ -180,7 +180,7 @@ then
     set -x
     cd $TECIO_BINARY_DIR && $cmake \
         -DCMAKE_INSTALL_PREFIX=$TECIO_ARCH_PATH \
-        -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_BINARY_TYPE=Release \
         -DBoost_INCLUDE_DIR=$boostInc \
         $TECIO_SOURCE_DIR \
     && make -j $WM_NCOMPPROCS \

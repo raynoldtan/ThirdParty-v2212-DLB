@@ -88,8 +88,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-
-# build 32-bit libraries on 64-bit systems (normally not needed)
+# Build 32-bit libraries on 64-bit systems (normally not needed)
 optMultilib=disable
 unset optThreadSafe # unset=auto
 

@@ -151,7 +151,7 @@ NOT_FOUND
     fi
 
     # Default to use the path, try resolving (so we know what we are using)
-    foundExe=$(command -v cmake 2> /dev/null) || foundExe=qmake
+    foundExe=$(command -v cmake 2> /dev/null) || foundExe=cmake
     echo "Using cmake=${foundExe:-NotFound}"  1>&2
     echo "${foundExe:-cmake}"
 }

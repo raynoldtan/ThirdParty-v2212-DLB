@@ -70,13 +70,11 @@ CMAKE_PATH=""
 # Default to auto-config based on VTK version
 withGL2=auto
 
-
 #
 # NO FURTHER EDITING BELOW THIS LINE
 #
 #-----------------------------------------------------------------------------
 Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
@@ -124,20 +122,19 @@ USAGE
 }
 
 #------------------------------------------------------------------------------
-
-# ensure CMake gets the correct C/C++ compiler
+# Ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
 #
-# various building stages
+# Various building stages
 #
 unset runPATCH runCONFIG runMAKE runINSTALL
 runDEFAULT=true
 buildType=Release
 withOSMESA=false
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in

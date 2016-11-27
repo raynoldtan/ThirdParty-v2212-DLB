@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -28,14 +28,17 @@
 # Description
 #     Build script for gperftools
 #
-# Note
-#
 #------------------------------------------------------------------------------
+# Get gperftools version
+. $WM_PROJECT_DIR/etc/config.sh/functions
+unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
 
-gperftoolsPACKAGE=gperftools-svn
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools)
+
+gperftoolsPACKAGE=${gperftools_version:-gperftools-system}
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    The environment variables are inconsistent with the installation."
@@ -44,13 +47,15 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
 usage: ${0##*/} [gperftools-VERSION]
+options:
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -help
 
 * build gperftools
       $gperftoolsPACKAGE
@@ -58,16 +63,23 @@ usage: ${0##*/} [gperftools-VERSION]
 USAGE
     exit 1
 }
+#------------------------------------------------------------------------------
+# Ensure configure gets the correct C/C++ compiler
+[ -n "$WM_CC" ]  && export CC="$WM_CC"
+[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
-
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
     -h | -help)
         usage
         ;;
-    gperftools-[0-9]* | gperftools-svn*)
+    -gcc)
+        export CC=gcc    # use gcc/g++
+        export CXX=g++
+        ;;
+    gperftools-[0-9]* | gperftools-svn* | gperftools-git)
         gperftoolsPACKAGE="${1%%/}"
         ;;
     *)
@@ -77,42 +89,55 @@ do
     shift
 done
 
-#------------------------------------------------------------------------------
-# build/install without compiler name
-prefixDIR=$installBASE/$gperftoolsPACKAGE
+[ -n "$gperftoolsPACKAGE" ] || die "The gperftools-VERSION was not specified"
 
+# Nothing to build
+if _foamIsNone $gperftoolsPACKAGE
+then
+    echo "Using gperftools-none (skip ThirdParty build of gperftools)"
+    exit 0
+elif _foamIsSystem $gperftoolsPACKAGE
+then
+    echo "Using gperftools-system (skip ThirdParty build of gperftools)"
+    exit 0
+fi
+
+#------------------------------------------------------------------------------
 #
 # Build gperftools
 #
+# build/install without compiler name
+GPERFTOOLS_ARCH_PATH=$installBASE/$gperftoolsPACKAGE
+GPERFTOOLS_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$gperftoolsPACKAGE
+
 echo "---------------"
-if [ -d "$prefixDIR" ]
+if [ -d "$GPERFTOOLS_ARCH_PATH" ]
 then
     echo "Already built: $gperftoolsPACKAGE"
 else
     echo "Starting build: $gperftoolsPACKAGE"
-(
-    sourceDIR=$WM_THIRD_PARTY_DIR/$gperftoolsPACKAGE
-    buildDIR=$buildBASE/$gperftoolsPACKAGE
+    (
+        buildDIR=$buildBASE/$gperftoolsPACKAGE
 
-    cd $sourceDIR || exit 1
-    make distclean 2>/dev/null
+        cd $GPERFTOOLS_SOURCE_DIR || exit 1
 
-    rm -rf $buildDIR
-    mkdir -p $buildDIR
-    cd $buildDIR
+        make distclean 2>/dev/null
 
-    # remove old junk
-    rm -rf $prefixDIR
+        rm -rf $GPERFTOOLS_ARCH_PATH
+        rm -rf $buildDIR
+        mkdir -p $buildDIR
+        cd $buildDIR
 
-    $sourceDIR/configure \
-        --prefix=$prefixDIR \
-    && make -j $WM_NCOMPPROCS \
-    && make install \
-    && echo "Built: $gperftoolsPACKAGE" \
-) || {
-    echo "Error building: $gperftoolsPACKAGE"
-    exit 1
-}
+        set -x
+        $GPERFTOOLS_SOURCE_DIR/configure \
+            --prefix=$GPERFTOOLS_ARCH_PATH \
+        && make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built: $gperftoolsPACKAGE" \
+    ) || {
+        echo "Error building: $gperftoolsPACKAGE"
+        exit 1
+    }
 fi
 
 #------------------------------------------------------------------------------
