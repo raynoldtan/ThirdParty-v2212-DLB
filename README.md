@@ -18,23 +18,17 @@ OpenFOAM depends to a certain extent on third-party libraries
 scripts for building third-party packages. It should normally only be used in
 conjunction with the corresponding OpenFOAM version.
 
-
 ## Configuration of Third-Party Versions
 
-The distributed make scripts can generally be used for a variety of
-versions of the third-party libraries, with the software version
-specified on the command-line. For example,
-
-    $ ./makeFFTW -help
-    usage: makeFFTW [OPTION] [fftw-VERSION]
-
-If a version is not explicitly specified on the command-line, it will
-use the version as specified by the appropriate OpenFOAM
-`etc/config.sh/...` entry.
-
+For most of the build scripts, the default software version
+is provided by an appropriate OpenFOAM `etc/config.sh/...` entry.
 This approach avoids duplicate entries for the default versions and
 ensures the best overall consistency between the OpenFOAM installation
 and its corresponding third-party installation.
+
+Nonethess, the distributed make scripts can generally be used for a
+variety of versions of the third-party libraries, with the software
+version specified on the command-line.
 
 ---
 
@@ -56,10 +50,10 @@ and its corresponding third-party installation.
 
 Many components of ThirdParty are *optional* or are invoked
 automatically as part of the top-level OpenFOAM `Allwmake`.
-Nonetheless it may be necessary or useful to build various
+Nonetheless it may be necessary or useful to build particular
 ThirdParty components prior to building OpenFOAM itself.
 
-## Build Sequence
+### Build Sequence
 
 1. `makeGcc` _or_ `makeLLVM` *(optional)*
 2. `makeCmake`  *(optional)*
