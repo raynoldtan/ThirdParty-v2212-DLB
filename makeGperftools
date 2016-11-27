@@ -106,9 +106,8 @@ fi
 #
 # Build gperftools
 #
-# build/install without compiler name
+GPERFTOOLS_SOURCE_DIR=$sourceBASE/$gperftoolsPACKAGE
 GPERFTOOLS_ARCH_PATH=$installBASE/$gperftoolsPACKAGE
-GPERFTOOLS_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$gperftoolsPACKAGE
 
 echo "---------------"
 if [ -d "$GPERFTOOLS_ARCH_PATH" ]

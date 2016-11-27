@@ -104,8 +104,8 @@ done
 [ -d "$ccmioPACKAGE" ] || die "missing source directory '$ccmioPACKAGE'"
 
 #------------------------------------------------------------------------------
+CCMIO_SOURCE_DIR=$sourceBASE/$ccmioPACKAGE
 CCMIO_ARCH_PATH=$installBASE/$ccmioPACKAGE
-CCMIO_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$ccmioPACKAGE
 
 #
 # Build LIBCCMIO

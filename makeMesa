@@ -136,9 +136,10 @@ fi
 # - MESA itself will normally build into 'lib64'.
 #
 #   MESA_SOURCE_DIR : location of the original sources
+#   MESA_ARCH_DIR   : installation directory
 
+MESA_SOURCE_DIR=$sourceBASE/$mesaPACKAGE
 MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
-MESA_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$mesaPACKAGE
 
 (
     # configuration options:

@@ -29,7 +29,7 @@
 #
 #------------------------------------------------------------------------------
 
-# buildBASE, installBASE defined from tools/ThirdPartyFunctions
+# sourceBASE, buildBASE, installBASE defined in tools/ThirdPartyFunctions
 
 #
 # Where things are or should be put
@@ -46,7 +46,7 @@ setParaViewDirs()
     unset ParaView_SOURCE_DIR
     for i
     do
-        ParaView_SOURCE_DIR="$WM_THIRD_PARTY_DIR/$i"
+        ParaView_SOURCE_DIR="$sourceBASE/$i"
         [ -d "$ParaView_SOURCE_DIR" ] && break
     done
 
@@ -55,7 +55,7 @@ setParaViewDirs()
         while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
         echo
         echo "In the directory:"
-        echo "    WM_THIRD_PARTY_DIR=$WM_THIRD_PARTY_DIR"
+        echo "    $sourceBASE"
         echo
         echo "abort build"
         exit 1

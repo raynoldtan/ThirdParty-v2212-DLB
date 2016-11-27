@@ -34,7 +34,7 @@
 #     To use the VTK source from the ParaView source tree, simply make an
 #     appropriate link first. For example,
 #
-#        ln -s ParaView-v5.2.0/VTK  VTK-7.1.0
+#        (cd $WM_THIRD_PARTY_DIR && ln -s ParaView-v5.2.0/VTK VTK-7.1.0)
 #
 #------------------------------------------------------------------------------
 # Run from third-party directory only
@@ -120,7 +120,6 @@ For finer control, the build stages can be selected or deselected individually:
 USAGE
     exit 1
 }
-
 #------------------------------------------------------------------------------
 # Ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"

@@ -85,7 +85,8 @@ do
 
     if [ -n "$min" ]
     then
-        echo "${min%.0}" $dir   # With trailing ".0 removed
+        # Remove trailing ".0" from version
+        echo "${min%.0}" "${dir#sources/}"
     fi
 
 done \

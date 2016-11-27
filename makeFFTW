@@ -114,11 +114,11 @@ fi
 # - Third-Party builds into 'lib64'
 # - system is normally built into 'lib64'
 #
-#   FFTW_ARCH_PATH  : installation directory
 #   FFTW_SOURCE_DIR : location of the original sources
+#   FFTW_ARCH_PATH  : installation directory
 
+FFTW_SOURCE_DIR=$sourceBASE/$fftwPACKAGE
 FFTW_ARCH_PATH=$installBASE/$fftwPACKAGE
-FFTW_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$fftwPACKAGE
 
 if [ -r "$FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libfftw3.so" ]
 then

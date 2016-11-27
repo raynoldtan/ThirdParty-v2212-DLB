@@ -142,7 +142,7 @@ fi
 #   TECIO_BINARY_DIR : location of the build
 #   TECIO_ARCH_PATH  : location of the installed program
 
-TECIO_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$tecioPACKAGE/teciosrc
+TECIO_SOURCE_DIR=$sourceBASE/$tecioPACKAGE/teciosrc
 TECIO_BINARY_DIR=$buildBASE/$tecioPACKAGE
 TECIO_ARCH_PATH=$installBASE/$tecioPACKAGE
 

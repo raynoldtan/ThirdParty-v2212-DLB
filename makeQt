@@ -104,8 +104,8 @@ fi
 #
 # Build QT
 
+QT_SOURCE_DIR=$sourceBASE/$qtPACKAGE
 QT_ARCH_PATH=$installBASE/qt-$qtVERSION
-QT_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$qtPACKAGE
 
 echo
 echo ========================================

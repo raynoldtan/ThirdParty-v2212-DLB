@@ -89,11 +89,11 @@ done
 #------------------------------------------------------------------------------
 #
 # Build CMAKE
-#   CMAKE_ARCH_PATH  : installation directory
 #   CMAKE_SOURCE_DIR : location of the original sources
+#   CMAKE_ARCH_PATH  : installation directory
 
+CMAKE_SOURCE_DIR=$sourceBASE/$cmakePACKAGE
 CMAKE_ARCH_PATH=$installBASE/$cmakePACKAGE
-CMAKE_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$cmakePACKAGE
 
 if [ -d "$CMAKE_ARCH_PATH" -a -r "$CMAKE_ARCH_PATH/bin/cmake" ]
 then

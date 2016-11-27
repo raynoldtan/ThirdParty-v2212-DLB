@@ -170,7 +170,7 @@ fi
 #   BOOST_ARCH_PATH  : installation directory
 #   BOOST_SOURCE_DIR : location of the original sources
 
-BOOST_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$boostPACKAGE
+BOOST_SOURCE_DIR=$sourceBASE/$boostPACKAGE
 : ${BOOST_ARCH_PATH:=$installBASE/$boostPACKAGE}    # Fallback
 
 boostInc="$BOOST_ARCH_PATH/include"
@@ -257,7 +257,7 @@ SUMMARY
 #   CGAL_BINARY_DIR : location of the build
 #   CGAL_ARCH_PATH  : installation directory
 
-CGAL_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$cgalPACKAGE
+CGAL_SOURCE_DIR=$sourceBASE/$cgalPACKAGE
 CGAL_BINARY_DIR=$buildBASE/$cgalPACKAGE
 : ${CGAL_ARCH_PATH:=$installBASE/$cgalPACKAGE}      # Fallback
 

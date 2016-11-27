@@ -106,11 +106,11 @@ fi
 #------------------------------------------------------------------------------
 #
 # Build ADIOS
-#   ADIOS_ARCH_PATH  : installation directory
 #   ADIOS_SOURCE_DIR : location of the original sources
+#   ADIOS_ARCH_PATH  : installation directory
 
+ADIOS_SOURCE_DIR=$sourceBASE/$adiosPACKAGE
 ADIOS_ARCH_PATH=$installBASE/$adiosPACKAGE
-ADIOS_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$adiosPACKAGE
 
 : ${FOAM_MPI:=dummy}
 

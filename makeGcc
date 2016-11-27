@@ -180,7 +180,7 @@ else
     echo "Starting build: $gmpPACKAGE"
     echo
 (
-    sourceDIR=$WM_THIRD_PARTY_DIR/$gmpPACKAGE
+    sourceDIR=$sourceBASE/$gmpPACKAGE
     buildDIR=$buildBASE/$gmpPACKAGE
 
     cd $sourceDIR || exit 1
@@ -232,7 +232,7 @@ else
     echo "Starting build: $mpfrPACKAGE"
     echo
 (
-    sourceDIR=$WM_THIRD_PARTY_DIR/$mpfrPACKAGE
+    sourceDIR=$sourceBASE/$mpfrPACKAGE
     buildDIR=$buildBASE/$mpfrPACKAGE
 
     cd $sourceDIR || exit 1
@@ -288,7 +288,7 @@ else
     echo "Starting build: $mpcPACKAGE"
     echo
 (
-    sourceDIR=$WM_THIRD_PARTY_DIR/$mpcPACKAGE
+    sourceDIR=$sourceBASE/$mpcPACKAGE
     buildDIR=$buildBASE/$mpcPACKAGE
 
     cd $sourceDIR || exit 1
@@ -344,7 +344,7 @@ else
     echo "Starting build: $gccPACKAGE"
     echo
 (
-    sourceDIR=$WM_THIRD_PARTY_DIR/$gccPACKAGE
+    sourceDIR=$sourceBASE/$gccPACKAGE
     buildDIR=$buildBASE/$gccPACKAGE
 
     cd $sourceDIR || exit 1

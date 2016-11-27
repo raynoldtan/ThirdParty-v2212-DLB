@@ -31,10 +31,10 @@
 #     Define WM_NCOMPPROCS always.
 #------------------------------------------------------------------------------
 
-# Define the normal build and prefix directories
+# The normal locations for source, build and installation (prefix-dir)
+sourceBASE=$WM_THIRD_PARTY_DIR
 buildBASE=$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER
 installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER
-
 
 #
 # Mostly building without wmake

@@ -29,7 +29,7 @@
 #     Build script for ThirdParty
 #
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -44,8 +44,7 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
-# export WM settings in a form that GNU configure recognizes
+# Export WM settings in a form that GNU configure recognizes
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
@@ -108,7 +107,7 @@ OPENMPI)
         # end of configuration options
         # ----------------------------
         mpiPACKAGE="${MPI_ARCH_PATH##*/}"
-        sourceDIR=$WM_THIRD_PARTY_DIR/$mpiPACKAGE
+        sourceDIR=$sourceBASE/$mpiPACKAGE
         buildDIR=$buildBASE/$mpiPACKAGE
 
         cd $sourceDIR || exit 1
@@ -151,9 +150,10 @@ MPICH)
     (
         # WARNING: unmaintained build code:
         # ---------------------------------
-        set -x
-        cd $MPI_HOME || exit 1    # change to mpich-VERSION
+        sourceDIR=$sourceBASE/$MPI_HOME
+        cd $sourceDIR || exit 1
 
+        set -x
         [ -e Makefile ] && make distclean 2>/dev/null
         rm -rf $MPI_ARCH_PATH
         rm -rf util/machines/machines.*
@@ -205,9 +205,9 @@ esac
 
 
 #------------------------------------------------------------------------------
-# building scotch is still a bit of a pain
+# Building scotch is still a bit of a pain
 
-# get SCOTCH_VERSION, SCOTCH_ARCH_PATH
+# Get SCOTCH_VERSION, SCOTCH_ARCH_PATH
 if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch)
 then
     . $settings
@@ -222,7 +222,9 @@ echo ========================================
 echo "Build Scotch decomposition library $SCOTCH_VERSION"
 echo "    $SCOTCH_ARCH_PATH"
 
-# this needs generalizing
+SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
+
+# This needs generalizing, but works fairly well
 scotchMakefile=../../etc/wmakeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
 
 if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
@@ -231,10 +233,10 @@ if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
 then
     echo "    scotch header in $SCOTCH_ARCH_PATH/include"
     echo "    scotch libs   in $FOAM_EXT_LIBBIN"
-elif [ -d "$SCOTCH_VERSION" ]
+elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
-    cd $SCOTCH_VERSION/src || exit 1
+    cd $SCOTCH_SOURCE_DIR/src || exit 1
     rm -rf $SCOTCH_ARCH_PATH
 
     applyPatch $SCOTCH_VERSION ..       # patch at parent-level
@@ -298,18 +300,17 @@ then
         echo "    ptscotch libs   in $FOAM_EXT_LIBBIN/$FOAM_MPI"
     else
     (
+        cd $SCOTCH_SOURCE_DIR/src || exit 1
         echo
-        set -x
-        cd $SCOTCH_VERSION/src || exit 1
 
         prefixDIR=$SCOTCH_ARCH_PATH
-        libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
         incDIR=$SCOTCH_ARCH_PATH/include/$FOAM_MPI
+        libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
 
         mkdir -p $prefixDIR 2>/dev/null
         mkdir -p $libDIR 2>/dev/null
 
-        configOpt="prefix=$prefixDIR libdir=$libDIR includedir=$incDIR"
+        configOpt="prefix=$prefixDIR includedir=$incDIR libdir=$libDIR"
 
         if [ -f $scotchMakefile ]
         then
@@ -357,16 +358,18 @@ then
     . $settings
 fi
 
+METIS_SOURCE_DIR=$sourceBASE/$METIS_VERSION
+
 if [ -f $METIS_ARCH_PATH/include/metis.h \
   -a -r $FOAM_EXT_LIBBIN/libmetis.so ]
 then
     echo "    metis header in $METIS_ARCH_PATH/include"
     echo "    metis libs   in $FOAM_EXT_LIBBIN"
     echo
-elif [ -d "$METIS_VERSION" ]
+elif [ -d "$METIS_SOURCE_DIR" ]
 then
 (
-    cd $METIS_VERSION || exit 1
+    cd $METIS_SOURCE_DIR || exit 1
     rm -rf $METIS_ARCH_PATH
 
     # Adjust metis integer size to match OpenFOAM label-size
