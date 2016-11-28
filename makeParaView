@@ -34,12 +34,13 @@
 #     Note the capitalization of ParaView in the directory names.
 #
 #------------------------------------------------------------------------------
-# Get ParaView_DIR location from OpenFOAM config file
+# Get ParaView_VERSION location from OpenFOAM config file
 . $WM_PROJECT_DIR/etc/config.sh/functions
+unset -f _foamAddPath _foamAddLib               # get settings only
+unset ParaView_VERSION                          # purge current values
+
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/paraview)
 
-# Determine ParaView_VERSION from ParaView_DIR location:
-ParaView_VERSION="${ParaView_DIR##*/}"; export ParaView_VERSION
 : ${ParaView_VERSION##*-}
 
 #------------------------------------------------------------------------------

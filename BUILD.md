@@ -178,13 +178,13 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-5.2.0/VTK  VTK-7.1.0
+      ln -s ParaView-5.0.1/VTK  VTK-7.1.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-5.2.0/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-5.0.1/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
       set(VTK_MAJOR_VERSION 7)
@@ -192,19 +192,21 @@ and save some disk space.
       set(VTK_BUILD_VERSION 0)
 
 ### ParaView
+- **ParaView-5.0.1** is the last version for which the OpenFOAM reader
+  modules (eg, to visualize a `blockMeshDict`) work in their present form.
+
 - Building ParaView requires CMake, qmake and a `qt` development files.
   Use the `-cmake`, `-qmake` and `-qt-*` options for `makeParaView` as
   required.
   See additional notes below about [making Qt](#makeQt) if necessary.
 
-### ParaView
-- Both CMake and qmake are required when building ParaView.
-
 #### 5.2.0
-- Compiles without patching.
+- Compiles without patching, but the OpenFOAM reader modules
+  (eg, to visualize a `blockMeshDict`) have not yet been migrated
+  to this version.
 
 #### 4.4.0/5.0.0/5.0.1/5.1.2
-- If using `makeParaView`, the following patches will be automatically
+- When using `makeParaView`, the following patches will be automatically
   applied (see the `etc/patches` directory):
   - Bugfix for STL reader - affects 4.4.0 only.
   - Broken installation (ui_pqExportStateWizard.h) - affects 4.4.0/5.0.0/5.0.1/5.1.x
@@ -212,7 +214,6 @@ and save some disk space.
   - The SciberQuestToolKit plugin fails to compile with gcc-6.1.0 and causes
     the compilation of ParaView to halt. The easiest solution is to delete
     the ParaView-5.0.1/Plugins/SciberQuestToolKit directory.
-
 
 ### Making Qt <a name="makeQt"></a>
 - Building a third-party Qt installation (prior to building ParaView) requires
@@ -226,7 +227,7 @@ and save some disk space.
 
 3. Build ParaView using this third-party QT. For example,
 
-       ./makeParaView -qt-4.8.7 5.2.0
+       ./makeParaView -qt-4.8.7 5.0.1
 
 - ParaView does not yet support QT5.
 
@@ -234,7 +235,6 @@ and save some disk space.
   (eg, you built in your home directory, but want to install it in a
   central location), you will need to use the `etc/relocateQt` script
   afterwards.
-
 
 ---
 
@@ -244,12 +244,12 @@ and save some disk space.
 
 The minimum version of gcc required is 4.8.0.
 
-| Name              | Location                                   |
-|-------------------|--------------------------------------------|
-| [gcc][page gcc]   | [releases][link gcc]                       |
-| [gmp][page gmp]   | system is often ok, otherwise [download][link gmp]  |
-| [mpfr][page mpfr] | system is often ok, otherwise [download][link mpfr] |
-| [mpc][page mpc]   | system is often ok, otherwise [download][link mpc]  |
+| Name              | Location
+|-------------------|--------------------------------------------
+| [gcc][page gcc]   | [releases][link gcc]
+| [gmp][page gmp]   | system is often ok, otherwise [download][link gmp]
+| [mpfr][page mpfr] | system is often ok, otherwise [download][link mpfr]
+| [mpc][page mpc]   | system is often ok, otherwise [download][link mpc]
 
 
 #### Potential MPFR conflicts
@@ -283,41 +283,41 @@ update your CMake beforehand.
 GNU *configure* can only be used prior to clang version 3.9.
 
 
-| Name                  | Location               |
-|-----------------------|------------------------|
-| [clang][page clang]   | [download][link clang]  |
-| [llvm][page llvm]     | [download][link llvm]   |
+| Name                  | Location
+|-----------------------|------------------------
+| [clang][page clang]   | [download][link clang]
+| [llvm][page llvm]     | [download][link llvm]
 
 
 ### Parallel Processing <a name="parallel"></a>
 
-| Name                  | Location               |
-|-----------------------|------------------------|
-| [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios] |
-| [scotch, ptscotch][page scotch] | [download][link scotch] |
-| [openmpi][page openmpi] | [download][link openmpi] |
+| Name                  | Location
+|-----------------------|------------------------
+| [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
+| [scotch, ptscotch][page scotch] | [download][link scotch]
+| [openmpi][page openmpi] | [download][link openmpi]
 
 
 ### General <a name="general-packages"></a>
 
-| Name                  | Location               |
-|-----------------------|------------------------|
-| [CMake][page cmake]   | [download][link cmake] |
-| [boost][page boost]   | [download][link boost] |
-| [CGAL][page CGAL]     | [download][link CGAL] or [older][older CGAL] |
-| [FFTW][page FFTW]     | [download][link FFTW]  |
-| [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio] |
-| [tecio][page tecio]   | [link tecio][link tecio] |
-| gperftools            | [repo][repo gperftools] or [download][link gperftools] |
+| Name                  | Location
+|-----------------------|------------------------
+| [CMake][page cmake]   | [download][link cmake]
+| [boost][page boost]   | [download][link boost]
+| [CGAL][page CGAL]     | [download][link CGAL] or [older][older CGAL]
+| [FFTW][page FFTW]     | [download][link FFTW]
+| [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio]
+| [tecio][page tecio]   | [link tecio][link tecio]
+| gperftools            | [repo][repo gperftools] or [download][link gperftools]
 
 
 ### Visualization <a name="viz-version"></a>
 
-| Name                  | Location               |
-|-----------------------|------------------------|
-| [MESA][page mesa]     | [download][link mesa] or [older][older mesa] |
-| [ParaView][page ParaView] | [download][link ParaView] or older [5.1][older ParaView-51], [5.0][older ParaView-50], [4.4][older ParaView-44] |
-| [Qt][page Qt]         | [repo][repo Qt] or [download][link Qt]. The newer [Qt5][newer Qt5] is **not** currently supported by ParaView. |
+| Name                  | Location
+|-----------------------|------------------------
+| [MESA][page mesa]     | [download][link mesa] or [older][older mesa]
+| [ParaView][page ParaView] | [download][link ParaView]. The reader modules do not yet work with the newest paraview versions.
+| [Qt][page Qt]         | [repo][repo Qt] or [download][link Qt]. The newer [Qt5][newer Qt5] is **not** currently supported by ParaView.
 
 
 ### CMake Minimum Requirements <a name="min-cmake"></a>
@@ -325,6 +325,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 The minimum CMake requirements for building various components.
 
     2.8         llvm-3.4.2
+    2.8.8       ParaView-5.0.1
     2.8.11      CGAL-4.9
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
@@ -396,11 +397,11 @@ The minimum CMake requirements for building various components.
 <!-- Visualization -->
 
 [page ParaView]:  http://www.paraview.org/
-[link ParaView]:  http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz
+[link ParaView]:  http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
 
 [older ParaView-44]:  http://www.paraview.org/files/v4.4/ParaView-v4.4.0-source.tar.gz
-[older ParaView-50]:  http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
-[older ParaView-51]:  http://www.paraview.org/files/v5.1/ParaView-v5.1.2-source.tar.gz
+[newer ParaView-51]:  http://www.paraview.org/files/v5.1/ParaView-v5.1.2-source.tar.gz
+[newer ParaView-52]:  http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/13.0.1/mesa-13.0.1.tar.xz
@@ -415,7 +416,8 @@ The minimum CMake requirements for building various components.
 <!-- Standard Footer -->
 ## Additional OpenFOAM Links
 
-- [Download and installation instructions](http://www.openfoam.com/releases)
+- [Download](http://www.openfoam.com/releases) and
+  [installation instructions](http://www.openfoam.com/download/installation.php)
 - [Documentation](http://www.openfoam.com/documentation)
 - [Reporting bugs/issues (including bugs/suggestions/feature requests) in OpenFOAM+](http://www.openfoam.com/code/bug-reporting.php)
 - [Collaborative and Community-based Developments](http://www.openfoam.com/services/community-projects.php)

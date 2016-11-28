@@ -32,13 +32,14 @@
 #     Building with mesa-12.x.x fails to create an include/GL directory and
 #     an "osmesa.h" file. Both make it fairly useless for off-screen VTK.
 #
-#     Building with mesa-11.x is fine and mesa-13.0.0 also seems to be okay.
+#     Building with mesa-11.x is fine and mesa-13.x also seems to be okay.
 #
 #------------------------------------------------------------------------------
-mesaPACKAGE=mesa-11.2.2
+# Special purpose script, no default version.
+unset mesaPACKAGE
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -53,9 +54,9 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [mesa-VERSION]
+usage: ${0##*/} [OPTION] mesa-VERSION
 options:
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
 * build Mesa with
@@ -112,7 +113,7 @@ then
 fi
 
 #------------------------------------------------------------------------------
-# locate third-party clang as required
+# Locate third-party clang as required
 if [ "$thirdPartyClang" = true ]
 then
     thirdPartyClang=$(command -v clang) || {

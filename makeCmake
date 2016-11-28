@@ -29,7 +29,7 @@
 #     Build script for cmake
 #
 #------------------------------------------------------------------------------
-# Special purpose script, no default cmake version.
+# Special purpose script, no default version.
 unset cmakePACKAGE
 
 #------------------------------------------------------------------------------
@@ -47,7 +47,7 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [cmake-VERSION]
+usage: ${0##*/} [OPTION] cmake-VERSION
 options:
   -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help

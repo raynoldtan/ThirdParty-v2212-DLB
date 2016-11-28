@@ -150,7 +150,8 @@ MPICH)
     (
         # WARNING: unmaintained build code:
         # ---------------------------------
-        sourceDIR=$sourceBASE/$MPI_HOME
+        mpiPACKAGE="${MPI_ARCH_PATH##*/}"
+        sourceDIR=$sourceBASE/$mpiPACKAGE
         cd $sourceDIR || exit 1
 
         set -x

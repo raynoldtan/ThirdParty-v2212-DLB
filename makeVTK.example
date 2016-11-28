@@ -2,7 +2,7 @@
 # An example for building particular combinations of VTK with
 # - off-screen mesa
 
-vtk=vtk-7.1.0
+vtk=VTK-7.1.0
 mesa=mesa-11.2.2
 # mesa=mesa-13.0.2
 

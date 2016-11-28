@@ -71,7 +71,8 @@ More details can be found the ThirdParty ./BUILD.md information.
 <!-- Standard Footer -->
 ## Additional OpenFOAM Links
 
-- [Download and installation instructions](http://www.openfoam.com/releases)
+- [Download](http://www.openfoam.com/releases) and
+  [installation instructions](http://www.openfoam.com/download/installation.php)
 - [Documentation](http://www.openfoam.com/documentation)
 - [Reporting bugs/issues (including bugs/suggestions/feature requests) in OpenFOAM+](http://www.openfoam.com/code/bug-reporting.php)
 - [Collaborative and Community-based Developments](http://www.openfoam.com/services/community-projects.php)

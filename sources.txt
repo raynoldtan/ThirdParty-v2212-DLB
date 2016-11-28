@@ -4,7 +4,7 @@ Third-Party Sources
 OpenFOAM+ v1612
 ---------------
 CGAL-4.9
-ParaView-5.2.0
+ParaView-5.0.1
 boost_1_62_0
 fftw-3.3.5
 openmpi-1.10.4
