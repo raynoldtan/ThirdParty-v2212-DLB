@@ -325,7 +325,7 @@ applyPatch()
         else
             echo "apply patch for $pkg"
             touch "$sentinel"
-            patch -p1 < $patch 2>&1 | tee $sentinel
+            patch -b -l -p1 < $patch 2>&1 | tee $sentinel
         fi
     )
     else
