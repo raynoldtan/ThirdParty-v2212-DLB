@@ -2,12 +2,26 @@
 
 # simple script to generate patches
 paraview=ParaView-5.0.1
+if [ "$#" -gt 0 ]
+then
+    paraview="${1%%/}"
+fi
+
+[ -d "$paraview" ] || {
+    echo "No directory '$paraview'" 1>&2
+    exit 2
+}
 
 for i in \
     $paraview/VTK/CMake/vtkCompilerExtras.cmake \
     $paraview/VTK/CMake/GenerateExportHeader.cmake \
     $paraview/Qt/Components/CMakeLists.txt \
+    $paraview/CMake/generate_qhp.cmake \
+    $paraview/CMake/ParaViewMacros.cmake \
+    $paraview/CMake/generate_proxydocumentation.cmake \
     ;
 do
     diff -uw $i.orig $i
 done
+
+# -----------------------------------------------------------------------------

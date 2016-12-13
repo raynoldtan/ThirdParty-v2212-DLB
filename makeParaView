@@ -381,10 +381,9 @@ Features selected
 ---------------------
 Version information
     qt        ${QtVersion:-none}
-    version   ${ParaView_VERSION:-unknown}
+    version   ${ParaView_VERSION:-unknown} $(checkVersion)
     major     ${ParaView_MAJOR:-unknown}
     build     ${buildType:-Release}
-$(checkVersion)
 ---------------------
 SUMMARY
 

@@ -3,8 +3,8 @@
 # - off-screen mesa
 
 vtk=VTK-7.1.0
-mesa=mesa-11.2.2
-# mesa=mesa-13.0.2
+# mesa=mesa-11.2.2
+mesa=mesa-13.0.1
 
 ./makeVTK \
     $vtk \
