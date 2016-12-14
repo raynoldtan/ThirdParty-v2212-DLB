@@ -1,0 +1,12 @@
+--- ADIOS-1.11.0/src/core/adios_transform_methods.c.orig	2016-11-17 19:46:11.000000000 +0100
++++ ADIOS-1.11.0/src/core/adios_transform_methods.c	2016-12-14 15:19:39.870832445 +0100
+@@ -7,6 +7,9 @@
+
+ ADIOS_AVAILABLE_TRANSFORM_METHODS * adios_available_transform_methods()
+ {
++    /* Ensure the transforms are initialized before accessing */
++    adios_transform_read_init();
++
+     int i, n;
+     n = 0;
+     for (i = (int)adios_transform_none; i < num_adios_transform_types; i++) {

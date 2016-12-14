@@ -284,6 +284,8 @@ then
 
         export GIT_DIR=$ADIOS_SOURCE_DIR/.git
 
+        applyPatch $adiosPACKAGE $ADIOS_SOURCE_DIR
+
         # Remove any existing build folder and recreate
         rm -rf $ADIOS_ARCH_DIR
         rm -rf $buildDIR 2>/dev/null
@@ -328,6 +330,8 @@ else
         cd $ADIOS_SOURCE_DIR || exit 1
 
         export GIT_DIR=$ADIOS_SOURCE_DIR/.git
+
+        applyPatch $adiosPACKAGE $ADIOS_SOURCE_DIR
 
         # Remove any existing build folder and recreate
         rm -rf $ADIOS_ARCH_DIR
