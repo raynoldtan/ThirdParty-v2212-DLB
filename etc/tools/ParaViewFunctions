@@ -29,7 +29,7 @@
 #
 #------------------------------------------------------------------------------
 
-# buildBASE, installBASE defined from tools/ThirdPartyFunctions
+# sourceBASE, buildBASE, installBASE defined in tools/ThirdPartyFunctions
 
 #
 # Where things are or should be put
@@ -41,11 +41,21 @@
 #
 setParaViewDirs()
 {
-    ParaView_SOURCE_DIR=$WM_THIRD_PARTY_DIR/ParaView-$ParaView_VERSION
+    set -- "ParaView-$ParaView_VERSION" "ParaView-v$ParaView_VERSION"
+
+    unset ParaView_SOURCE_DIR
+    for i
+    do
+        ParaView_SOURCE_DIR="$sourceBASE/$i"
+        [ -d "$ParaView_SOURCE_DIR" ] && break
+    done
 
     [ -d "$ParaView_SOURCE_DIR" ] || {
-        echo "did not find ParaView-$ParaView_VERSION in these directories:"
-        echo "  WM_THIRD_PARTY_DIR=$WM_THIRD_PARTY_DIR"
+        echo "Did not locate ParaView version:"
+        while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
+        echo
+        echo "In the directory:"
+        echo "    $sourceBASE"
         echo
         echo "abort build"
         exit 1
@@ -107,9 +117,9 @@ checkVersion()
 
     if [ "$ParaView_VERSION" != "$ver" ]
     then
-        echo "MISMATCH!"
-        echo "    specified $ParaView_VERSION"
-        echo "    found     ${ver:-NONE}"
+        echo "(${ver:-none}) mismatch?"
+    else
+        echo "(${ver:-none})"
     fi
 }
 
@@ -297,23 +307,31 @@ addQtSupport()
         # parse -> "Using Qt version X.Y.Z in ..."
         QtVersion=$($qmake -query QT_VERSION)
 
-        # Split Major.Minor.Revision - could also use IFS hacking
-        set -- $(echo "$QtVersion" | sed -e 's/\./ /g')
+        case "$QtVersion" in
+        3.* | 4.[0-4]*)
+            # QT is too old
+            cat <<ERROR
+----
+Error: ${0##*/}
 
-        QtMajor=$1
-        QtMinor=$2
-
-        if [ $QtMajor -lt 4 -o $QtMajor -eq 4 -a $QtMinor -lt 5 ]
-        then
-            echo "*** Error: Qt version provided < 4.5"
-            echo "***     Please use the -qmake option to specify the location of a version of Qt >= 4.5"
-            echo "***     e.g."
-            echo "***         -qmake /usr/local/qt-4.6.2/bin/qmake"
-            echo "***         -qmake $installBASE/qt-4.6.2/bin/qmake"
+QT version ($QtVersion) provided < 4.5
+Please use the -qmake option to specify the location of a newer QT version
+For example,
+    ... -qmake /usr/local/qt-4.6.2/bin/qmake
+    ... -qmake $installBASE/qt-4.6.2/bin/qmake
+----
+ERROR
             exit 1
-        fi
+            ;;
+
+        5.*)
+            # QT4 is the default, must specify QT5 explicitly
+            addCMakeVariable "PARAVIEW_QT_VERSION:STRING=5"
+            ;;
+        esac
     else
-        echo "*** Error: cannot find qmake either at \$QMAKE_PATH or in current \$PATH"
+        echo "Error: cannot find qmake either at \$QMAKE_PATH or in current \$PATH"
+        echo
         exit 1
     fi
 }
@@ -415,7 +433,7 @@ cat<< INFO
     ParaView_DIR=$ParaView_DIR
 
     You may need to update the OpenFOAM environment by running:
-        wmREFRESH
+        wmRefresh
     ---
 INFO
 }

@@ -26,16 +26,18 @@
 #     makeVTK
 #
 # Description
-#     Make and install VTK
-#     - place the VTK source under $WM_THIRD_PARTY_DIR/VTK-VERSION
+#     Make and install VTK.
+#     The VTK sources should be located under one of these locations:
+#       - $WM_THIRD_PARTY_DIR/ParaView-VERSION
+#       - $WM_THIRD_PARTY_DIR/ParaView-vVERSION
 #
 #     To use the VTK source from the ParaView source tree, simply make an
 #     appropriate link first. For example,
 #
-#        ln -s ParaView-5.1.0/VTK  VTK-7.1.0
+#        (cd $WM_THIRD_PARTY_DIR && ln -s ParaView-v5.2.0/VTK VTK-7.1.0)
 #
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -68,13 +70,11 @@ CMAKE_PATH=""
 # Default to auto-config based on VTK version
 withGL2=auto
 
-
 #
 # NO FURTHER EDITING BELOW THIS LINE
 #
 #-----------------------------------------------------------------------------
 Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
@@ -89,7 +89,7 @@ options:
   -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
                         upper-limit on processes.
   -osmesa           with off-screen mesa only
-  -cmake PATH       with the cmake version corresponding to the cmake path given
+  -cmake PATH       with cmake from the path given
   -gcc              force g++ instead of the value from \$WM_CXX
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current value: $VTK_VERSION)
@@ -120,22 +120,20 @@ For finer control, the build stages can be selected or deselected individually:
 USAGE
     exit 1
 }
-
 #------------------------------------------------------------------------------
-
-# ensure CMake gets the correct C/C++ compiler
+# Ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
 #
-# various building stages
+# Various building stages
 #
 unset runPATCH runCONFIG runMAKE runINSTALL
 runDEFAULT=true
 buildType=Release
 withOSMESA=false
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in

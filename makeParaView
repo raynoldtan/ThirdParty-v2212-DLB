@@ -26,17 +26,21 @@
 #     makeParaView
 #
 # Description
-#     Make and install paraview 4 or 5
-#     - place the paraview source under $WM_THIRD_PARTY_DIR/ParaView-VERSION
-#       (note capitalisation)
+#     Make and install ParaView 4 or 5.
+#     The ParaView sources should be located under one of these locations:
+#       - $WM_THIRD_PARTY_DIR/ParaView-VERSION
+#       - $WM_THIRD_PARTY_DIR/ParaView-vVERSION
+#
+#     Note the capitalization of ParaView in the directory names.
 #
 #------------------------------------------------------------------------------
-# Get ParaView_DIR location from OpenFOAM config file
+# Get ParaView_VERSION location from OpenFOAM config file
 . $WM_PROJECT_DIR/etc/config.sh/functions
+unset -f _foamAddPath _foamAddLib               # get settings only
+unset ParaView_VERSION                          # purge current values
+
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/paraview)
 
-# Determine ParaView_VERSION from ParaView_DIR location:
-ParaView_VERSION="${ParaView_DIR##*/}"; export ParaView_VERSION
 : ${ParaView_VERSION##*-}
 
 #------------------------------------------------------------------------------
@@ -90,7 +94,6 @@ withGL2=auto
 #
 #-----------------------------------------------------------------------------
 Script=${0##*/}
-
 usage() {
     : ${ParaView_VERSION:=none} # some dummy value for usage information
     exec 1>&2
@@ -106,7 +109,7 @@ options:
   -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
                         upper-limit on processes.
   -python           with python (if not already enabled)
-  -cmake PATH       with the cmake version corresponding to the cmake path given
+  -cmake PATH       with cmake from the path given
   -qmake PATH       with the Qt version corresponding to the qmake path given
   -qt               with extra Qt gui support (if not already enabled)
   -qt-VER           with Qt version corresponding to
@@ -151,15 +154,13 @@ Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 USAGE
     exit 1
 }
-
 #------------------------------------------------------------------------------
-
-# ensure CMake gets the correct C/C++ compiler
+# Ensure CMake gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
 #
-# add options based on script name:
+# Add options based on script name:
 #
 case "$Script" in *-mesa*)   withMESA=true;; esac
 case "$Script" in *-mpi*)    withMPI=true;; esac
@@ -170,13 +171,13 @@ case "$Script" in *-qt*)     withQT=true;; esac
 setParaViewVersion ${ParaView_VERSION:-none}
 
 #
-# various building stages
+# Various building stages
 #
 unset runPATCH runCONFIG runMAKE runINSTALL
 runDEFAULT=true
 buildType=Release
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -380,10 +381,9 @@ Features selected
 ---------------------
 Version information
     qt        ${QtVersion:-none}
-    version   ${ParaView_VERSION:-unknown}
+    version   ${ParaView_VERSION:-unknown} $(checkVersion)
     major     ${ParaView_MAJOR:-unknown}
     build     ${buildType:-Release}
-$(checkVersion)
 ---------------------
 SUMMARY
 

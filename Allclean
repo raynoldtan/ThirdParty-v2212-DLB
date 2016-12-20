@@ -67,7 +67,7 @@ fi
 #------------------------------------------------------------------------------
 
 # Clean various packages via 'distclean'
-for i in openmpi-* ADIOS-*
+for i in openmpi-* ADIOS-* metis-*
 do
     [ -d "$i" ] && (
         echo

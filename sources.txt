@@ -1,0 +1,38 @@
+Third-Party Sources
+===================
+
+OpenFOAM+ v1612
+---------------
+CGAL-4.9
+ParaView-5.0.1
+boost_1_62_0
+fftw-3.3.5
+openmpi-1.10.4
+scotch_6.0.3
+
+
+OpenFOAM+ v1606
+---------------
+CGAL-4.8
+ParaView-5.0.1
+boost_1_61_0
+fftw-3.3.4
+openmpi-1.10.2
+scotch_6.0.3
+
+
+OpenFOAM+ v3.0
+---------------
+CGAL-4.7
+ParaView-4.4.0
+openmpi-1.10.0
+scotch_6.0.3
+
+
+OpenFOAM+ 2.4
+---------------
+CGAL-4.6
+ParaView-4.1.0
+cmake-2.8.12.1
+openmpi-1.8.5
+scotch_6.0.3

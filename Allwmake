@@ -29,7 +29,7 @@
 #     Build script for ThirdParty
 #
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -44,13 +44,31 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
-# export WM settings in a form that GNU configure recognizes
+# Export WM settings in a form that GNU configure recognizes
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
 [ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
 [ -n "$WM_LDFLAGS" ]    &&  export LDFLAGS="$WM_LDFLAGS"
+
+
+warnBuildIssues()
+{
+    echo
+    echo "    ---------------------------------------------------"
+    echo "    Optional component ($1) had build issues"
+    echo "    OpenFOAM will nonetheless remain largely functional"
+    echo "    ---------------------------------------------------"
+    echo
+}
+
+warnNotFound()
+{
+    echo "    Optional component ($1) was not found"
+    echo
+}
+
+#------------------------------------------------------------------------------
 
 echo
 echo ========================================
@@ -89,7 +107,7 @@ OPENMPI)
         # end of configuration options
         # ----------------------------
         mpiPACKAGE="${MPI_ARCH_PATH##*/}"
-        sourceDIR=$WM_THIRD_PARTY_DIR/$mpiPACKAGE
+        sourceDIR=$sourceBASE/$mpiPACKAGE
         buildDIR=$buildBASE/$mpiPACKAGE
 
         cd $sourceDIR || exit 1
@@ -132,9 +150,11 @@ MPICH)
     (
         # WARNING: unmaintained build code:
         # ---------------------------------
-        set -x
-        cd $MPI_HOME || exit 1    # change to mpich-VERSION
+        mpiPACKAGE="${MPI_ARCH_PATH##*/}"
+        sourceDIR=$sourceBASE/$mpiPACKAGE
+        cd $sourceDIR || exit 1
 
+        set -x
         [ -e Makefile ] && make distclean 2>/dev/null
         rm -rf $MPI_ARCH_PATH
         rm -rf util/machines/machines.*
@@ -186,9 +206,9 @@ esac
 
 
 #------------------------------------------------------------------------------
-# building scotch is still a bit of a pain
+# Building scotch is still a bit of a pain
 
-# get SCOTCH_VERSION, SCOTCH_ARCH_PATH
+# Get SCOTCH_VERSION, SCOTCH_ARCH_PATH
 if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch)
 then
     . $settings
@@ -203,7 +223,9 @@ echo ========================================
 echo "Build Scotch decomposition library $SCOTCH_VERSION"
 echo "    $SCOTCH_ARCH_PATH"
 
-# this needs generalizing
+SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
+
+# This needs generalizing, but works fairly well
 scotchMakefile=../../etc/wmakeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
 
 if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
@@ -212,10 +234,12 @@ if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
 then
     echo "    scotch header in $SCOTCH_ARCH_PATH/include"
     echo "    scotch libs   in $FOAM_EXT_LIBBIN"
-elif [ -d "$SCOTCH_VERSION" ]
+elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
-    cd $SCOTCH_VERSION/src || exit 1
+    cd $SCOTCH_SOURCE_DIR/src || exit 1
+    rm -rf $SCOTCH_ARCH_PATH
+
     applyPatch $SCOTCH_VERSION ..       # patch at parent-level
 
     prefixDIR=$SCOTCH_ARCH_PATH
@@ -248,15 +272,16 @@ then
 
     # cleanup, could also remove Makefile.inc
     make realclean 2>/dev/null
-)
+) || warnBuildIssues SCOTCH
 else
-    echo "    Optional component (SCOTCH) was not found"
+    warnNotFound SCOTCH
 fi
 
-# build ptscotch if MPI (ThirdParty or system) is available
-# and there is a scotch include available (ie, normal scotch was built)
+# Build ptscotch if MPI (ThirdParty or system) is available
+# and normal scotch was build (has include and library)
 if [ "${FOAM_MPI:-dummy}" != dummy ] && \
-   [ -f $SCOTCH_ARCH_PATH/include/scotch.h ] || \
+   [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
+  -a -r $FOAM_EXT_LIBBIN/libscotch.so ] || \
 {
     echo
     echo "    WARNING: skipping pt-scotch - 'scotch.h' include file not found!"
@@ -276,18 +301,17 @@ then
         echo "    ptscotch libs   in $FOAM_EXT_LIBBIN/$FOAM_MPI"
     else
     (
+        cd $SCOTCH_SOURCE_DIR/src || exit 1
         echo
-        set -x
-        cd $SCOTCH_VERSION/src || exit 1
 
         prefixDIR=$SCOTCH_ARCH_PATH
-        libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
         incDIR=$SCOTCH_ARCH_PATH/include/$FOAM_MPI
+        libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
 
         mkdir -p $prefixDIR 2>/dev/null
         mkdir -p $libDIR 2>/dev/null
 
-        configOpt="prefix=$prefixDIR libdir=$libDIR includedir=$incDIR"
+        configOpt="prefix=$prefixDIR includedir=$incDIR libdir=$libDIR"
 
         if [ -f $scotchMakefile ]
         then
@@ -314,7 +338,7 @@ then
     )
     fi
 
-    # verify existence of scotch include
+    # verify existence of ptscotch include
     [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h ] || {
         echo
         echo "    WARNING: required include file 'ptscotch.h' not found!"
@@ -334,87 +358,61 @@ if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
 then
     . $settings
 fi
-if [ -d "$METIS_VERSION" ]
+
+METIS_SOURCE_DIR=$sourceBASE/$METIS_VERSION
+
+if [ -f $METIS_ARCH_PATH/include/metis.h \
+  -a -r $FOAM_EXT_LIBBIN/libmetis.so ]
 then
+    echo "    metis header in $METIS_ARCH_PATH/include"
+    echo "    metis libs   in $FOAM_EXT_LIBBIN"
+    echo
+elif [ -d "$METIS_SOURCE_DIR" ]
+then
+(
+    cd $METIS_SOURCE_DIR || exit 1
+    rm -rf $METIS_ARCH_PATH
 
-    if [ -f $METIS_ARCH_PATH/include/metis.h \
-      -a -r $FOAM_EXT_LIBBIN/libmetis.so ]
-    then
-        echo "    metis header in $METIS_ARCH_PATH/include"
-        echo "    metis libs   in $FOAM_EXT_LIBBIN"
-        echo
-    else
-    (
-        set -x
-        cd $METIS_VERSION  || exit 1
+    # Adjust metis integer size to match OpenFOAM label-size
+    sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
+        include/metis.h
 
-        if [ "$WM_PRECISION_OPTION" = "DP" ]
-        then
-            FLOAT_PRECISION=64
-        elif [ "$WM_PRECISION_OPTION" = "SP" ]
-        then
-            FLOAT_PRECISION=32
-        else
-            echo " Metis pre-configure error:"
-            echo "    WM_PRECISION_OPTION is neither DP nor SP"
-            exit 1
-        fi
+    # No config option for the library location.
+    # - build normally and use mv to relocate it
 
-        # Change user settings automatically
-        sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
-               -e 's=\(#define REALTYPEWIDTH\).*=\1 '$FLOAT_PRECISION'=' \
-            include/metis.h
+    make config shared=1 prefix=$METIS_ARCH_PATH \
+    && make -j $WM_NCOMPPROCS install \
+    && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
 
-        make config shared=1 prefix=$METIS_ARCH_PATH
-        make -j $WM_NCOMPPROCS install
-        cp $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
-    )
-    fi
+    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # failure is not critical
+) || warnBuildIssues METIS
 else
-    echo "    Optional component (METIS) was not found"
+    warnNotFound METIS
 fi
 
 
 #------------------------------------------------------------------------------
-
-warnBuildIssues()
-{
-    echo
-    echo "    ---------------------------------------------------"
-    echo "    Optional component ($1) had build issues"
-    echo "    OpenFOAM will nonetheless remain largely functional"
-    echo "    ---------------------------------------------------"
-    echo
-}
-
-warnNotFound()
-{
-    echo "    Optional component ($1) was not found"
-    echo
-}
-
 
 # CGAL is optional
 echo
 echo ========================================
 echo Build CGAL
 if [ -d "$CGAL_ARCH_PATH/include" \
-  -a -r "$CGAL_ARCH_PATH/lib/libCGAL.so" ]
+  -a -r "$CGAL_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libCGAL.so" ]
 then
     # first some information about boost
-    if [ -d "$BOOST_ARCH_PATH/include/boost" \
-      -a -r "$BOOST_ARCH_PATH/lib/libboost_system.so" ]
-    then
-        echo "    BOOST headers in $BOOST_ARCH_PATH/include"
-        echo "    BOOST libs    in $BOOST_ARCH_PATH/lib"
-    elif [ -d "/usr/include/boost" \
-        -a -r "/usr/lib${WM_COMPILER_LIB_ARCH}/libboost_system.so" ]
-    then
-        echo "    BOOST headers in /usr/include"
-        echo "    BOOST libs    in /usr/lib${WM_COMPILER_LIB_ARCH}"
-    fi
+    for root in "$BOOST_ARCH_PATH" /usr
+    do
+        if [ -d "$root/include/boost" \
+          -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.so" ]
+        then
+            echo "    BOOST headers in $root/include"
+            echo "    BOOST libs    in $root/lib$WM_COMPILER_LIB_ARCH"
+            break
+        fi
+    done
     echo "    CGAL  headers in $CGAL_ARCH_PATH/include"
-    echo "    CGAL  libs    in $CGAL_ARCH_PATH/lib"
+    echo "    CGAL  libs    in $CGAL_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
 elif [ -n "$CGAL_ARCH_PATH" ]
 then
     ./makeCGAL || warnBuildIssues CGAL

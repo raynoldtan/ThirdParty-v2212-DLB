@@ -31,10 +31,10 @@
 #     Define WM_NCOMPPROCS always.
 #------------------------------------------------------------------------------
 
-# Define the normal build and prefix directories
+# The normal locations for source, build and installation (prefix-dir)
+sourceBASE=$WM_THIRD_PARTY_DIR
 buildBASE=$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER
 installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER
-
 
 #
 # Mostly building without wmake
@@ -89,6 +89,7 @@ _foamIsSystem()
 # try to locate cmake according to the CMAKE_PATH
 # or just use what is found in the path
 #
+unset CMAKE_PATH # clear when first loaded
 findCMake()
 {
     local candidate
@@ -150,7 +151,7 @@ NOT_FOUND
     fi
 
     # Default to use the path, try resolving (so we know what we are using)
-    foundExe=$(command -v cmake 2> /dev/null) || foundExe=qmake
+    foundExe=$(command -v cmake 2> /dev/null) || foundExe=cmake
     echo "Using cmake=${foundExe:-NotFound}"  1>&2
     echo "${foundExe:-cmake}"
 }
@@ -160,6 +161,7 @@ NOT_FOUND
 # try to locate qmake according to the QMAKE_PATH
 # or just use what is found in the path
 #
+unset QMAKE_PATH # clear when first loaded
 findQtMake()
 {
     local candidate
@@ -323,7 +325,7 @@ applyPatch()
         else
             echo "apply patch for $pkg"
             touch "$sentinel"
-            patch -p1 < $patch 2>&1 | tee $sentinel
+            patch -b -l -p1 < $patch 2>&1 | tee $sentinel
         fi
     )
     else

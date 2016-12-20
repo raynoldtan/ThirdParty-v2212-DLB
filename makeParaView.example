@@ -4,6 +4,7 @@
 # - off-screen mesa
 
 mesa=mesa-11.2.2
+# mesa=mesa-13.0.2
 
 ./makeParaView \
     -mpi=0 \

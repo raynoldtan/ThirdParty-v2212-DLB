@@ -29,11 +29,11 @@
 #     Build script for cmake
 #
 #------------------------------------------------------------------------------
-# Special purpose script, no default cmake version.
+# Special purpose script, no default version.
 unset cmakePACKAGE
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    The environment variables are inconsistent with the installation."
@@ -42,13 +42,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [cmake-VERSION]
+usage: ${0##*/} [OPTION] cmake-VERSION
 options:
   -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
@@ -60,12 +59,11 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-
-# ensure CMake gets the correct C/CC++ compiler
+# Ensure CMake gets the correct C/CC++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -89,36 +87,38 @@ done
 [ -n "$cmakePACKAGE" ] || die "The cmake-VERSION was not specified"
 
 #------------------------------------------------------------------------------
-CMAKE_ARCH_PATH=$installBASE/$cmakePACKAGE
-
 #
 # Build CMAKE
-#
-echo "---------------"
+#   CMAKE_SOURCE_DIR : location of the original sources
+#   CMAKE_ARCH_PATH  : installation directory
+
+CMAKE_SOURCE_DIR=$sourceBASE/$cmakePACKAGE
+CMAKE_ARCH_PATH=$installBASE/$cmakePACKAGE
+
 if [ -d "$CMAKE_ARCH_PATH" -a -r "$CMAKE_ARCH_PATH/bin/cmake" ]
 then
     echo "Already built: $cmakePACKAGE"
 else
     echo "Starting build: $cmakePACKAGE"
-(
-    sourceDIR=$WM_THIRD_PARTY_DIR/$cmakePACKAGE
-    buildDIR=$buildBASE/$cmakePACKAGE
+    (
+        buildDIR=$buildBASE/$cmakePACKAGE
 
-    cd $sourceDIR || exit 1
-    make distclean 2>/dev/null
+        cd $CMAKE_SOURCE_DIR || exit 1
+        make distclean 2>/dev/null
 
-    rm -rf $buildDIR
-    mkdir -p $buildDIR
-    cd $buildDIR
+        rm -rf $buildDIR
+        mkdir -p $buildDIR
+        cd $buildDIR
 
-    $sourceDIR/bootstrap --prefix=$CMAKE_ARCH_PATH \
-    && time make -j $WM_NCOMPPROCS \
-    && make install \
-    && echo "Built: $cmakePACKAGE"
-) || {
-    echo "Error building: $cmakePACKAGE"
-    exit 1
-}
+        $CMAKE_SOURCE_DIR/bootstrap \
+            --prefix=$CMAKE_ARCH_PATH \
+        && time make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built: $cmakePACKAGE"
+    ) || {
+        echo "Error building: $cmakePACKAGE"
+        exit 1
+    }
 fi
 
 #------------------------------------------------------------------------------

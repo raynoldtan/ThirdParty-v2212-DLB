@@ -29,14 +29,17 @@
 #     Build script for Mesa
 #
 # Note
-#     Building with mesa-12.0.1 failed to install an "osmesa.h" file,
-#     which renders it useless for off-screen VTK.
+#     Building with mesa-12.x.x fails to create an include/GL directory and
+#     an "osmesa.h" file. Both make it fairly useless for off-screen VTK.
+#
+#     Building with mesa-11.x is fine and mesa-13.x also seems to be okay.
 #
 #------------------------------------------------------------------------------
-mesaPACKAGE=mesa-11.2.2
+# Special purpose script, no default version.
+unset mesaPACKAGE
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 cd ${0%/*} || exit 1
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
@@ -46,16 +49,14 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [mesa-VERSION]
+usage: ${0##*/} [OPTION] mesa-VERSION
 options:
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
 * build Mesa with
@@ -65,8 +66,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-
-# ensure configure gets the correct C/C++ compiler
+# Ensure configure gets the correct C/C++ compiler
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
@@ -77,7 +77,7 @@ then
     thirdPartyClang=true
 fi
 
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -101,21 +101,19 @@ done
 
 [ -n "$mesaPACKAGE" ] || die "The mesa-VERSION was not specified"
 
-# nothing to build
+# Nothing to build
 if _foamIsNone "$mesaPACKAGE"
 then
     echo "Using mesa-none (skip ThirdParty build of MESA)"
     exit 0
-fi
-
-if _foamIsSystem "$mesaPACKAGE"
+elif _foamIsSystem "$mesaPACKAGE"
 then
     echo "Using mesa-system (skip ThirdParty build of MESA)"
     exit 0
 fi
 
 #------------------------------------------------------------------------------
-# locate third-party clang as required
+# Locate third-party clang as required
 if [ "$thirdPartyClang" = true ]
 then
     thirdPartyClang=$(command -v clang) || {
@@ -139,9 +137,10 @@ fi
 # - MESA itself will normally build into 'lib64'.
 #
 #   MESA_SOURCE_DIR : location of the original sources
+#   MESA_ARCH_DIR   : installation directory
 
+MESA_SOURCE_DIR=$sourceBASE/$mesaPACKAGE
 MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
-MESA_SOURCE_DIR=$WM_THIRD_PARTY_DIR/$mesaPACKAGE
 
 (
     # configuration options:

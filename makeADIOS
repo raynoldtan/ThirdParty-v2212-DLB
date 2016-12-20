@@ -26,14 +26,18 @@
 #     makeADIOS
 #
 # Description
-#     Build script for ADIOS (and MXML)
+#     Build script for ADIOS
 #
 #------------------------------------------------------------------------------
-adiosPACKAGE=adios-git
-mxmlPACKAGE=mxml-2.9
+# Get version info
+. $WM_PROJECT_DIR/etc/config.sh/functions
+unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ADIOS)
+
+adiosPACKAGE=${adios_version:-adios-none}
 
 #------------------------------------------------------------------------------
-# run from third-party directory only
+# Run from third-party directory only
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    The environment variables are inconsistent with the installation."
@@ -42,32 +46,31 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [adios-VERSION] [mxml-VERSION]
+usage: ${0##*/} [OPTION] [adios-VERSION]
 options:
+  -cmake PATH       With cmake from the path given
   -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
-* Build ADIOS+MXML
+* Build ADIOS
       $adiosPACKAGE
-      $mxmlPACKAGE
 
 USAGE
     exit 1
 }
-
 #------------------------------------------------------------------------------
-# ensure configure gets the correct C/C++ compiler
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+# Export WM settings in a form that GNU configure recognizes
+[ -n "$WM_CC" ]         &&  export CC="$WM_CC"
+[ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
+[ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
+[ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
 
-
-# parse options
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -78,11 +81,13 @@ do
         export CC=gcc    # use gcc/g++
         export CXX=g++
         ;;
-    adios-[1-9]* | adios-git)
-        adiosPACKAGE="${1%%/}"
+    -cmake)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        CMAKE_PATH="${2%%/}"
+        shift
         ;;
-    mxml-[1-9]*)
-        mxmlPACKAGE="${1%%/}"
+    ADIOS-[1-9]* | adios-[1-9]* | ADIOS-git* | adios-git*)
+        adiosPACKAGE="${1%%/}"
         ;;
     *)
         die "unknown option/argument: '$1'"
@@ -91,127 +96,273 @@ do
     shift
 done
 
-#------------------------------------------------------------------------------
+[ -n "$adiosPACKAGE" ] || die "The adios-VERSION was not specified"
 
-MXML_ARCH_PATH=$installBASE/$mxmlPACKAGE
-ADIOS_ARCH_PATH=$installBASE/$adiosPACKAGE
-
-# build MXML - not needed with more recent ADIOS
-if false
+# nothing to build
+if _foamIsNone "$adiosPACKAGE"
 then
-    echo
-    echo ========================================
-    echo "Build mxml library $mxmlPACKAGE"
-    echo
-
-    if [ -f $MXML_ARCH_PATH/include/mxml.h \
-      -a -r $FOAM_EXT_LIBBIN/libmxml.so ]
-    then
-        echo "    MXML header in $MXML_ARCH_PATH/include"
-        echo "    MXML libs   in $FOAM_EXT_LIBBIN"
-        echo
-    else
-    (
-        # use mxml packaged with adios (if possible)
-        # or revert to top-level
-        sourceDIR=$WM_THIRD_PARTY_DIR/$adiosPACKAGE/src/mxml/$mxmlPACKAGE
-        [ -d "$sourceDIR" ] || sourceDIR=$WM_THIRD_PARTY_DIR/$mxmlPACKAGE
-
-        cd $sourceDIR || exit 1
-
-        # Remove any existing build folder and recreate
-        \rm -rf $buildDIR 2>/dev/null
-        mkdir -p $buildDIR
-
-        [ -e Makefile ] && make clean 2>/dev/null # for safety
-        mkdir -p $FOAM_EXT_LIBBIN  2>/dev/null
-
-        # handle non-gcc compilers
-        unset configEnv
-        if [ "${WM_CC:-gcc}" != gcc ]
-        then
-            export CC=$WM_CC
-            export CCS=$WM_CC
-        fi
-
-        # installs into lib64/
-        cd $buildDIR && \
-        $sourceDIR/configure --prefix=$MXML_ARCH_PATH \
-        && make -j $WM_NCOMPPROCS all \
-        && make install \
-        && echo "Built: $mxmlPACKAGE" \
-        && rsync -a $MXML_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/*.so* $FOAM_EXT_LIBBIN/
-    ) || {
-        echo "Error building: $mxmlPACKAGE"
-    }
-    fi
+    echo "Using adios-none (skip ThirdParty build of ADIOS)"
+    exit 0
+elif _foamIsSystem "$adiosPACKAGE"
+then
+    echo "Using adios-system"
+    exit 0
 fi
 
-# build ADIOS
+#------------------------------------------------------------------------------
+#
+# Build ADIOS
+#   ADIOS_SOURCE_DIR : location of the original sources
+#   ADIOS_ARCH_PATH  : installation directory
+
+ADIOS_SOURCE_DIR=$sourceBASE/$adiosPACKAGE
+ADIOS_ARCH_PATH=$installBASE/$adiosPACKAGE
+
+: ${FOAM_MPI:=dummy}
+
 echo
 echo ========================================
-echo "Build adios library $adiosPACKAGE"
+echo "Build adios library $adiosPACKAGE for $FOAM_MPI"
 echo
 
-# Needs future adjustment for shared library, for mpi-specific library location
-if [ -f $ADIOS_ARCH_PATH/include/adios.h \
-  -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libadios.so ]
-then
-    echo "    ADIOS header in $ADIOS_ARCH_PATH/include"
-    echo "    ADIOS libs   in $FOAM_EXT_LIBBIN"
-    echo
-else
-(
-    # configuration options:
-    # Start with GridEngine support - builds without external libraries
-    unset configOpt
 
-    # Add InfiniBand support
-    ibDir=/usr/local/ofed
-    if [ -d "$ibDir/include" ]
-    then
-        configOpt="$configOpt --with-infiniband=$ibDir"
-    fi
-    ## $configOpt="$configOpt --with-hdf5=..."
+#
+# Manual adjustments to adios config
+#
+adjustADIOS()
+{
+    # Rename libraries according to FOAM_MPI
+    (
+        cd $ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH || exit 1
 
-    # for externally compiled MXML
-    # configOpt="$configOpt --with-mxml=$MXML_ARCH_PATH"
+        if [ "$FOAM_MPI" != dummy ]
+        then
+            \mv -f libadios.a       libadios_$FOAM_MPI.a
+            \mv -f libadiosread.a   libadiosread_$FOAM_MPI.a
+        fi
+        \mv -f libadios_nompi.a     libadios_dummy.a
+        \mv -f libadiosread_nompi.a libadiosread_dummy.a
 
-    # end of configuration options
-    # ----------------------------
+        echo
+        echo "ADIOS library renamed to libadios_$FOAM_MPI"
+        echo
+    )
 
-    sourceDIR=$WM_THIRD_PARTY_DIR/$adiosPACKAGE
-    buildDIR=$buildBASE/$adiosPACKAGE
+    # We don't need/use XML things
+    \rm -f $ADIOS_ARCH_PATH/bin/adios_lint
 
-    cd $sourceDIR || exit 1
-    export GIT_DIR=$sourceDIR/.git
+    # Replace resolved paths with variables
+    echo "Adjust prefix for ADIOS"
+    for i in \
+        $ADIOS_ARCH_PATH/bin/adios_config \
+        $ADIOS_ARCH_PATH/etc/adios_config.flags \
+    ;
+    do
+        [ -f "$i" ] || {
+            echo "    no such file - '$i'"
+            continue
+        }
+        if sed -i -e 's|'"$WM_THIRD_PARTY_DIR"'|$WM_THIRD_PARTY_DIR|g' $i
+        then
+            echo "    '$i'"
+        else
+            echo "    problems with '$i'"
+        fi
+    done
 
-    # Remove any existing build folder and recreate
-    \rm -rf $buildDIR 2>/dev/null
-    mkdir -p $buildDIR
+    # Adjust the config flags file:
+    # * Remove references to Fortran libraries (disabled in configure)
+    # * Remove references to deprecated version 1 API
+    # * Cleanup excessive whitespace
+    # * Handle renamed libraries:
+    #   - libadios       -> libadios_$FOAM_MPI
+    #   - libadios_nompi -> libadios_dummy
+    #
+    echo "Adjust library names for ADIOS"
+    for i in \
+        $ADIOS_ARCH_PATH/etc/adios_config.flags \
+    ;
+    do
+        [ -f "$i" ] || {
+            echo "    no such file - '$i'"
+            continue
+        }
 
-    [ -e Makefile ] && make clean 2>/dev/null # for safety
+        if sed -i \
+            -e '/_FLIB=/d' \
+            -e '/_V1_INC=/d' \
+            -e 's|  *| |g' \
+            -e 's|\(-ladios[a-z]*_\)nompi |\1dummy |g' \
+            $i
+        then
+            echo "    '$i'"
+        else
+            echo "    problems with '$i'"
+        fi
 
-    [ -f configure ] || {
-        echo "no configure for $adiosPACKAGE ... trying autogen"
-        ./autogen.sh
+        if [ "$FOAM_MPI" != dummy ]
+        then
+            sed -i -e 's|\(-ladios[a-z]*\) |\1_'"$FOAM_MPI |g" $i || \
+            echo "    problems with '$i'"
+        fi
+    done
+}
+
+#
+# List ADIOS methods/configuration
+#
+listMethods()
+{
+    [ -f $ADIOS_ARCH_PATH/bin/adios_config ] || {
+        echo "Warning: no adios_config"
+        return 1
     }
 
-    # installs into lib64/
-    cd $buildDIR && \
-    CC=mpicc CXX=mpicxx CFLAGS="-fPIC" $sourceDIR/configure \
-        --prefix=$ADIOS_ARCH_PATH \
-        --disable-fortran \
-        --with-pic \
-        --without-fastbit \
-        $configOpt \
-    && make -j $WM_NCOMPPROCS all \
-    && make install \
-    && echo "Built: $adiosPACKAGE" \
-    && rsync -a --no-r $ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/ $FOAM_EXT_LIBBIN/$FOAM_MPI/
-) || {
-    echo "Error building: $adiosPACKAGE"
+    echo "==============="
+
+    # May have problems listing parallel methods (eg, transport key missing)
+    if $ADIOS_ARCH_PATH/bin/adios_config -m >/dev/null 2>&1
+    then
+        $ADIOS_ARCH_PATH/bin/adios_config -m 2>/dev/null
+    else
+        echo "Warning: could not list parallel methods"
+        # Fallback to serial methods
+        $ADIOS_ARCH_PATH/bin/adios_config -s -m 2>/dev/null
+    fi || echo "Warning: could not list configured methods"
+    echo "==============="
+
 }
+
+
+# Needs future adjustment
+# - for shared library
+# - for mpi-specific library locations
+if [ -f $ADIOS_ARCH_PATH/include/adios.h \
+  -a -r $ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libadios_${FOAM_MPI}.a ]
+then
+    echo "    ADIOS header in $ADIOS_ARCH_PATH/include"
+    ### echo "    ADIOS libs   in $FOAM_EXT_LIBBIN"           # dynamic
+    echo "    ADIOS libs   in $ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" # static
+    listMethods
+elif [ -z "$CMAKE_PATH" ]
+then
+    echo "Starting build: $adiosPACKAGE (using configure)"
+    echo
+    (
+        # configuration options:
+        unset configOpt
+
+        # Add InfiniBand support
+        ibDir=/usr/local/ofed
+        if [ -d "$ibDir" -a "$FOAM_MPI" != dummy ]
+        then
+            configOpt="$configOpt --with-infiniband=$ibDir"
+        fi
+
+        # Transport layers
+        if [ -f "/usr/include/bzlib.h" ]
+        then
+            configOpt="$configOpt --with-bzip2"
+        fi
+
+        if [ -f "/usr/include/zlib.h" ]
+        then
+            configOpt="$configOpt --with-zlib"
+        fi
+
+        # Other types of support
+        ## $configOpt="$configOpt --with-hdf5=..."
+        ## $configOpt="$configOpt --with-lustre=..."
+        ## configOpt="$configOpt --enable-research-transports"
+
+        # end of configuration options
+        # ----------------------------
+        buildDIR=$buildBASE/$adiosPACKAGE
+
+        cd $ADIOS_SOURCE_DIR || exit 1
+        [ -e Makefile ] && make distclean 2>/dev/null
+
+        export GIT_DIR=$ADIOS_SOURCE_DIR/.git
+
+        applyPatch $adiosPACKAGE $ADIOS_SOURCE_DIR
+
+        # Remove any existing build folder and recreate
+        rm -rf $ADIOS_ARCH_DIR
+        rm -rf $buildDIR 2>/dev/null
+        mkdir -p $buildDIR
+
+        [ -f configure ] || {
+            echo "no configure for $adiosPACKAGE ... trying autogen"
+            ./autogen.sh
+        }
+
+        # May not work properly with FOAM_MPI = dummy
+        if [ "$FOAM_MPI" = dummy ]
+        then
+            configOpt="$configOpt --without-mpi"
+        else
+            CC=mpicc
+            CXX=mpicxx
+        fi
+
+        # Install into lib64/
+        cd $buildDIR && $ADIOS_SOURCE_DIR/configure \
+            --prefix=$ADIOS_ARCH_PATH \
+            --libdir=$ADIOS_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
+            --disable-fortran \
+            --with-pic \
+            --without-fastbit \
+            $configOpt \
+        && make -j $WM_NCOMPPROCS all \
+        && make install \
+        && echo "Built: $adiosPACKAGE" \
+        && adjustADIOS \
+        && listMethods
+    ) || {
+        echo "Error building: $adiosPACKAGE"
+    }
+else
+    # CMake options often lag the configure ones
+    echo "Starting build: $adiosPACKAGE (using cmake)"
+    echo
+    (
+        buildDIR=$buildBASE/$adiosPACKAGE
+        cd $ADIOS_SOURCE_DIR || exit 1
+
+        export GIT_DIR=$ADIOS_SOURCE_DIR/.git
+
+        applyPatch $adiosPACKAGE $ADIOS_SOURCE_DIR
+
+        # Remove any existing build folder and recreate
+        rm -rf $ADIOS_ARCH_DIR
+        rm -rf $buildDIR 2>/dev/null
+        mkdir -p $buildDIR
+
+        # May not work properly with FOAM_MPI = dummy
+        if [ "$FOAM_MPI" = dummy ]
+        then
+            configOpt="$configOpt --without-mpi"
+        else
+            CC=mpicc
+            CXX=mpicxx
+        fi
+
+        cmake=$(findCMake)
+
+        # Install into lib64/
+        cd $buildDIR && $cmake \
+            -DCMAKE_INSTALL_PREFIX=$ADIOS_ARCH_PATH \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DBUILD_FORTRAN:BOOL=FALSE \
+            $ADIOS_SOURCE_DIR \
+        && make -j $WM_NCOMPPROCS all \
+        && make install \
+        && echo "Built: $adiosPACKAGE" \
+        && adjustADIOS \
+        && listMethods
+    ) || {
+        echo "Error building: $adiosPACKAGE"
+    }
 fi
 
 # ----------------------------------------------------------------- end-of-file
