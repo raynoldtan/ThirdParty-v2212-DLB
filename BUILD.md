@@ -336,6 +336,16 @@ The minimum CMake requirements for building various components.
     3.5         ParaView-5.1.0
 
 
+### GCC Minimum Requirements <a name="min-gcc"></a>
+
+The minimum gcc/g++ requirements for building various components.
+
+    4.7         llvm-3.7.0
+    4.7         llvm-3.6.2
+    4.7         llvm-3.5.2
+    4.4         llvm-3.4.2
+
+
 <!-- gcc-related -->
 [page gcc]:       http://gcc.gnu.org/releases.html
 [page gmp]:       http://gmplib.org/
