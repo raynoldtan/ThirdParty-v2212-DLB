@@ -1,27 +1,22 @@
 /* NOTE: make any changes to this file in etc/wmakeFiles/ */
 
-adf = libadf
-$(adf)/ADF_fortran_2_c.c
-$(adf)/ADF_interface.c
-$(adf)/ADF_internals.c
+libadf/ADF_interface.c
+libadf/ADF_internals.c
 
-ccmio = libccmio
-$(ccmio)/ccmio.c
-$(ccmio)/ccmiocore.c
-$(ccmio)/ccmioprivate.c
-$(ccmio)/ccmioutility.c
-$(ccmio)/ccmioversion.c
+libccmio/ccmio.c
+libccmio/ccmiocore.c
+libccmio/ccmioprivate.c
+libccmio/ccmioutility.c
+libccmio/ccmioversion.c
 
 /*
- * the cgns library is not used by ccmio
- * retain for documentation purposes only
+ * CGNS library not needed by ccmio, retain for documentation purposes only
  *
- cgns = libcgns
- $(cgns)/adf_cond.c
- $(cgns)/adf_ftoc.c
- $(cgns)/cgns_error.c
- $(cgns)/cgns_internals.c
- $(cgns)/cgnslib.c
+ libcgns/adf_cond.c
+ libcgns/adf_ftoc.c
+ libcgns/cgns_error.c
+ libcgns/cgns_internals.c
+ libcgns/cgnslib.c
 */
 
 LIB = $(FOAM_EXT_LIBBIN)/libccmio
