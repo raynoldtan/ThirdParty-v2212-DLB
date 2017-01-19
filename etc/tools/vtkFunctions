@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -30,7 +30,12 @@
 #
 #------------------------------------------------------------------------------
 
+# Variables referenced by the functions. Initialization at the end of the file.
+unset CMAKE_VARIABLES
+
 # sourceBASE, buildBASE, installBASE defined in tools/ThirdPartyFunctions
+
+#------------------------------------------------------------------------------
 
 #
 # Where things are or should be put
@@ -75,8 +80,8 @@ setVtkDirs()
     echo "VTK_BINARY_DIR=$VTK_BINARY_DIR"
     echo "VTK_DIR=$VTK_DIR"
 
-    # Forcefully override the .git path for the VTK source code directory
-    export GIT_DIR=$ParaView_SOURCE_DIR/.git
+    # Prevent git queries from using the ThirdParty repository
+    export GIT_DIR=$VTK_SOURCE_DIR/.git
 }
 
 
@@ -129,7 +134,7 @@ configVTK()
     fi
     mkdir -p $VTK_BINARY_DIR
 
-    addCMakeVariable  "CMAKE_BUILD_TYPE:STRING=$buildType"
+    addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
 
     cd $VTK_BINARY_DIR || exit 1  # change to build folder
 
@@ -139,12 +144,11 @@ configVTK()
     echo "    Source         : $VTK_SOURCE_DIR"
     echo "    Build          : $VTK_BINARY_DIR"
     echo "    Target         : $VTK_DIR"
-    echo "    Build type     : $buildType"
-    echo "    Cmake          : $cmake"
+    echo "    cmake          : $cmake"
     echo "----"
     echo
     echo "$cmake" \
-        -DCMAKE_INSTALL_PREFIX:PATH=$VTK_DIR \
+        -DCMAKE_INSTALL_PREFIX=$VTK_DIR \
         $CMAKE_VARIABLES \
         $VTK_SOURCE_DIR
     echo
@@ -153,7 +157,7 @@ configVTK()
 
     # Run cmake to create Makefiles
     $cmake \
-        -DCMAKE_INSTALL_PREFIX:PATH=$VTK_DIR \
+        -DCMAKE_INSTALL_PREFIX=$VTK_DIR \
         $CMAKE_VARIABLES \
         $VTK_SOURCE_DIR
 }
@@ -165,17 +169,14 @@ configVTK()
 #
 makeVTK()
 {
-    cd $VTK_BINARY_DIR || exit 1  # change to build folder
+    cd $VTK_BINARY_DIR || exit 1  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
     echo "    Done make"
 
     # Remove lib if it is a link
     # (how this was previously handled before 'make install' worked)
-    if [ -L lib ]
-    then
-        rm lib 2>/dev/null
-    fi
+    [ -L lib ] && rm -f lib 2>/dev/null
 }
 
 
@@ -189,26 +190,20 @@ installVTK()
 
     make install
 
-cat<< INFO
+    /bin/cat<<INFO
 
-    ---
-    Installation complete for vtk-$VTK_VERSION
+====
+Installation complete for vtk-$VTK_VERSION as
     VTK_DIR=$VTK_DIR
-    ---
+====
 INFO
 }
 
 
 #------------------------------------------------------------------------------
 
-# Clear the referenced variables before using any of the functions
-unset CMAKE_VARIABLES
-
 # Start with these general settings
-addCMakeVariable  "BUILD_SHARED_LIBS:BOOL=ON  VTK_USE_RPATH:BOOL=OFF"
-
-# Don't build test tree
-addCMakeVariable  "BUILD_TESTING:BOOL=OFF"
+addCMakeVariable "BUILD_SHARED_LIBS=ON" "BUILD_TESTING=OFF"
 
 
 #------------------------------------------------------------------------------

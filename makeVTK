@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -50,21 +50,13 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 . etc/tools/vtkFunctions
 #------------------------------------------------------------------------------
 #
-# USER OPTIONS:
-# ~~~~~~~~~~~~~
-
-# MPI support:
-# use 0 or unset MPI_MAX_PROCS for no upper-limit
-withMPI=false
-unset MPI_MAX_PROCS
+# USER DEFAULTS:
+# ~~~~~~~~~~~~~~
 
 # MESA graphics support:
 withMESA=false
 MESA_INCLUDE="/usr/include/GL"
 MESA_LIBRARY="/usr/lib$WM_COMPILER_LIB_ARCH/libOSMesa.so"
-
-# Set the path to cmake
-CMAKE_PATH=""
 
 # New rendering backend (starting with vtk 7?).
 # Default to auto-config based on VTK version
@@ -85,10 +77,10 @@ options:
   -rebuild          for repeated builds (-make -install) *use with caution*
   -gl2              with new rendering backend (if not already enabled)
   -mesa             with mesa (if not already enabled)
+  -osmesa           with off-screen mesa only
   -mpi              with mpi (if not already enabled)
   -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
                         upper-limit on processes.
-  -osmesa           with off-screen mesa only
   -cmake PATH       with cmake from the path given
   -gcc              force g++ instead of the value from \$WM_CXX
   -verbose          verbose output in Makefiles
@@ -130,8 +122,6 @@ USAGE
 #
 unset runPATCH runCONFIG runMAKE runINSTALL
 runDEFAULT=true
-buildType=Release
-withOSMESA=false
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -236,7 +226,7 @@ do
         ;;
     -buildType)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
-        buildType="$2"
+        BUILD_TYPE="$2"
         shift
         ;;
     *)
@@ -306,7 +296,7 @@ Features selected
 ---------------------
 Version information
     version   ${VTK_VERSION:-unknown}
-    build     ${buildType:-Release}
+    build     ${BUILD_TYPE:-unknown}
 ---------------------
 SUMMARY
 
