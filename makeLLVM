@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -30,28 +30,30 @@
 #
 # Note
 #    - Ensure that you always use matching versions between llvm and clang.
-#    - The LLVM components reside in the LLVM tools/ subdirectory
+#    - LLVM components such as clang reside in the LLVM tools/ subdirectory
 #
-#    Example, building from svn repository:
-#      1) Checkout LLVM:
-#            svn co http://llvm.org/svn/llvm-project/llvm/trunk llvm-svn
+#    For example, when building from tar files (version 3.8.0)
 #
-#      2) Checkout Clang, in the correct location
-#            cd llvm-svn/tools
-#            svn co http://llvm.org/svn/llvm-project/cfe/trunk clang
-#            cd -
-#
-#    Example, building from tar files (version 3.8.0)
-#    - Unpack LLVM:
-#        tar -Jvf llvm-3.8.0.src.tar.xz
+#    1) Unpack LLVM:
+#        tar -xJvf llvm-3.8.0.src.tar.xz
 #        mv llvm-3.8.0.src  llvm-3.8.0
 #
-#    - Unpack Clang (also know as cfe):
-#        tar -Jvf cfe-3.8.0.src.tar.xz
+#    2) Unpack Clang (also know as cfe):
+#        tar -xJvf cfe-3.8.0.src.tar.xz
 #        mv cfe-3.8.0.src  llvm-3.8.0/tools/clang
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Get default llvm/clang version
+# Run from third-party directory only
+cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# LLVM/Clang version from OpenFOAM etc/config.sh file
 WM_COMPILER_TYPE=ThirdParty       # ensure we get the correct compiler settings
 WM_COMPILER=Clang                 # force values for 'clang'
 
@@ -59,16 +61,6 @@ WM_COMPILER=Clang                 # force values for 'clang'
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
 
 llvmPACKAGE=$clang_version
-
-#------------------------------------------------------------------------------
-# run from third-party directory only
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2

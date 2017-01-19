@@ -28,26 +28,33 @@
 # Description
 #     Make and install VTK.
 #     The VTK sources should be located under one of these locations:
-#       - $WM_THIRD_PARTY_DIR/ParaView-VERSION
-#       - $WM_THIRD_PARTY_DIR/ParaView-vVERSION
+#       - $WM_THIRD_PARTY_DIR/VTK-VERSION
 #
 #     To use the VTK source from the ParaView source tree, simply make an
 #     appropriate link first. For example,
 #
 #        (cd $WM_THIRD_PARTY_DIR && ln -s ParaView-v5.2.0/VTK VTK-7.1.0)
 #
+# ------------------------------------------------
+# SOME USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} || exit 1
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
 . etc/tools/ParaViewFunctions
 . etc/tools/vtkFunctions
+#------------------------------------------------------------------------------
+# VTK version from OpenFOAM etc/config.sh file
+. $WM_PROJECT_DIR/etc/config.sh/functions
+unset -f _foamAddPath _foamAddLib               # get settings only
+unset vtk_version mesa_version                  # purge current values
+
+_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/vtk)
+VTK_VERSION=$vtk_version
 #------------------------------------------------------------------------------
 #
 # USER DEFAULTS:
@@ -66,13 +73,12 @@ withGL2=auto
 # NO FURTHER EDITING BELOW THIS LINE
 #
 #-----------------------------------------------------------------------------
-Script=${0##*/}
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [vtk-VERSION] [CMAKE-OPTION]
+usage: ${0##*/} [OPTION] [vtk-VERSION] [CMAKE-OPTION]
 options:
   -gcc              force g++ instead of the value from \$WM_CXX
   -rebuild          for repeated builds (-make -install) *use with caution*
@@ -91,12 +97,12 @@ options:
   -suffix NAME      specify a suffix to distinguish the build
   -help
 
-The -no-FEATURE option can be disable these features (if not already disabled):
+The -no-FEATURE option can be used to forcibly disable these features:
   -no-gl2 | -no-mesa | -no-mpi
 
 CMake options start with a capital letter and contain an '='.
 For example,
-    $Script BUILD_TESTING=ON
+    ${0##*/} BUILD_TESTING=ON
 to add tests and avoid building documentation
 
 For finer control, the build stages can be selected or deselected individually:

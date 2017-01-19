@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -40,8 +40,18 @@
 #
 #         WM_COMPILER=Gcc51 ./makeGcc -system
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# get default GCC, mpfr, gmp and mpc versions
+# Run from third-party directory only
+cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# Default GCC, mpfr, gmp and mpc versions from OpenFOAM etc/config.sh file
 WM_COMPILER_TYPE=ThirdParty       # ensure we get the correct compiler settings
 : ${WM_COMPILER:=Gcc}             # this will still fail if 'Clang' was set
 
@@ -52,25 +62,13 @@ gmpPACKAGE=${gmp_version:-gmp-system}
 mpfrPACKAGE=${mpfr_version:-mpfr-system}
 mpcPACKAGE=${mpc_version:-mpc-system}
 gccPACKAGE=$gcc_version
-
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
-#------------------------------------------------------------------------------
-Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
+usage: ${0##*/} [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
 options:
   -multilib         for 64-bit systems with 32-bit support required
   -no-multilib      for 64-bit systems without 32-bit support (DEFAULT)

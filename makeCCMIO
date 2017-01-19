@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  |
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -28,29 +28,28 @@
 # Description
 #     Build CD-adapco's ccmio library
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Get version info
+# Run from third-party directory only
+cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+[ -n "$FOAM_EXT_LIBBIN" ] || {
+    echo "Error (${0##*/}) : \$FOAM_EXT_LIBBIN not set"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# libccmio version from OpenFOAM etc/config.sh file
 . $WM_PROJECT_DIR/etc/config.sh/functions
 _foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ccmio)
 
 ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
 targetType=lib
-
-#------------------------------------------------------------------------------
-# Run from third-party directory only
-cd ${0%/*} || exit 1
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
-    exit 1
-}
-[ -n "$FOAM_EXT_LIBBIN" ] || {
-    echo "Error: FOAM_EXT_LIBBIN not set"
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 usage()
 {
@@ -78,7 +77,6 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-
 
 # Parse options
 while [ "$#" -gt 0 ]

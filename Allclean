@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -26,26 +26,24 @@
 #     Allclean
 #
 # Description
-#     Clean script for third-party applications and libraries
+#     Clean script for ThirdParty applications and libraries
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# run from third-party directory only
-cd ${0%/*} || exit 1
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+# Run from third-party directory only
+cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 # . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
-Usage: $Script [OPTION] [<platform> [ ... <platformN> ]]
+Usage: ${0##*/} [OPTION] [<platform> [ ... <platformN> ]]
 options:
   -all              remove all platforms directories.
   -current          clean the current platform ($WM_OPTIONS).
@@ -60,14 +58,15 @@ USAGE
 }
 
 # Print help message
-if [ "$1" = "-h" -o "$1" = "-help" ]; then
+if [ "$1" = "-h" -o "$1" = "-help" ]
+then
     usage
 fi
 
 #------------------------------------------------------------------------------
 
 # Clean various packages via 'distclean'
-for i in openmpi-* ADIOS-* metis-*
+for i in openmpi-* metis-* adios-* ADIOS-*
 do
     [ -d "$i" ] && (
         echo
@@ -105,12 +104,6 @@ fi
 #
 # Clean platforms directories
 #
-if [ "$#" -ge 1 ]
-then
-    echo
-    echo "Clean platforms/sub-directories"
-fi
-
 removePlatform()
 {
     local platform="$1"
@@ -125,6 +118,11 @@ removePlatform()
     fi
 }
 
+if [ "$#" -ge 1 ]
+then
+    echo
+    echo "Clean platforms/sub-directories"
+fi
 
 # Optionally cleanup platforms specified from the arguments
 while [ "$#" -ge 1 ]

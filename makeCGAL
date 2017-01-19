@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2012-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -34,8 +34,18 @@
 #     simply specify a 'system' version. For example,
 #         makeCGAL boost-system gmp-system
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Get CGAL, boost and gmp/mpfr versions
+# Run from third-party directory only
+cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+# CGAL, boost and gmp/mpfr versions from OpenFOAM etc/config.sh file
 . $WM_PROJECT_DIR/etc/config.sh/functions
 unset -f _foamAddPath _foamAddLib _foamAddMan   # get settings only
 unset BOOST_ARCH_PATH CGAL_ARCH_PATH            # purge current values
@@ -48,24 +58,13 @@ boostPACKAGE=${boost_version:-boost-system}
 gmpPACKAGE=${gmp_version:-gmp-system}
 mpfrPACKAGE=${mpfr_version:-mpfr-system}
 cgalPACKAGE=$cgal_version
-
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
-#------------------------------------------------------------------------------
-Script="${0##*/}"
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [CGAL-VERSION] [boost-VERSION] [gmp-VERSION] [mpfr-VERSION]
+usage: ${0##*/} [OPTION] [CGAL-VERSION] [boost-VERSION] [gmp-VERSION] [mpfr-VERSION]
 options:
   -cmake PATH       with cmake from the path given
   -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
@@ -82,7 +81,7 @@ options:
 Normally builds against ThirdParty boost and gmp/mpfr when possible.
 To override this behaviour (and use the system boost and/or gmp/mpfr),
 simply specify a 'system' version. For example,
-    $Script boost-system gmp-system
+    ${0##*/} boost-system gmp-system
 
 Use gmp-none to disable use of gmp/mpfr (eg, not available)
 
