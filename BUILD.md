@@ -418,7 +418,7 @@ The minimum gcc/g++ requirements for building various components.
 [newer ParaView-52]:  http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz
 
 [page mesa]:  http://mesa3d.org/
-[link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/13.0.1/mesa-13.0.1.tar.xz
+[link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/13.0.3/mesa-13.0.3.tar.xz
 [older mesa]: ftp://ftp.freedesktop.org/pub/mesa/11.2.2/mesa-11.2.2.tar.xz
 
 [page Qt]: https://www.qt.io/download-open-source/

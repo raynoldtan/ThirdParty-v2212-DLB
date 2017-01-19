@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -142,6 +142,15 @@ fi
 MESA_SOURCE_DIR=$sourceBASE/$mesaPACKAGE
 MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
 
+#
+# Manual adjustments to mesa
+# - avoid GLES (GLES1) since <GLES/gl.h> may mask the <GL/gl.h> header
+adjustMESA()
+{
+    \rm -rf $MESA_ARCH_PATH/include/GLES $MESA_ARCH_PATH/include/GLES1
+    echo "removed all gles1 includes"
+}
+
 (
     # configuration options:
     unset configOpt
@@ -185,11 +194,13 @@ MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
         --disable-glx \
         --disable-dri \
         --disable-egl \
+        --disable-gles1 \
         --enable-texture-float \
         --enable-gallium-osmesa --with-gallium-drivers=swrast \
         $configOpt \
         && make -j $WM_NCOMPPROCS \
         && make install \
+        && adjustMESA \
         && echo "Built $mesaPACKAGE"
 ) || {
     echo "Error building: MESA"
