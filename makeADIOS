@@ -353,7 +353,7 @@ else
         cd $buildDIR && $cmake \
             -DCMAKE_INSTALL_PREFIX=$ADIOS_ARCH_PATH \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_FORTRAN:BOOL=FALSE \
+            -DBUILD_FORTRAN=FALSE \
             $ADIOS_SOURCE_DIR \
         && make -j $WM_NCOMPPROCS all \
         && make install \

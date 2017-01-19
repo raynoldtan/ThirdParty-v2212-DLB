@@ -37,11 +37,9 @@ unset withQT      QT_VERSION      QMAKE_PATH
 unset withMESA    MESA_INCLUDE    MESA_LIBRARY    withOSMESA
 unset withPYTHON  PYTHON_INCLUDE  PYTHON_LIBRARY
 unset withGL2
-unset OBJ_ADD
-
 BUILD_TYPE=Release  # The cmake build type
 
-# sourceBASE, buildBASE, installBASE
+# sourceBASE, buildBASE, installBASE and BUILD_SUFFIX
 #   are defined in tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 
@@ -75,11 +73,8 @@ setParaViewDirs()
         exit 1
     }
 
-    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
-    ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION
-
-    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
-    ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION
+    ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
+    ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
 
     export ParaView_SOURCE_DIR ParaView_BINARY_DIR ParaView_DIR
 
@@ -173,8 +168,6 @@ addMpiSupport()
         return
     fi
 
-    OBJ_ADD="$OBJ_ADD-mpi"
-
     addCMakeVariable "PARAVIEW_USE_MPI=ON VTK_USE_MPI=ON"
     if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
     then
@@ -192,8 +185,6 @@ addPythonSupport()
     then
         return
     fi
-
-    OBJ_ADD="$OBJ_ADD-py"
 
     if pythonBin=$(which python 2>/dev/null)
     then
@@ -407,6 +398,7 @@ configParaView()
     echo "    Build          : $ParaView_BINARY_DIR"
     echo "    Target         : $ParaView_DIR"
     echo "    cmake          : $cmake"
+    echo "    Build suffix   : ${BUILD_SUFFIX:-none}"
     echo "----"
     echo
     echo "$cmake" \

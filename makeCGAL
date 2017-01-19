@@ -403,7 +403,7 @@ CMAKE_OPTIONS
     elif _foamIsNone $GMP_ARCH_PATH
     then
         echo "    disabled       : gmp"
-        configGmp="-DCGAL_DISABLE_GMP:BOOL=TRUE"  # Also used for mpfr
+        configGmp="-DCGAL_DISABLE_GMP=TRUE"  # Also used for mpfr
     elif [ -d "$GMP_ARCH_PATH" ]
     then
         echo "    ThirdParty     : gmp"
@@ -425,7 +425,7 @@ CMAKE_OPTIONS
     elif _foamIsNone $MPFR_ARCH_PATH
     then
         echo "    disabled       : mpfr"
-        configGmp="-DCGAL_DISABLE_GMP:BOOL=TRUE"  # Also used for mpfr
+        configGmp="-DCGAL_DISABLE_GMP=TRUE"  # Also used for mpfr
     elif [ -d "$MPFR_ARCH_PATH" ]
     then
         echo "    ThirdParty     : mpfr"

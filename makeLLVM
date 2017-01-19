@@ -189,7 +189,7 @@ else
         $cmake \
             -DCMAKE_INSTALL_PREFIX=$LLVM_ARCH_PATH \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_SHARED_LIBS:BOOL=ON \
+            -DBUILD_SHARED_LIBS=ON \
             $LLVM_SOURCE_DIR \
         && make -j $WM_NCOMPPROCS \
         && make install \
