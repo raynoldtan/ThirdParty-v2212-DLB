@@ -36,6 +36,7 @@ unset withMPI     MPI_MAX_PROCS
 unset withQT      QT_VERSION      QMAKE_PATH
 unset withMESA    MESA_INCLUDE    MESA_LIBRARY    withOSMESA
 unset withPYTHON  PYTHON_INCLUDE  PYTHON_LIBRARY
+unset withGL2
 unset OBJ_ADD
 
 BUILD_TYPE=Release  # The cmake build type
@@ -266,9 +267,7 @@ addMesaSupport()
 
     if [ -d "$MESA_INCLUDE" -a -f "$MESA_LIBRARY" ]
     then
-        OBJ_ADD="$OBJ_ADD-mesa"
-
-        addCMakeVariable "VTK_OPENGL_HAS_OSMESA:BOOL=ON"
+        addCMakeVariable "VTK_OPENGL_HAS_OSMESA=ON"
         addCMakeVariable "OSMESA_INCLUDE_DIR=$MESA_INCLUDE"
         addCMakeVariable "OSMESA_LIBRARY=$MESA_LIBRARY"
 

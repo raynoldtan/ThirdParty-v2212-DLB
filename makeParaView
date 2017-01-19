@@ -88,31 +88,30 @@ usage() {
 
 usage: $Script [OPTION] [paraview-VERSION] [CMAKE-OPTION]
 options:
+  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -rebuild          for repeated builds (-make -install) *use with caution*
   -gl2              with new rendering backend (if not already enabled)
   -mesa             with mesa (if not already enabled)
+  -mesa-prefix DIR  location of mesa installation (sets -mesa-include, -mesa-lib)
+  -mesa-include DIR location of mesa headers (current value: ${MESA_INCLUDE:-none})
+  -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
   -mpi              with mpi (if not already enabled)
-  -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
-                        upper-limit on processes.
+  -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
   -python           with python (if not already enabled)
+  -python-lib PATH  path to python library   (current value: ${PYTHON_LIBRARY:-none})
   -cmake PATH       with cmake from the path given
   -qmake PATH       with the Qt version corresponding to the qmake path given
   -qt               with extra Qt gui support (if not already enabled)
   -qt-VER           with Qt version corresponding to
                         \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/qt-VER/bin/qmake
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current value: $ParaView_VERSION)
   -major   VER      specify an alternative major version for special builds
   -buildType NAME   specify the build type (default: Release)
-  -mesa-prefix DIR  location of mesa installation (sets -mesa-include, -mesa-lib)
-  -mesa-include DIR location of mesa headers (current value: ${MESA_INCLUDE:-none})
-  -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
-  -python-lib PATH  path to python library   (current value: ${PYTHON_LIBRARY:-none})
   -help
 
 The -no-FEATURE option can be used to forcibly disable these features:
-  mesa mpi python qt
+  -no-gl2 | -no-mesa | -no-mpi | -no-python | -no-qt
 
 CMake options start with a capital letter and contain an '='.
 For example,
@@ -213,8 +212,16 @@ do
     -mesa)
         withMESA=true
         ;;
+    -osmesa)
+        echo
+        echo "The -osmesa option is currently ignored"
+        echo
+        # withMESA=true
+        # withOSMESA=true
+        ;;
     -no-mesa)
         withMESA=false
+        withOSMESA=false
         ;;
     -mesa-prefix)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
@@ -225,11 +232,13 @@ do
         ;;
     -mesa-include)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withMESA=true
         MESA_INCLUDE="${2%%/}"
         shift
         ;;
     -mesa-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withMESA=true
         MESA_LIBRARY="${2%%/}"
         shift
         ;;
@@ -324,6 +333,16 @@ then
     : ${runCONFIG:=true}
     : ${runMAKE:=true}
     : ${runINSTALL:=true}
+fi
+
+if [ "$withMESA" = true ]
+then
+    : ${withQT:=false}  # No QT unless explicitly requested
+    addCMakeVariable "VTK_USE_X=OFF"
+    # addCMakeVariable "OPENGL_INCLUDE_DIR=IGNORE"
+    # addCMakeVariable "OPENGL_gl_LIBRARY=IGNORE"
+    # addCMakeVariable "OPENGL_xmesa_INCLUDE_DIR=IGNORE"
+    ## seems to be unnecessary => addCMakeVariable "VTK_USE_OFFSCREEN=OFF"
 fi
 
 

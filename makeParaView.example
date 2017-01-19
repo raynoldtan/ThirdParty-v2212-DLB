@@ -1,10 +1,10 @@
 #!/bin/sh
 # An example for building particular combinations of ParaView with
 # - mpi (0 = no upper-limit on processes)
-# - off-screen mesa
+# - mesa
 
-mesa=mesa-11.2.2
-# mesa=mesa-13.0.2
+# mesa=mesa-11.2.2
+mesa=mesa-13.0.3
 
 ./makeParaView \
     -mpi=0 \

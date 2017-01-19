@@ -74,25 +74,24 @@ usage() {
 
 usage: $Script [OPTION] [vtk-VERSION] [CMAKE-OPTION]
 options:
+  -gcc              force g++ instead of the value from \$WM_CXX
   -rebuild          for repeated builds (-make -install) *use with caution*
   -gl2              with new rendering backend (if not already enabled)
   -mesa             with mesa (if not already enabled)
-  -osmesa           with off-screen mesa only
-  -mpi              with mpi (if not already enabled)
-  -mpi=NPROCS       with mpi and max 'NPROCS' processes. NPROCS=0 for no
-                        upper-limit on processes.
-  -cmake PATH       with cmake from the path given
-  -gcc              force g++ instead of the value from \$WM_CXX
-  -verbose          verbose output in Makefiles
-  -version VER      specify an alternative version (current value: $VTK_VERSION)
-  -buildType NAME   specify the build type (default: Release)
   -mesa-prefix DIR  location of mesa installation
   -mesa-include DIR location of mesa headers (current value: ${MESA_INCLUDE:-none})
   -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
+  -osmesa           with off-screen mesa only
+  -mpi              with mpi (if not already enabled)
+  -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
+  -cmake PATH       with cmake from the path given
+  -verbose          verbose output in Makefiles
+  -version VER      specify an alternative version (current value: $VTK_VERSION)
+  -buildType NAME   specify the build type (default: Release)
   -help
 
 The -no-FEATURE option can be disable these features (if not already disabled):
-  mesa mpi
+  -no-gl2 | -no-mesa | -no-mpi
 
 CMake options start with a capital letter and contain an '='.
 For example,
@@ -100,6 +99,7 @@ For example,
 to add tests and avoid building documentation
 
 For finer control, the build stages can be selected or deselected individually:
+  -patch     -no-patch
   -config    -no-config
   -make      -no-make
   -install   -no-install
@@ -139,6 +139,13 @@ do
     -gcc)
         export CC=gcc    # use gcc/g++
         export CXX=g++
+        ;;
+    -patch)              # stage 0: patch sources
+        runPATCH=true
+        unset runDEFAULT
+        ;;
+    -no-patch)
+        runPATCH=false
         ;;
     -config)             # stage 1: config only
         runCONFIG=true
@@ -192,11 +199,13 @@ do
         ;;
     -mesa-include)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withMESA=true
         MESA_INCLUDE="${2%%/}"
         shift
         ;;
     -mesa-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withMESA=true
         MESA_LIBRARY="${2%%/}"
         shift
         ;;
@@ -266,14 +275,14 @@ addMpiSupport       # set MPI-specific options
 addMesaSupport      # set MESA-specific options
 addGL2Support       # new rendering backend
 
-# set off-screen only options
+# Set off-screen options
 if [ "$withOSMESA" = true ]
 then
-    addCMakeVariable "VTK_USE_X:BOOL=OFF"
+    addCMakeVariable "VTK_USE_X=OFF"
     addCMakeVariable "OPENGL_INCLUDE_DIR=$MESA_INCLUDE"
-    addCMakeVariable "OPENGL_xmesa_INCLUDE_DIR=$MESA_INCLUDE"
     addCMakeVariable "OPENGL_gl_LIBRARY=$MESA_LIBRARY"
     addCMakeVariable "OPENGL_glu_LIBRARY=$MESA_LIBRARY"
+    addCMakeVariable "OPENGL_xmesa_INCLUDE_DIR=$MESA_INCLUDE"
 fi
 
 setVtkDirs          # where things are or should be put
