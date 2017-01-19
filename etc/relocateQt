@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -29,7 +29,7 @@
 #     Change prefix when relocating QT installation
 #
 #------------------------------------------------------------------------------
-qtVERSION=4.8.7
+unset qtVERSION # No default version
 
 #------------------------------------------------------------------------------
 # Run from third-party directory only
@@ -42,13 +42,12 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 . etc/tools/ThirdPartyFunctions
 . etc/tools/QtFunctions
 #------------------------------------------------------------------------------
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [VERSION]
+usage: ${0##*/} [OPTION] [qt-VERSION]
 options:
   -force            Create qt.conf and edit pkgconfig to use \${prefix}
   -help
@@ -62,9 +61,9 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-
 unset forceOpt
-# parse options
+
+# Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
@@ -89,11 +88,14 @@ done
 #------------------------------------------------------------------------------
 QT_ARCH_PATH=$installBASE/qt-$qtVERSION
 
+[ -n "$qtVERSION" ]    || die "No QT version specified"
+[ -d "$QT_ARCH_PATH" ] || die "No QT installation"
+
 if [ "${forceOpt:-false}" = true ]
 then
+    # Create qt.conf and adjust locations to use '${prefix}' internally
     finalizeQt
 fi
-changePrefix
+pkgconfigSetPrefix $QT_ARCH_PATH
 
-
-# ----------------------------------------------------------------- end-of-file
+# -----------------------------------------------------------------------------

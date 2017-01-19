@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -226,6 +226,79 @@ NOT_FOUND
     foundExe=$(command -v qmake 2> /dev/null) || foundExe=false
     echo "Using qmake=$foundExe" 1>&2
     echo $foundExe
+}
+
+
+#
+# Change prefix=... and Prefix=... in pkgconfig
+#
+pkgconfigSetPrefix()
+{
+    local dir="$1"
+    local nfiles
+
+    if [ -n "$dir" -a -d "$dir/lib/pkgconfig" ]
+    then
+    (
+        cd $dir/lib/pkgconfig || exit
+
+        echo "Set pkgconfig prefix : $dir"
+        echo "    files ... lib/pkgconfig/*.pc"
+
+        for i in *.pc
+        do
+            if [ -f "$i" ]
+            then
+                nfiles="x$nfiles"
+                sed -i \
+                    -e 's@^\([Pp]refix=\).*$@\1'"$dir@" \
+                    $i
+            fi
+        done
+        echo "    edited ${#nfiles} files"
+    )
+    else
+        echo "Error: incorrect prefix value: $dir" 1>&2
+        return 1
+    fi
+}
+
+
+#
+# Adjust pkgconfig information
+#   to generalize *location=, -I/... and -L/...
+#   to use ${prefix}
+#
+pkgconfigAdjust()
+{
+    local dir="$1"
+    local nfiles
+
+    if [ -n "$dir" -a -d "$dir/lib/pkgconfig" ]
+    then
+    (
+        cd $dir/lib/pkgconfig || exit
+
+        echo "Adjust pkgconfig locations : $dir"
+        echo "    files ... lib/pkgconfig/*.pc"
+
+        for i in *.pc
+        do
+            if [ -f "$i" ]
+            then
+                nfiles="x$nfiles"
+                sed -i \
+                    -e 's@\(location=\)'"$dir/"'@\1${prefix}/@' \
+                    -e 's@\(-[IL]\)'"$dir/"'@\1${prefix}/@g'    \
+                    $i
+            fi
+        done
+        echo "    edited ${#nfiles} files"
+    )
+    else
+        echo "Error: incorrect prefix value: $dir" 1>&2
+        return 1
+    fi
 }
 
 

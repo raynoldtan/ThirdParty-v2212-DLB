@@ -132,7 +132,7 @@ For finer control, the build stages can be selected or deselected individually:
 To make a different paraview version, simply specify on the command-line.
 For example,
 
-    ./makeParaview 4.4.0
+    ./makeParaview 5.0.1
 
 Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 

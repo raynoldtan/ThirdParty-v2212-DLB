@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -29,7 +29,7 @@
 #     Build script for QT (the qt-everywhere-opensource-src package)
 #
 #------------------------------------------------------------------------------
-qtVERSION=4.8.7
+unset qtVERSION # No default version
 qtTYPE=qt-everywhere-opensource-src
 
 #------------------------------------------------------------------------------
@@ -48,7 +48,7 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [VERSION]
+usage: ${0##*/} [OPTION] [qt-VERSION]
 options:
   -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
@@ -174,4 +174,4 @@ else
     }
 fi
 
-# ----------------------------------------------------------------- end-of-file
+# -----------------------------------------------------------------------------
