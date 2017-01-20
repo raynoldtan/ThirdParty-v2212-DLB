@@ -1,0 +1,85 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM.
+#
+#     OpenFOAM is free software: you can redistribute it and/or modify it
+#     under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
+#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+#     for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#
+# Script
+#     etc/pkgconfigPrefix
+#
+# Description
+#     Set the prefix= entry for pkgconfig files to account for a new location.
+#
+#     The specified directory can be any of the following:
+#         - base-dir
+#         - base-dir/bin
+#         - base-dir/lib
+#         - base-dir/lib64
+#         - base-dir/lib/pkgconfig
+#         - base-dir/lib64/pkgconfig
+#
+#     This allows this type of shell command
+#
+#        etc/pkgconfigPrefix $(find platforms -type d -name pkgconfig)
+#
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+#------------------------------------------------------------------------------
+# Run from third-party (parent) directory only
+wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : current directory is not \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+usage() {
+    exec 1>&2
+    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+    cat<<USAGE
+
+usage: ${0##*/} [OPTION] [directory1 [... directoryN]]
+options:
+  -help
+
+Set the 'prefix=' entry for pkgconfig files.
+The pkgconfig files are located under lib/pkgconfig or lib64/pkgconfig.
+
+USAGE
+    exit 1
+}
+#------------------------------------------------------------------------------
+
+# Process options/arguments
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    -h | -help)
+        usage
+        ;;
+    *)
+        pkgconfigAdjust "$1"
+        ;;
+    esac
+    shift
+done
+
+#------------------------------------------------------------------------------
