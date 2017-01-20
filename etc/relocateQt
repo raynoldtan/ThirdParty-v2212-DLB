@@ -96,6 +96,6 @@ then
     # Create qt.conf and adjust locations to use '${prefix}' internally
     finalizeQt
 fi
-pkgconfigSetPrefix $QT_ARCH_PATH
+pkgconfigNewPrefix $QT_ARCH_PATH
 
 # -----------------------------------------------------------------------------

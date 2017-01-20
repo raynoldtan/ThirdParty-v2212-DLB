@@ -249,75 +249,99 @@ NOT_FOUND
 
 
 #
-# Change prefix=... and Prefix=... in pkgconfig
+# Set a new prefix=... in pkgconfig files
 #
-pkgconfigSetPrefix()
+pkgconfigNewPrefix()
 {
-    local dir="$1"
-    local nfiles
+    local dir="${1%%/}"
 
-    if [ -n "$dir" -a -d "$dir/lib/pkgconfig" ]
+    if [ -n "$dir" -a -d "$dir" ]
     then
-    (
-        cd $dir/lib/pkgconfig || exit
+        # Require absolute path, but use logical (not physical) location
+        [ "${dir}" != "${dir#/}" ] || dir=$(cd $dir 2>/dev/null && /bin/pwd -L)
+        # Strip sub-level
+        case "$dir" in (*/pkgconfig) dir="${dir%/*}";; esac
+        # Strip a level
+        case "$dir" in (*/lib | */lib64 | */bin) dir="${dir%/*}";; esac
+    fi
 
-        echo "Set pkgconfig prefix : $dir"
-        echo "    files ... lib/pkgconfig/*.pc"
+    # Verify that the prefix path is valid
+    # Warning (not an error) - thus no special return code
+    [ -n "$dir" -a -d "$dir" ] || {
+        echo "Warning: invalid prefix directory: $dir" 1>&2
+        return 0
+    }
 
-        for i in *.pc
+    echo "Set pkgconfig prefix : $dir"
+
+    local nfiles
+    for libdir in lib/pkgconfig lib64/pkgconfig
+    do
+        unset nfiles
+        [ -d "$dir/$libdir" ] || continue
+        for i in $dir/$libdir/*.pc
         do
             if [ -f "$i" ]
             then
                 nfiles="x$nfiles"
-                sed -i \
-                    -e 's@^\([Pp]refix=\).*$@\1'"$dir@" \
-                    $i
+                sed -i -e 's@^\(prefix=\).*$@\1'"$dir@" $i
             fi
         done
-        echo "    edited ${#nfiles} files"
-    )
-    else
-        echo "Error: incorrect prefix value: $dir" 1>&2
-        return 1
-    fi
+        echo "    $libdir/*.pc  (edited ${#nfiles})"
+    done
 }
 
 
 #
-# Adjust pkgconfig information
-#   to generalize *location=, -I/... and -L/...
-#   to use ${prefix}
+# Adjust pkgconfig information to use '${prefix} where possible instead
+# of directory paths.
+#
+# Adjusts includedir=, libdir=, -I/... and -L/... and
+# any *_location= entries (QT)
 #
 pkgconfigAdjust()
 {
-    local dir="$1"
-    local nfiles
+    local dir="${1%%/}"
 
-    if [ -n "$dir" -a -d "$dir/lib/pkgconfig" ]
+    if [ -n "$dir" -a -d "$dir" ]
     then
-    (
-        cd $dir/lib/pkgconfig || exit
+        # Require absolute path, but use logical (not physical) location
+        [ "${dir}" != "${dir#/}" ] || dir=$(cd $dir 2>/dev/null && /bin/pwd -L)
+        # Strip sub-level
+        case "$dir" in (*/pkgconfig) dir="${dir%/*}";; esac
+        # Strip a level
+        case "$dir" in (*/lib | */lib64 | */bin) dir="${dir%/*}";; esac
+    fi
 
-        echo "Adjust pkgconfig locations : $dir"
-        echo "    files ... lib/pkgconfig/*.pc"
+    # Verify that the prefix path is valid
+    # Warning (not an error) - thus no special return code
+    [ -n "$dir" -a -d "$dir" ] || {
+        echo "Warning: invalid prefix directory: $dir" 1>&2
+        return 0
+    }
 
-        for i in *.pc
+    echo "Adjust pkgconfig locations : $dir"
+
+    local nfiles
+    for libdir in lib/pkgconfig lib64/pkgconfig
+    do
+        unset nfiles
+        [ -d "$dir/$libdir" ] || continue
+        for i in $dir/$libdir/*.pc
         do
             if [ -f "$i" ]
             then
                 nfiles="x$nfiles"
                 sed -i \
-                    -e 's@\(location=\)'"$dir/"'@\1${prefix}/@' \
-                    -e 's@\(-[IL]\)'"$dir/"'@\1${prefix}/@g'    \
+                    -e 's@^\(includedir=\)'"$dir/"'@\1${prefix}/@' \
+                    -e 's@^\(libdir=\)'"$dir/"'@\1${prefix}/@'     \
+                    -e 's@\(_location=\)'"$dir/"'@\1${prefix}/@'   \
+                    -e 's@\(-[IL]\)'"$dir/"'@\1${prefix}/@g'       \
                     $i
             fi
         done
-        echo "    edited ${#nfiles} files"
-    )
-    else
-        echo "Error: incorrect prefix value: $dir" 1>&2
-        return 1
-    fi
+        echo "    $libdir/*.pc  (edited ${#nfiles})"
+    done
 }
 
 
@@ -350,8 +374,6 @@ downloadFile()
 # $2 = TARGET DIRECTORY (optional)
 cpMakeFiles()
 {
-    set +x
-
     [ "$#" -eq 1 -o "$#" -eq 2 ] || {
         echo "cpMakeFiles called with incorrect number of arguments $@"
         return 1
@@ -383,8 +405,6 @@ cpMakeFiles()
             cp $wmakeFiles/$i $dst/$d/Make/$b
         fi
     done
-
-    set -x
 }
 
 
