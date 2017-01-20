@@ -3,7 +3,7 @@
    | =========                 |                                              |
    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
    |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.              |
+   |   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.         |
    |    \\/     M anipulation  |                                              |
    |--------------------------------------------------------------------------|
   -->
@@ -24,8 +24,8 @@ The ThirdParty directory contains a number of build scripts as well as
 some directories:
 
 | Directory         | Contains
-|-------------------|--------------------------------------------
-| etc/              | auxiliary scripts used for the build process
+|-------------------|-------------------------------------------------------
+| etc/              | auxiliary tools and content used for the build process
 | build/            | intermediate build objects
 | platforms/        | the installation directories
 
@@ -121,6 +121,10 @@ ThirdParty components prior to building OpenFOAM itself.
 
 #### Optional Components
 
+`makeADIOS`
+- Only required for ADIOS support,
+  which is currently staged in the [add-ons repository][link AddOns].
+
 `makeCGAL`
 - Builds third-party boost and CGAL.
   Automatically invoked from the ThirdParty `Allwmake`,
@@ -146,6 +150,8 @@ ThirdParty components prior to building OpenFOAM itself.
 `makeQt`
 - Script to build a [third-party installation of Qt](#makeQt), including qmake.
 - Possibly needed for `makeParaView`.
+- The associated `etc/relocateQt` may be of independent use.
+  Read the file for more details.
 
 `makeGperftools`
 - Build gperftools (originally Google Performance Tools)
@@ -167,7 +173,7 @@ and save some disk space.
 
 ### Mesa
 - Needed for off-screen rendering.
-- Building with [mesa-11][older mesa] is fine and [mesa-13][link mesa] also seems to be okay.
+- Building with [mesa-11][older mesa] and [mesa-13][link mesa] both seem okay.
 - Building with mesa-12 is not possible since it fails to create
   the necessary `include/GL` directory and `osmesa.h` file.
 
@@ -203,7 +209,8 @@ and save some disk space.
 #### 5.2.0
 - Compiles without patching, but the OpenFOAM reader modules
   (eg, to visualize a `blockMeshDict`) have not yet been migrated
-  to this version.
+  to this version. Note that the native OpenFOAM reader appears to be
+  partially broken in this version.
 
 #### 4.4.0/5.0.0/5.0.1/5.1.2
 - When using `makeParaView`, the following patches will be automatically
@@ -214,6 +221,15 @@ and save some disk space.
   - The SciberQuestToolKit plugin fails to compile with gcc-6.1.0 and causes
     the compilation of ParaView to halt. The easiest solution is to delete
     the ParaView-5.0.1/Plugins/SciberQuestToolKit directory.
+
+### ADIOS
+- The github release currently requires GNU autoconf tools (eg,
+  autoconf, autoheader, automake) for its configuration.
+- Some inconsistency in directory names (ADIOS vs. adios) between releases.
+- Optionally uses bzip2, zlib development headers (eg, libbz2-devel, zlib-devel)
+  for the corresponding compression tranforms.
+- The [zfp floating point compression][page zfp] library is now included as
+  part of ADIOS.
 
 ### Making Qt <a name="makeQt"></a>
 - Building a third-party Qt installation (prior to building ParaView) requires
@@ -229,7 +245,7 @@ and save some disk space.
 
        ./makeParaView -qt-4.8.7 5.0.1
 
-- ParaView does not yet support QT5.
+- ParaView does not yet support QT5 (Dec-2016, but this will soon change).
 
 - If you relocate the third-party directory to another location
   (eg, you built in your home directory, but want to install it in a
@@ -426,17 +442,22 @@ The minimum gcc/g++ requirements for building various components.
 [link Qt]: http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz
 [newer Qt5]: http://download.qt.io/official_releases/qt/5.7/5.7.1/single/qt-everywhere-opensource-src-5.7.0.tar.xz
 
+<!-- OpenFOAM -->
+
+[link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
+[link community-projects]: http://www.openfoam.com/services/community-projects.php
+
 
 <!-- Standard Footer -->
 ## Additional OpenFOAM Links
 
+- [Community AddOns][link AddOns] repository
+- [Collaborative and Community-based Developments][link community-projects]
 - [Download](http://www.openfoam.com/releases) and
   [installation instructions](http://www.openfoam.com/download/installation.php)
 - [Documentation](http://www.openfoam.com/documentation)
-- [Reporting bugs/issues (including bugs/suggestions/feature requests) in OpenFOAM+](http://www.openfoam.com/code/bug-reporting.php)
-- [Collaborative and Community-based Developments](http://www.openfoam.com/services/community-projects.php)
+- [Reporting bugs/issues](http://www.openfoam.com/code/bug-reporting.php) (including bugs/suggestions/feature requests) in OpenFOAM+
 - [Contacting OpenCFD](http://www.openfoam.com/contact)
-
 ---
 
-Copyright 2016 OpenCFD Ltd
+Copyright 2016-2017 OpenCFD Ltd
