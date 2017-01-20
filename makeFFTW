@@ -143,9 +143,11 @@ else
             --libdir=$FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
             --enable-shared --disable-static \
             --disable-fortran \
-            && make -j $WM_NCOMPPROCS \
-            && make install \
-            && echo "Built $fftwPACKAGE"
+        && set +x \
+        && make -j $WM_NCOMPPROCS \
+        && make install \
+        && echo "Built $fftwPACKAGE" \
+        && pkgconfigAdjust $FFTW_ARCH_PATH
     ) || {
         echo "Error building: FFTW"
         exit 1

@@ -155,6 +155,7 @@ then
             --with-gcc-toolchain=$(which gcc | sed s%/bin/gcc%%) \
             --enable-optimized \
             --enable-shared \
+        && set +x \
         && make -j $WM_NCOMPPROCS \
         && make install \
         && echo "Built: $llvmPACKAGE"
@@ -183,6 +184,7 @@ else
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=ON \
             $LLVM_SOURCE_DIR \
+        && set +x \
         && make -j $WM_NCOMPPROCS \
         && make install \
         && echo "Built: $llvmPACKAGE"

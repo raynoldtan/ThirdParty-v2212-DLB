@@ -26,7 +26,7 @@
 #     makeCCMIO
 #
 # Description
-#     Build CD-adapco's ccmio library
+#     Build the libccmio library
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
@@ -64,8 +64,8 @@ options:
 * Compile the proprietary libccmio library
       $ccmioPACKAGE
 
-  Users wishing to make use of the library should contact cd-adapco
-  (Siemens PLM) for possible download and terms of use.
+  Users wishing to obtain the library should contact Siemens PLM (cd-adapco)
+  for terms of use.
 
   After obtaining the $ccmioPACKAGE library, place in folder
 
@@ -118,7 +118,6 @@ echo "---------------"
     mkdir -p $libDIR 2>/dev/null
 
     cpMakeFiles libccmio 2>/dev/null
-    set +x
     if wmake $targetType
     then
         # make headers available:

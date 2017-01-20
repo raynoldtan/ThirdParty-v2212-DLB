@@ -130,6 +130,7 @@ else
         set -x
         $GPERFTOOLS_SOURCE_DIR/configure \
             --prefix=$GPERFTOOLS_ARCH_PATH \
+        && set +x \
         && make -j $WM_NCOMPPROCS \
         && make install \
         && echo "Built: $gperftoolsPACKAGE" \

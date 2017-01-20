@@ -452,9 +452,9 @@ CMAKE_OPTIONS
         ${optHeadersOnly:+-DCGAL_HEADER_ONLY=TRUE} \
         $configBoost $configGmp $configMpfr \
         $CGAL_SOURCE_DIR \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install || exit 1
-    set +x
 
     echo "----"
     echo "create '\$CGAL_ARCH_PATH/share/files'"

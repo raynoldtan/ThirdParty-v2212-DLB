@@ -193,6 +193,7 @@ else
         --prefix=$GMP_ARCH_PATH \
         --libdir=$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
         --enable-cxx \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $gmpPACKAGE"
@@ -249,6 +250,7 @@ else
         --prefix=$MPFR_ARCH_PATH \
         --libdir=$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
         $configGMP $configOpt \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $mpfrPACKAGE"
@@ -301,6 +303,7 @@ else
         --prefix=$MPC_ARCH_PATH \
         --libdir=$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
         $configGMP $configMPFR \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $mpcPACKAGE"
@@ -366,6 +369,7 @@ else
         --with-system-zlib \
         $configGMP $configMPFR $configMPC $configOpt \
         MAKEINFO=missing \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $gccPACKAGE"

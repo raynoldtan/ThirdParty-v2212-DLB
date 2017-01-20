@@ -127,9 +127,11 @@ OPENMPI)
             --enable-mpi-fortran=none \
             --disable-mpi-profile \
             $configOpt \
+        && set +x \
         && make -j $WM_NCOMPPROCS \
         && make install \
-        && echo "Built: $mpiPACKAGE"
+        && echo "Built: $mpiPACKAGE" \
+        && pkgconfigAdjust $MPI_ARCH_PATH
     ) || {
         echo "Error building: $mpiPACKAGE"
         exit 1
@@ -201,7 +203,6 @@ MPICH)
     )
     fi
     ;;
-
 esac
 
 

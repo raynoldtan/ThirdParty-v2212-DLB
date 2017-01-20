@@ -151,6 +151,8 @@ MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
 # - avoid GLES (GLES1) since <GLES/gl.h> may mask the <GL/gl.h> header
 adjustMESA()
 {
+    pkgconfigAdjust $MESA_ARCH_PATH
+
     \rm -rf $MESA_ARCH_PATH/include/GLES $MESA_ARCH_PATH/include/GLES1
     echo "removed all gles1 includes"
 }
@@ -202,10 +204,11 @@ adjustMESA()
         --enable-texture-float \
         --enable-gallium-osmesa --with-gallium-drivers=swrast \
         $configOpt \
-        && make -j $WM_NCOMPPROCS \
-        && make install \
-        && adjustMESA \
-        && echo "Built $mesaPACKAGE"
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built $mesaPACKAGE" \
+    && adjustMESA
 ) || {
     echo "Error building: MESA"
     exit 1
