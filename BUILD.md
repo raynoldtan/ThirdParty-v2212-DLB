@@ -415,7 +415,8 @@ The minimum gcc/g++ requirements for building various components.
 [link FFTW]:      http://www.fftw.org/fftw-3.3.5.tar.gz
 
 [page cgns]:      http://cgns.github.io/
-[link ccmio]:     http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
+[link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
+[altlink ccmio]:  http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
 
 [page tecio]:     http://www.tecplot.com/
 [link tecio]:     http://www.tecplot.com/my/tecio-library/ (needs registration)

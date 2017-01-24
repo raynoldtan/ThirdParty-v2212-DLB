@@ -475,6 +475,7 @@ CMAKE_OPTIONS
         -DCMAKE_INSTALL_PREFIX=$CGAL_ARCH_PATH \
         -DCGAL_INSTALL_LIB_DIR=lib$WM_COMPILER_LIB_ARCH \
         -DCMAKE_BUILD_TYPE=Release \
+        -DWITH_CGAL_ImageIO=OFF \
         -DWITH_CGAL_Qt5=OFF \
         ${optHeadersOnly:+-DCGAL_HEADER_ONLY=TRUE} \
         $configBoost $configGmp $configMpfr \
