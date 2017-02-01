@@ -76,7 +76,7 @@ do
         usage
         ;;
     *)
-        pkgconfigAdjust "$1"
+        pkgconfigNewPrefix "$1"
         ;;
     esac
     shift

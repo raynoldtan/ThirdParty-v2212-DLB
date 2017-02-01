@@ -281,7 +281,7 @@ pkgconfigNewPrefix()
         [ -d "$dir/$libdir" ] || continue
         for i in $dir/$libdir/*.pc
         do
-            if [ -f "$i" ]
+            if [ -f "$i" -a ! -L "$i" ]
             then
                 nfiles="x$nfiles"
                 sed -i -e 's@^\(prefix=\).*$@\1'"$dir@" $i
@@ -329,7 +329,7 @@ pkgconfigAdjust()
         [ -d "$dir/$libdir" ] || continue
         for i in $dir/$libdir/*.pc
         do
-            if [ -f "$i" ]
+            if [ -f "$i" -a ! -L "$i" ]
             then
                 nfiles="x$nfiles"
                 sed -i \
