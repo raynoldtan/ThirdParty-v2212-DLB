@@ -26,7 +26,10 @@
 #     makeCmake
 #
 # Description
-#     Build script for cmake
+#     Build script for cmake.
+#
+#     The '-link' option can be used to create a 'cmake-system' pointing
+#     to this version.
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
@@ -50,6 +53,7 @@ usage() {
 usage: ${0##*/} [OPTION] cmake-VERSION
 options:
   -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -link             Create additional symlink as 'cmake-system'
   -help
 
 * build cmake
@@ -63,6 +67,7 @@ USAGE
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
+unset optLink
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -73,6 +78,9 @@ do
     -gcc)
         export CC=gcc   # use gcc/g++
         export CXX=g++
+        ;;
+    -link)
+        optLink=true
         ;;
     cmake-[1-9]*)
         cmakePACKAGE="${1%%/}"
@@ -85,6 +93,11 @@ do
 done
 
 [ -n "$cmakePACKAGE" ] || die "The cmake-VERSION was not specified"
+
+if _foamIsSystem "$cmakePACKAGE"
+then
+    unset optLink # basic sanity - cannot
+fi
 
 #------------------------------------------------------------------------------
 #
@@ -119,6 +132,21 @@ else
         echo "Error building: $cmakePACKAGE"
         exit 1
     }
+fi
+
+if [ "$optLink" = true -a -x "$CMAKE_ARCH_PATH/bin/cmake" ]
+then
+(
+    cd ${CMAKE_ARCH_PATH%/*} || exit 1
+    if [ -L cmake-system ]
+    then
+        rm cmake-system
+    elif [ -d cmake-system ]
+    then
+        exit 2
+    fi
+    ln -svf $cmakePACKAGE cmake-system
+)
 fi
 
 #------------------------------------------------------------------------------
