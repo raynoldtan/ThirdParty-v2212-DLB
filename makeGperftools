@@ -32,20 +32,19 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-# Gperftools version from OpenFOAM etc/config.sh file
-. $WM_PROJECT_DIR/etc/config.sh/functions
-unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
 
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/gperftools)
+# Gperftools version from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/gperftools
 
 gperftoolsPACKAGE=${gperftools_version:-gperftools-system}
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -64,7 +63,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Ensure configure gets the correct C/C++ compiler
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
@@ -72,13 +71,10 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     gperftools-[0-9]* | gperftools-svn* | gperftools-git)
         gperftoolsPACKAGE="${1%%/}"
         ;;
@@ -119,8 +115,8 @@ else
         buildDIR=$buildBASE/$gperftoolsPACKAGE
 
         cd $GPERFTOOLS_SOURCE_DIR || exit 1
-
-        make distclean 2>/dev/null
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
+        [ -e Makefile ] && make distclean 2>/dev/null
 
         rm -rf $GPERFTOOLS_ARCH_PATH
         rm -rf $buildDIR

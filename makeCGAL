@@ -65,26 +65,26 @@ then
 fi
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-# CGAL, boost and gmp/mpfr versions from OpenFOAM etc/config.sh file
-. $WM_PROJECT_DIR/etc/config.sh/functions
-unset -f _foamAddPath _foamAddLib _foamAddMan   # get settings only
-unset BOOST_ARCH_PATH CGAL_ARCH_PATH            # purge current values
 
-# compiler first, let CGAL config override GMP (eg, when there is no GMP)
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
+unset BOOST_ARCH_PATH CGAL_ARCH_PATH                     # Purge current values
+
+# CGAL, boost and gmp/mpfr versions from OpenFOAM etc/config.sh files.
+# Get compiler first and let CGAL config override GMP (eg, when there is no GMP)
+_foamEtc config.sh/compiler
+_foamEtc config.sh/CGAL
 
 boostPACKAGE=${boost_version:-boost-system}
 gmpPACKAGE=${gmp_version:-gmp-system}
 mpfrPACKAGE=${mpfr_version:-mpfr-system}
 cgalPACKAGE=$cgal_version
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -116,7 +116,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Ensure CMake gets the correct C/C++ compiler
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
@@ -126,16 +126,10 @@ unset optHeadersOnly
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    '')
-        # discard empty arguments
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         CMAKE_PATH="${2%%/}"
@@ -222,6 +216,7 @@ else
 
     (
         cd $BOOST_SOURCE_DIR || exit 1
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
         rm -rf $BOOST_ARCH_PATH
 
@@ -280,11 +275,11 @@ SUMMARY
 # CGAL-4.9 normally builds into 'lib64', older versions into 'lib'.
 #
 #   CGAL_SOURCE_DIR : location of the original sources
-#   CGAL_BINARY_DIR : location of the build
+#   CGAL_BUILD_DIR  : location of the build
 #   CGAL_ARCH_PATH  : installation directory
 
 CGAL_SOURCE_DIR=$sourceBASE/$cgalPACKAGE
-CGAL_BINARY_DIR=$buildBASE/$cgalPACKAGE
+CGAL_BUILD_DIR=$buildBASE/$cgalPACKAGE
 : ${CGAL_ARCH_PATH:=$installBASE/$cgalPACKAGE}      # Fallback
 
 # gmp/mpfr are installed without compiler name
@@ -379,21 +374,22 @@ fi
 
 (
     # Remove any existing build folder and recreate
-    if [ -d $CGAL_BINARY_DIR ]
+    if [ -d $CGAL_BUILD_DIR ]
     then
         echo "removing old build directory"
-        echo "    $CGAL_BINARY_DIR"
-        rm -rf $CGAL_BINARY_DIR
+        echo "    $CGAL_BUILD_DIR"
+        rm -rf $CGAL_BUILD_DIR
     fi
-    mkdir -p $CGAL_BINARY_DIR
+    mkdir -p $CGAL_BUILD_DIR
 
-    cd $CGAL_BINARY_DIR || exit 1
+    cd $CGAL_BUILD_DIR || exit 1
+    export GIT_DIR=$CGAL_SOURCE_DIR/.git # Mask seeing our own git-repo
 
     unset configBoost configGmp configMpfr
     echo "----"
     echo "Configuring $cgalPACKAGE with boost $BOOST_VERSION"
     echo "    Source         : $CGAL_SOURCE_DIR"
-    echo "    Build          : $CGAL_BINARY_DIR"
+    echo "    Build          : $CGAL_BUILD_DIR"
     echo "    Target         : $CGAL_ARCH_PATH"
 
 
@@ -479,6 +475,7 @@ CMAKE_OPTIONS
         -DWITH_CGAL_Qt5=OFF \
         ${optHeadersOnly:+-DCGAL_HEADER_ONLY=TRUE} \
         $configBoost $configGmp $configMpfr \
+        ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
         $CGAL_SOURCE_DIR \
     && set +x \
     && make -j $WM_NCOMPPROCS \

@@ -42,7 +42,7 @@ unset CMAKE_VARIABLES
 #   VTK_VERSION and VTK_MAJOR should already have been set
 #
 #   VTK_SOURCE_DIR : location of the original sources
-#   VTK_BINARY_DIR : location of the build
+#   VTK_BUILD_DIR  : location of the build
 #   VTK_DIR        : location of the installed program
 #
 setVtkDirs()
@@ -67,18 +67,17 @@ setVtkDirs()
         exit 1
     }
 
-    VTK_BINARY_DIR=$buildBASE/VTK-$VTK_VERSION$BUILD_SUFFIX
+    VTK_BUILD_DIR=$buildBASE/VTK-$VTK_VERSION$BUILD_SUFFIX
     VTK_DIR=$installBASE/VTK-$VTK_VERSION$BUILD_SUFFIX
 
-    export VTK_SOURCE_DIR VTK_BINARY_DIR VTK_DIR
+    export VTK_SOURCE_DIR VTK_BUILD_DIR VTK_DIR
 
     echo
     echo "VTK_SOURCE_DIR=$VTK_SOURCE_DIR"
-    echo "VTK_BINARY_DIR=$VTK_BINARY_DIR"
+    echo "VTK_BUILD_DIR=$VTK_BUILD_DIR"
     echo "VTK_DIR=$VTK_DIR"
 
-    # Prevent git queries from using the ThirdParty repository
-    export GIT_DIR=$VTK_SOURCE_DIR/.git
+    export GIT_DIR=$VTK_SOURCE_DIR/.git # Mask seeing our own git-repo
 }
 
 
@@ -123,23 +122,23 @@ configVTK()
     local cmake=$(findCMake)
 
     # Remove any existing build folder and recreate
-    if [ -d $VTK_BINARY_DIR ]
+    if [ -d $VTK_BUILD_DIR ]
     then
         echo "removing old build directory"
-        echo "    $VTK_BINARY_DIR"
-        rm -rf $VTK_BINARY_DIR
+        echo "    $VTK_BUILD_DIR"
+        rm -rf $VTK_BUILD_DIR
     fi
-    mkdir -p $VTK_BINARY_DIR
+    mkdir -p $VTK_BUILD_DIR
 
     addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-    cd $VTK_BINARY_DIR || exit 1  # change to build folder
+    cd $VTK_BUILD_DIR || exit 1  # change to build folder
 
     echo "----"
     echo "Configuring VTK-$VTK_VERSION"
     echo "    MESA   support : ${withMESA:-false}"
     echo "    Source         : $VTK_SOURCE_DIR"
-    echo "    Build          : $VTK_BINARY_DIR"
+    echo "    Build          : $VTK_BUILD_DIR"
     echo "    Target         : $VTK_DIR"
     echo "    cmake          : $cmake"
     echo "    Build suffix   : ${BUILD_SUFFIX:-none}"
@@ -167,7 +166,7 @@ configVTK()
 #
 makeVTK()
 {
-    cd $VTK_BINARY_DIR || exit 1  # Change to build folder
+    cd $VTK_BUILD_DIR || exit 1  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
     echo "    Done make"
@@ -183,7 +182,7 @@ makeVTK()
 #
 installVTK()
 {
-    cd $VTK_BINARY_DIR || exit 1  # Change to build folder
+    cd $VTK_BUILD_DIR || exit 1  # Change to build folder
     echo "    Installing VTK to $VTK_DIR"
 
     make install

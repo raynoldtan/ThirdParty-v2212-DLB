@@ -32,7 +32,7 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -82,7 +82,7 @@ do
     min=$(sed -n \
         -e 's/^.*cmake_minimum.*VERSION *\([0-9.][0-9.]*\).*/\1/p' \
         "$dir/CMakeLists.txt" \
-        2>/dev/null)
+        2>/dev/null | head -1)
 
     if [ -n "$min" ]
     then

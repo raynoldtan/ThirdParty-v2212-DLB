@@ -38,6 +38,30 @@ installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER
 
 unset BUILD_SUFFIX
 #------------------------------------------------------------------------------
+# Force use of gcc/g++
+useGcc()
+{
+    export CC=gcc    # Use gcc/g++
+    export CXX=g++
+}
+
+#------------------------------------------------------------------------------
+# Some functions as per OpenFOAM etc/config.sh/functions
+
+unset -f _foamAddLib _foamAddMan _foamAddPath   # Get settings only
+unset -f _foamEtc
+
+# Source an etc file
+_foamEtc()
+{
+    local file
+    if [ $# -gt 0 ] && file=$($WM_PROJECT_DIR/bin/foamEtcFile "$@")
+    then
+        . $file
+    fi
+}
+
+#------------------------------------------------------------------------------
 
 #
 # Set a suffix for the build

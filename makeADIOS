@@ -32,19 +32,19 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-# ADIOS version from OpenFOAM etc/config.sh file
-. $WM_PROJECT_DIR/etc/config.sh/functions
-unset -f _foamAddPath _foamAddLib _foamAddMan # get settings only
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ADIOS)
+
+# ADIOS version from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/ADIOS
 
 adiosPACKAGE=${adios_version:-adios-none}
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -64,7 +64,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Export WM settings in a form that GNU configure recognizes
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
@@ -74,13 +74,10 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         CMAKE_PATH="${2%%/}"
@@ -280,9 +277,9 @@ then
         buildDIR=$buildBASE/$adiosPACKAGE
 
         cd $ADIOS_SOURCE_DIR || exit 1
-        [ -e Makefile ] && make distclean 2>/dev/null
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
-        export GIT_DIR=$ADIOS_SOURCE_DIR/.git
+        [ -e Makefile ] && make distclean 2>/dev/null
 
         applyPatch $adiosPACKAGE $ADIOS_SOURCE_DIR
 
@@ -328,8 +325,7 @@ else
     (
         buildDIR=$buildBASE/$adiosPACKAGE
         cd $ADIOS_SOURCE_DIR || exit 1
-
-        export GIT_DIR=$ADIOS_SOURCE_DIR/.git
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
         applyPatch $adiosPACKAGE $ADIOS_SOURCE_DIR
 
@@ -354,6 +350,7 @@ else
             -DCMAKE_INSTALL_PREFIX=$ADIOS_ARCH_PATH \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_FORTRAN=FALSE \
+            ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
             $ADIOS_SOURCE_DIR \
         && make -j $WM_NCOMPPROCS all \
         && make install \

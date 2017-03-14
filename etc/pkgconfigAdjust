@@ -46,7 +46,7 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party (parent) directory only
-wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -75,9 +75,9 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+
     *)
         pkgconfigAdjust "$1"
         ;;

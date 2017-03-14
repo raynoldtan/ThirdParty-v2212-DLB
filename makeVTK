@@ -33,13 +33,13 @@
 #     To use the VTK source from the ParaView source tree, simply make an
 #     appropriate link first. For example,
 #
-#        (cd $WM_THIRD_PARTY_DIR && ln -s ParaView-v5.2.0/VTK VTK-7.1.0)
+#         ln -s ParaView-v5.3.0/VTK VTK-7.1.0
 #
-# ------------------------------------------------
-# SOME USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -48,31 +48,18 @@ cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 . etc/tools/ParaViewFunctions
 . etc/tools/vtkFunctions
 #------------------------------------------------------------------------------
-# VTK version from OpenFOAM etc/config.sh file
-. $WM_PROJECT_DIR/etc/config.sh/functions
-unset -f _foamAddPath _foamAddLib               # get settings only
-unset vtk_version mesa_version                  # purge current values
 
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/vtk)
+unset vtk_version mesa_version                           # Purge current values
+
+# vtk version from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/vtk
+
 VTK_VERSION=$vtk_version
-#------------------------------------------------------------------------------
-#
-# USER DEFAULTS:
-# ~~~~~~~~~~~~~~
-
-# MESA graphics support:
-withMESA=false
-MESA_INCLUDE="/usr/include/GL"
-MESA_LIBRARY="/usr/lib$WM_COMPILER_LIB_ARCH/libOSMesa.so"
 
 # New rendering backend (starting with vtk 7?).
-# Default to auto-config based on VTK version
-withGL2=auto
+withGL2=auto # auto-config based on version
 
-#
-# NO FURTHER EDITING BELOW THIS LINE
-#
-#-----------------------------------------------------------------------------
+#------------------------------------------------------------------------------
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
@@ -82,17 +69,17 @@ usage: ${0##*/} [OPTION] [vtk-VERSION] [CMAKE-OPTION]
 options:
   -gcc              force g++ instead of the value from \$WM_CXX
   -rebuild          for repeated builds (-make -install) *use with caution*
-  -gl2              with new rendering backend (if not already enabled)
+  -gl2              with new rendering backend (default: auto)
   -mesa             with mesa (if not already enabled)
   -mesa-prefix DIR  location of mesa installation
-  -mesa-include DIR location of mesa headers (current value: ${MESA_INCLUDE:-none})
-  -mesa-lib PATH    path to mesa library     (current value: ${MESA_LIBRARY:-none})
+  -mesa-include DIR location of mesa headers (current: ${MESA_INCLUDE:-none})
+  -mesa-lib PATH    path to mesa library     (current: ${MESA_LIBRARY:-none})
   -osmesa           with off-screen mesa only
-  -mpi              with mpi (if not already enabled)
+  -mpi              with mpi
   -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
   -cmake PATH       with cmake from the path given
   -verbose          verbose output in Makefiles
-  -version VER      specify an alternative version (current value: $VTK_VERSION)
+  -version VER      specify an alternative version (current: $VTK_VERSION)
   -buildType NAME   specify the build type (default: Release)
   -suffix NAME      specify a suffix to distinguish the build
   -help
@@ -120,13 +107,11 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Ensure CMake gets the correct C/C++ compiler
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
-#
 # Various building stages
-#
 unset runPATCH runCONFIG runMAKE runINSTALL
 runDEFAULT=true
 
@@ -134,18 +119,15 @@ runDEFAULT=true
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     [0-9]* | vtk-[0-9]* | VTK-[0-9]*) # VTK version
         setVtkVersion "${1%%/}"
         ;;
     [A-Z]*=*)            # cmake variables
         addCMakeVariable "$1"
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
         ;;
     -patch)              # stage 0: patch sources
         runPATCH=true
@@ -316,7 +298,7 @@ Features selected
     mpi       ${withMPI:-false}
 ---------------------
 Version information
-    version   ${VTK_VERSION:-unknown}
+    vtk       ${VTK_VERSION:-unknown}
     build     ${BUILD_TYPE:-unknown}
 ---------------------
 SUMMARY

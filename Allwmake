@@ -32,7 +32,7 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -44,7 +44,7 @@ cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-# Export WM settings in a form that GNU configure recognizes
+# Compiler/linker settings for CMake/configure
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
@@ -105,7 +105,7 @@ echo "    $SCOTCH_ARCH_PATH"
 
 SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
 
-# This needs generalizing, but works fairly well
+# Needs generalizing, but works fairly well
 scotchMakefile=../../etc/wmakeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
 
 if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
@@ -118,53 +118,56 @@ elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
     cd $SCOTCH_SOURCE_DIR/src || exit 1
+    export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
     rm -rf $SCOTCH_ARCH_PATH
 
     applyPatch $SCOTCH_VERSION ..       # patch at parent-level
 
     prefixDIR=$SCOTCH_ARCH_PATH
+    incDIR=$SCOTCH_ARCH_PATH/include
     libDIR=$FOAM_EXT_LIBBIN
 
     mkdir -p $prefixDIR 2>/dev/null
-    mkdir -p $libDIR 2>/dev/null
+    mkdir -p $incDIR    2>/dev/null
+    mkdir -p $libDIR    2>/dev/null
 
-    configOpt="prefix=$prefixDIR libdir=$libDIR"
+    # 'CC' already set (eg, from WM_CC) - set scotch-specific 'CCS' too
+    [ -n "$CC" ] && export CCS="$CC"
 
     if [ -f $scotchMakefile ]
     then
         rm -f Makefile.inc
         ln -s $scotchMakefile Makefile.inc
     fi
-
     [ -f Makefile.inc ] || {
         echo " Error: scotch needs an appropriate Makefile.inc"
         exit 1
     }
 
-    # handle non-gcc compilers
-    unset configEnv
-    [ "${WM_CC:-gcc}" != gcc ] && configEnv="CC=$WM_CC CCS=$WM_CC"
+    make realclean 2>/dev/null                  # Extra safety
 
-    make realclean 2>/dev/null  # for safety
+    make -j $WM_NCOMPPROCS scotch \
+     && make \
+        prefix=$prefixDIR \
+        includedir=$incDIR \
+        libdir=$libDIR \
+        install
 
-    make -j $WM_NCOMPPROCS $configEnv scotch \
-    && make $configOpt install
-
-    # cleanup, could also remove Makefile.inc
-    make realclean 2>/dev/null
+    make realclean 2>/dev/null || true          # Failed cleanup is uncritical
 ) || warnBuildIssues SCOTCH
 else
     warnNotFound SCOTCH
 fi
 
 # Build ptscotch if MPI (ThirdParty or system) is available
-# and normal scotch was build (has include and library)
+# and normal scotch was built (has include and library)
 if [ "${FOAM_MPI:-dummy}" != dummy ] && \
    [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
   -a -r $FOAM_EXT_LIBBIN/libscotch.so ] || \
 {
+    # Report that the above tests failed and pass-through the failure
     echo
-    echo "    WARNING: skipping pt-scotch - 'scotch.h' include file not found!"
+    echo "    WARNING: skipping pt-scotch - no mpi or <scotch.h> not found"
     false
 }
 then
@@ -182,6 +185,7 @@ then
     else
     (
         cd $SCOTCH_SOURCE_DIR/src || exit 1
+        export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
         echo
 
         prefixDIR=$SCOTCH_ARCH_PATH
@@ -189,41 +193,43 @@ then
         libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
 
         mkdir -p $prefixDIR 2>/dev/null
-        mkdir -p $libDIR 2>/dev/null
+        mkdir -p $incDIR    2>/dev/null
+        mkdir -p $libDIR    2>/dev/null
 
-        configOpt="prefix=$prefixDIR includedir=$incDIR libdir=$libDIR"
+        # 'CC' already set (eg, from WM_CC) - set scotch-specific 'CCS' too
+        [ -n "$CC" ] && export CCS="$CC"
 
         if [ -f $scotchMakefile ]
         then
             rm -f Makefile.inc
             ln -s $scotchMakefile Makefile.inc
         fi
-
         [ -f Makefile.inc ] || {
-            echo " Error: scotch needs an appropriate Makefile.inc"
+            echo " Error: ptscotch needs an appropriate Makefile.inc"
             exit 1
         }
 
-        # handle non-gcc compilers
-        unset configEnv
-        [ "${WM_CC:-gcc}" != gcc ] && configEnv="CC=$WM_CC CCS=$WM_CC"
+        make realclean 2>/dev/null              # Extra safety
 
-        make realclean 2>/dev/null  # for safety
+        make -j $WM_NCOMPPROCS ptscotch \
+         && make \
+            prefix=$prefixDIR \
+            includedir=$incDIR \
+            libdir=$libDIR \
+            install
 
-        make -j $WM_NCOMPPROCS $configEnv ptscotch \
-        && make $configOpt install
-
-        # cleanup, could also remove Makefile.inc
-        make realclean 2>/dev/null
-    )
+        make realclean 2>/dev/null || true      # Failed cleanup is uncritical
+    ) || warnBuildIssues PTSCOTCH
     fi
 
-    # verify existence of ptscotch include
+    # Verify existence of ptscotch include
     [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h ] || {
         echo
         echo "    WARNING: required include file 'ptscotch.h' not found!"
     }
 fi
+
+# Could now remove $SCOTCH_SOURCE_DIR/src/Makefile.inc
 
 
 #------------------------------------------------------------------------------
@@ -233,7 +239,7 @@ echo
 echo ========================================
 echo Build Metis decomposition
 
-# get METIS_VERSION, METIS_ARCH_PATH
+# Get METIS_VERSION, METIS_ARCH_PATH
 if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
 then
     . $settings
@@ -250,6 +256,7 @@ elif [ -d "$METIS_SOURCE_DIR" ]
 then
 (
     cd $METIS_SOURCE_DIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
     rm -rf $METIS_ARCH_PATH
 
     # Adjust metis integer size to match OpenFOAM label-size
@@ -260,10 +267,10 @@ then
     # - build normally and use mv to relocate it
 
     make config shared=1 prefix=$METIS_ARCH_PATH \
-    && make -j $WM_NCOMPPROCS install \
-    && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
+     && make -j $WM_NCOMPPROCS install \
+     && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
 
-    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # failure is not critical
+    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # Failed rmdir is uncritical
 ) || warnBuildIssues METIS
 else
     warnNotFound METIS

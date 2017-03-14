@@ -51,20 +51,26 @@ then
 fi
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
+# Transition
+# ~~~~~~~~~~
+_foamAddLib()  { true; }
+_foamAddMan()  { true; }
+_foamAddPath() { true; }
 #------------------------------------------------------------------------------
-# get openmpi version
-WM_MPLIB=OPENMPI       # ensure we get the third-party settings
 
-. $WM_PROJECT_DIR/etc/config.sh/functions
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/mpi)
+WM_MPLIB=OPENMPI                                # Ensure we get the correct MPI
+
+# openmpi version from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/mpi
 
 mpiPACKAGE=${FOAM_MPI:-openmpi-system}
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -83,7 +89,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Ensure configure gets the correct C/C++ compiler
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
@@ -91,16 +97,10 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    '')
-        # discard empty arguments
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     openmpi-[0-9]* | openmpi_[0-9]* | openmpi-system )
         mpiPACKAGE="${1%%/}"
         ;;
@@ -163,6 +163,7 @@ else
         buildDIR=$buildBASE/$mpiPACKAGE
 
         cd $MPI_SOURCE_DIR || exit 1
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
         [ -e Makefile ] && make distclean 2>/dev/null
 
         rm -rf $MPI_ARCH_PATH
@@ -173,9 +174,9 @@ else
         set -x
         $MPI_SOURCE_DIR/configure \
             --prefix=$MPI_ARCH_PATH \
+            --libdir=$MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
             --disable-orterun-prefix-by-default \
             --enable-shared --disable-static \
-            --libdir=$MPI_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
             --enable-mpi-fortran=none \
             --disable-mpi-profile \
             $configOpt \

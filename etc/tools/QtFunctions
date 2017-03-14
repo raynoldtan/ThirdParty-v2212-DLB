@@ -30,6 +30,13 @@
 #
 #------------------------------------------------------------------------------
 
+# Qt-related variables. Initialization at the end of the file.
+
+qtTYPE=qt-everywhere-opensource-src
+unset qtVERSION # No default version
+
+#------------------------------------------------------------------------------
+
 #
 # Create a qt.conf file in the QT bin/
 # - this can be modified easily if the qt installation is relocated

@@ -48,7 +48,7 @@ BUILD_TYPE=Release  # The cmake build type
 #   ParaView_VERSION and ParaView_MAJOR should already have been set
 #
 #   ParaView_SOURCE_DIR : location of the original sources
-#   ParaView_BINARY_DIR : location of the build
+#   ParaView_BUILD_DIR  : location of the build
 #   ParaView_DIR        : location of the installed program
 #
 setParaViewDirs()
@@ -73,18 +73,17 @@ setParaViewDirs()
         exit 1
     }
 
-    ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
+    ParaView_BUILD_DIR=$buildBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
     ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
 
-    export ParaView_SOURCE_DIR ParaView_BINARY_DIR ParaView_DIR
+    export ParaView_SOURCE_DIR ParaView_BUILD_DIR ParaView_DIR
 
     echo
     echo "ParaView_SOURCE_DIR=$ParaView_SOURCE_DIR"
-    echo "ParaView_BINARY_DIR=$ParaView_BINARY_DIR"
+    echo "ParaView_BUILD_DIR=$ParaView_BUILD_DIR"
     echo "ParaView_DIR=$ParaView_DIR"
 
-    # Prevent git queries from using the ThirdParty repository
-    export GIT_DIR=$ParaView_SOURCE_DIR/.git
+    export GIT_DIR=$ParaView_SOURCE_DIR/.git # Mask seeing our own git-repo
 }
 
 
@@ -111,27 +110,6 @@ setParaViewVersion()
 
 
 #------------------------------------------------------------------------------
-
-#
-# Compare version information (specified vs what is found in CMakeLists.txt)
-# Parse this type of content:
-#   set (PARAVIEW_VERSION_FULL "5.0.1")
-#
-checkVersion()
-{
-    local ver=$(
-        sed -ne 's/^ *set *( *PARAVIEW_VERSION_FULL[ "]*\([.0-9]*\).*$/\1/ip' \
-        $ParaView_SOURCE_DIR/CMakeLists.txt
-    )
-
-    if [ "$ParaView_VERSION" != "$ver" ]
-    then
-        echo "(${ver:-none}) mismatch?"
-    else
-        echo "(${ver:-none})"
-    fi
-}
-
 
 #
 # Set CMake cache variables
@@ -375,17 +353,17 @@ configParaView()
     local cmake=$(findCMake)
 
     # Remove any existing build folder and recreate
-    if [ -d $ParaView_BINARY_DIR ]
+    if [ -d $ParaView_BUILD_DIR ]
     then
         echo "removing old build directory"
-        echo "    $ParaView_BINARY_DIR"
-        rm -rf $ParaView_BINARY_DIR
+        echo "    $ParaView_BUILD_DIR"
+        rm -rf $ParaView_BUILD_DIR
     fi
-    mkdir -p $ParaView_BINARY_DIR
+    mkdir -p $ParaView_BUILD_DIR
 
     addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
+    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
 
     echo "----"
     echo "Configuring paraview-$ParaView_VERSION (major version: $ParaView_MAJOR)"
@@ -395,7 +373,7 @@ configParaView()
     echo "    GL2  rendering : ${withGL2:-false}"
     echo "    QT dev support : ${withQT:-true}"
     echo "    Source         : $ParaView_SOURCE_DIR"
-    echo "    Build          : $ParaView_BINARY_DIR"
+    echo "    Build          : $ParaView_BUILD_DIR"
     echo "    Target         : $ParaView_DIR"
     echo "    cmake          : $cmake"
     echo "    Build suffix   : ${BUILD_SUFFIX:-none}"
@@ -423,7 +401,7 @@ configParaView()
 #
 makeParaView()
 {
-    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
+    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
     echo "    Done make"
@@ -442,7 +420,7 @@ makeParaView()
 #
 installParaView()
 {
-    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
+    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
     echo "    Installing ParaView to $ParaView_DIR"
 
     make install
@@ -468,7 +446,7 @@ INFO
     # Non-system installation of QT?
     if [ "$qmake" != /usr/bin/qmake -a -d "$qtLib" ]
     then
-        cat<< INFO
+        /bin/cat<<INFO
 
 And adjust your LD_LIBRARY_PATH to include the following:
     $qtLib

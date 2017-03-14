@@ -51,27 +51,33 @@ then
 fi
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
+# Transition
+# ~~~~~~~~~~
+_foamAddLib()  { true; }
+_foamAddMan()  { true; }
+_foamAddPath() { true; }
 #------------------------------------------------------------------------------
-# get mpich version
-WM_MPLIB=MPICH       # ensure we get the third-party settings
 
-. $WM_PROJECT_DIR/etc/config.sh/functions
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/mpi)
+WM_MPLIB=MPICH                                  # Ensure we get the correct MPI
+
+# mpich version from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/mpi
 
 mpiPACKAGE=${FOAM_MPI:-mpich-system}
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [openmpi-VERSION]
+usage: ${0##*/} [OPTION] [mpich-VERSION]
 options:
   -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
@@ -83,7 +89,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Ensure configure gets the correct C/C++ compiler
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
@@ -91,16 +97,10 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    '')
-        # discard empty arguments
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     mpich*)
         mpiPACKAGE="${1%%/}"
         ;;
@@ -126,7 +126,7 @@ fi
 
 #------------------------------------------------------------------------------
 #
-# Build openmpi
+# Build mpich
 #
 #   MPI_SOURCE_DIR : location of the original sources
 #   MPI_ARCH_PATH  : installation directory
@@ -151,6 +151,7 @@ else
         # ----------------------------
 
         cd $MPI_SOURCE_DIR || exit 1
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
         [ -e Makefile ] && make distclean 2>/dev/null
 
         rm -rf $MPI_ARCH_PATH

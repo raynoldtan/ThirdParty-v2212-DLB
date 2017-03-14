@@ -32,7 +32,7 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -44,12 +44,13 @@ cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-# libccmio version from OpenFOAM etc/config.sh file
-. $WM_PROJECT_DIR/etc/config.sh/functions
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/ccmio)
+
+# libccmio version from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/ccmio
 
 ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
-targetType=lib
+targetType=lib  # Default is static linkage
+
 #------------------------------------------------------------------------------
 usage()
 {
@@ -59,6 +60,7 @@ usage()
 
 Usage: ${0##*/} [OPTION] [lib|libso] [libccmio-VERSION]
 options:
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
 * Compile the proprietary libccmio library
@@ -82,9 +84,10 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     lib|libso)
         targetType="$1"
         ;;
@@ -98,19 +101,20 @@ do
     shift
 done
 
-# assert: directory must be available
-[ -d "$ccmioPACKAGE" ] || die "missing source directory '$ccmioPACKAGE'"
-
 #------------------------------------------------------------------------------
-CCMIO_SOURCE_DIR=$sourceBASE/$ccmioPACKAGE
-CCMIO_ARCH_PATH=$installBASE/$ccmioPACKAGE
-
 #
 # Build LIBCCMIO
 #
-echo "---------------"
+CCMIO_SOURCE_DIR=$sourceBASE/$ccmioPACKAGE
+CCMIO_ARCH_PATH=$installBASE/$ccmioPACKAGE
+
+# Sources must be available
+[ -d "$CCMIO_SOURCE_DIR" ] || die "Missing sources: '$ccmioPACKAGE'"
+
 (
     cd $CCMIO_SOURCE_DIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
+
     incDIR=$CCMIO_ARCH_PATH/include/libccmio
     libDIR=$CCMIO_ARCH_PATH/lib
 
@@ -118,16 +122,17 @@ echo "---------------"
     mkdir -p $libDIR 2>/dev/null
 
     cpMakeFiles libccmio 2>/dev/null
+
+    # Place static libraries in sub-directory:
+    if [ "$targetType" = lib ]
+    then
+        export FOAM_EXT_LIBBIN=$libDIR
+    fi
+
     if wmake $targetType
     then
-        # make headers available:
+        # Make headers available:
         /bin/cp -pv libccmio/ccmio*.h $incDIR
-
-        # relocate static libraries to sub-directory:
-        if [ "$targetType" = lib ]
-        then
-            /bin/mv -v $FOAM_EXT_LIBBIN/libccmio.a $libDIR
-        fi
     fi
 )
 

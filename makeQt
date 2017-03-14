@@ -32,16 +32,13 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd -q "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
 . etc/tools/QtFunctions
-#------------------------------------------------------------------------------
-qtTYPE=qt-everywhere-opensource-src
-unset qtVERSION # No default version
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -59,7 +56,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Export WM settings in a form that GNU configure recognizes
+# Compiler/linker settings for CMake/configure
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
@@ -69,13 +66,10 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     -qt-[1-9]* | [1-9]* | qt-*)
         # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
         qtVERSION="${1%%/}";
@@ -145,6 +139,7 @@ else
         buildDIR=$buildBASE/$qtPACKAGE
 
         cd $QT_SOURCE_DIR || exit 1
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
         [ -e Makefile ] && make distclean 2>/dev/null
 
         # Remove any existing build folder and recreate
