@@ -45,6 +45,31 @@ useGcc()
     export CXX=g++
 }
 
+# Scan arguments for a '-gcc' option, forcing gcc/g++ when found
+useGccFlag()
+{
+    for i
+    do
+        if [ "$i" = "-gcc" ]
+        then
+            useGcc
+            break
+        fi
+    done
+}
+
+# Return mpiicc (for INTELMPI) or mpicc etc.
+whichMpicc()
+{
+    local mpicc
+    case "$WM_MPLIB" in
+    (INTELMPI)
+        mpicc=$(command -v mpiicc)      # Try using intel 'mpiicc'
+        ;;
+    esac
+    echo "${mpicc:-mpicc}"              # mpiicc | mpicc
+}
+
 #------------------------------------------------------------------------------
 # Some functions as per OpenFOAM etc/config.sh/functions
 
