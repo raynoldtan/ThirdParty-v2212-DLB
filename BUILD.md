@@ -135,6 +135,9 @@ ThirdParty components prior to building OpenFOAM itself.
   Automatically invoked from the ThirdParty `Allwmake`,
   but can be invoked directly to resolve possible build errors.
 
+`makeMGridGen`
+- Optional agglomeration routines.
+
 `makeCCMIO`
 - Only required for conversion to/from STARCD/STARCCM+ files.
 
