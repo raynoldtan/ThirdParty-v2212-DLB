@@ -32,15 +32,15 @@
 #    - Ensure that you always use matching versions between llvm and clang.
 #    - LLVM components such as clang reside in the LLVM tools/ subdirectory
 #
-#    For example, when building from tar files (version 3.8.0)
+#    For example, when building from tar files (version 4.0.0)
 #
 #    1) Unpack LLVM:
-#        tar -xJvf llvm-3.8.0.src.tar.xz
-#        mv llvm-3.8.0.src  llvm-3.8.0
+#        tar -xJf llvm-4.0.0.src.tar.xz
+#        mv llvm-4.0.0.src  llvm-4.0.0
 #
 #    2) Unpack Clang (also know as cfe):
-#        tar -xJvf cfe-3.8.0.src.tar.xz
-#        mv cfe-3.8.0.src  llvm-3.8.0/tools/clang
+#        tar -xJf cfe-4.0.0.src.tar.xz
+#        mv cfe-4.0.0.src  llvm-4.0.0/tools/clang
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
@@ -100,6 +100,9 @@ do
         ;;
     llvm-[0-9]* | llvm-svn*)
         llvmPACKAGE="${1%%/}"
+        ;;
+    [1-9]*)
+        llvmPACKAGE="llvm-${1%%/}"
         ;;
     *)
         die "unknown option/argument: '$1'"

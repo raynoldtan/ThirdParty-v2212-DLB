@@ -352,6 +352,7 @@ The minimum CMake requirements for building various components.
     3.3         ParaView-5.2.0
     3.3         ParaView-5.3.0
     3.4.3       llvm-3.9.1
+    3.4.3       llvm-4.0.0
     3.5         ParaView-5.1.0
 
 
@@ -384,8 +385,8 @@ The minimum gcc/g++ requirements for building various components.
 [link clang]:     http://llvm.org/releases/3.7.1/cfe-3.7.1.src.tar.xz
 [link llvm]:      http://llvm.org/releases/3.7.1/llvm-3.7.1.src.tar.xz
 
-[newer clang]:    http://llvm.org/releases/3.9.1/cfe-3.9.1.src.tar.xz
-[newer llvm]:     http://llvm.org/releases/3.9.1/llvm-3.9.1.src.tar.xz
+[newer clang]:    http://llvm.org/releases/4.0.0/cfe-4.0.0.src.tar.xz
+[newer llvm]:     http://llvm.org/releases/4.0.0/llvm-4.0.0.src.tar.xz
 
 
 <!-- parallel -->
