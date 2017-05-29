@@ -410,10 +410,10 @@ The minimum gcc/g++ requirements for building various components.
 [link cmake]:     http://www.cmake.org/files/v3.5/cmake-3.5.2.tar.gz
 
 [page boost]:     http://boost.org
-[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2
+[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2
 
 [page CGAL]:      http://cgal.org
-[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9/CGAL-4.9.tar.xz
+[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9.1/CGAL-4.9.1.tar.xz
 [older CGAL]:     https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.8.2/CGAL-4.8.2.tar.xz
 
 [page FFTW]:      http://www.fftw.org/
