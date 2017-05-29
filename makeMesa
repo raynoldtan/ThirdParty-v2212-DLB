@@ -32,7 +32,7 @@
 #     Building with mesa-12.x.x fails to create an include/GL directory and
 #     an "osmesa.h" file. Both make it fairly useless for off-screen VTK.
 #
-#     Building with mesa-11.x and mesa-13.x seem to be okay.
+#     Building with mesa-11.x, mesa-13.x and mesa-17.x seems to be okay.
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
@@ -202,6 +202,7 @@ adjustMESA()
         --disable-xvmc \
         --disable-glx \
         --disable-dri \
+        --disable-gbm \
         --disable-egl \
         --disable-gles1 \
         --enable-texture-float \

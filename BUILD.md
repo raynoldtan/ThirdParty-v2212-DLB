@@ -176,7 +176,8 @@ and save some disk space.
 
 ### Mesa
 - Needed for off-screen rendering.
-- Building with [mesa-11][older mesa] and [mesa-13][link mesa] both seem okay.
+- Building with [mesa-11][older11 mesa] and [mesa-13][older13 mesa] both
+  seem okay, as does building with [mesa-17][link mesa].
 - Building with mesa-12 is not possible since it fails to create
   the necessary `include/GL` directory and `osmesa.h` file.
 
@@ -333,7 +334,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 
 | Name                  | Location
 |-----------------------|------------------------
-| [MESA][page mesa]     | [download][link mesa] or [older][older mesa]
+| [MESA][page mesa]     | [download][link mesa] or [older 13][older13 mesa], [older 11][older11 mesa]
 | [ParaView][page ParaView] | [download][link ParaView]
 | [Qt][page Qt]         | [repo][repo Qt] or [download][link Qt]. The newer [Qt5][newer Qt5] only works with ParaView-5.3.0 and later.
 
@@ -436,8 +437,9 @@ The minimum gcc/g++ requirements for building various components.
 [older ParaView]: http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
 
 [page mesa]:  http://mesa3d.org/
-[link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/13.0.3/mesa-13.0.3.tar.xz
-[older mesa]: ftp://ftp.freedesktop.org/pub/mesa/11.2.2/mesa-11.2.2.tar.xz
+[link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
+[older13 mesa]: ftp://ftp.freedesktop.org/pub/mesa/13.0.6/mesa-13.0.6.tar.xz
+[older11 mesa]: ftp://ftp.freedesktop.org/pub/mesa/older-versions/11.x/11.2.2/mesa-11.2.2.tar.xz
 
 [page Qt]: https://www.qt.io/download-open-source/
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
