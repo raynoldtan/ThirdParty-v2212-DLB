@@ -352,6 +352,7 @@ The minimum CMake requirements for building various components.
     3.3         ParaView-5.1.2
     3.3         ParaView-5.2.0
     3.3         ParaView-5.3.0
+    3.3         ParaView-5.4.0
     3.4.3       llvm-3.9.1
     3.4.3       llvm-4.0.0
     3.5         ParaView-5.1.0
@@ -433,8 +434,9 @@ The minimum gcc/g++ requirements for building various components.
 <!-- Visualization -->
 
 [page ParaView]:  http://www.paraview.org/
-[link ParaView]:  http://www.paraview.org/files/v5.3/ParaView-v5.3.0.tar.gz
-[older ParaView]: http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
+[link ParaView]:  http://www.paraview.org/files/v5.4/ParaView-v5.4.0.tar.gz
+[older ParaView]:  http://www.paraview.org/files/v5.3/ParaView-v5.3.0.tar.gz
+[older5 ParaView]: http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
@@ -444,7 +446,7 @@ The minimum gcc/g++ requirements for building various components.
 [page Qt]: https://www.qt.io/download-open-source/
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
 [link Qt]: http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz
-[newer Qt5]: http://download.qt.io/official_releases/qt/5.7/5.7.1/single/qt-everywhere-opensource-src-5.7.0.tar.xz
+[newer Qt5]: http://download.qt.io/official_releases/qt/5.9/5.9.0/single/qt-everywhere-opensource-src-5.9.0.tar.xz
 
 <!-- OpenFOAM -->
 
