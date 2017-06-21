@@ -402,8 +402,7 @@ The minimum gcc/g++ requirements for building various components.
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
 
 [page openmpi]:   http://www.open-mpi.org/
-[older openmpi]:  http://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.6.tar.bz2
-[link openmpi]:   https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.2.tar.bz2
+[link openmpi]:   https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.bz2
 
 
 <!-- general -->
