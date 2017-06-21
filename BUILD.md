@@ -188,16 +188,16 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-v5.3.0/VTK  VTK-7.1.0
+      ln -s ParaView-v5.4.0/VTK VTK-8.1.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-v5.3.0/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-v5.4.0/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
-      set(VTK_MAJOR_VERSION 7)
+      set(VTK_MAJOR_VERSION 8)
       set(VTK_MINOR_VERSION 1)
       set(VTK_BUILD_VERSION 0)
 
@@ -207,13 +207,17 @@ and save some disk space.
   required.
   See additional notes below about [making Qt](#makeQt) if necessary.
 
-#### 5.3.0
+#### 5.4.0
 - Compiles without patching.
   No known issues with the native OpenFOAM reader.
 
+#### 5.3.0
+- Compiles without patching.
+  The native OpenFOAM reader has a bug reading tetrahedrals.
+
 #### 5.2.0
-- Compiles without patching, but the native OpenFOAM reader appears to be
-  partially broken in this version.
+- Compiles without patching, but the native OpenFOAM reader is
+  broken in this version.
 
 #### 4.4.0/5.0.0/5.0.1/5.1.2
 - When using `makeParaView`, the following patches will be automatically
@@ -323,7 +327,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 |-----------------------|------------------------
 | [CMake][page cmake]   | [download][link cmake]
 | [boost][page boost]   | [download][link boost]
-| [CGAL][page CGAL]     | [download][link CGAL] or [older][older CGAL]
+| [CGAL][page CGAL]     | [download][link CGAL]
 | [FFTW][page FFTW]     | [download][link FFTW]
 | [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio]
 | [tecio][page tecio]   | [link tecio][link tecio]
@@ -414,7 +418,6 @@ The minimum gcc/g++ requirements for building various components.
 
 [page CGAL]:      http://cgal.org
 [link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9.1/CGAL-4.9.1.tar.xz
-[older CGAL]:     https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.8.2/CGAL-4.8.2.tar.xz
 
 [page FFTW]:      http://www.fftw.org/
 [link FFTW]:      http://www.fftw.org/fftw-3.3.6-pl1.tar.gz
@@ -434,8 +437,6 @@ The minimum gcc/g++ requirements for building various components.
 
 [page ParaView]:  http://www.paraview.org/
 [link ParaView]:  http://www.paraview.org/files/v5.4/ParaView-v5.4.0.tar.gz
-[older ParaView]:  http://www.paraview.org/files/v5.3/ParaView-v5.3.0.tar.gz
-[older5 ParaView]: http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
