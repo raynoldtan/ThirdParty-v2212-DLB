@@ -318,7 +318,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 |-----------------------|------------------------
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
 | [scotch, ptscotch][page scotch] | [download][link scotch]
-| [openmpi][page openmpi] | [download][link openmpi]
+| [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
 
 
 ### General <a name="general-packages"></a>
@@ -406,7 +406,8 @@ The minimum gcc/g++ requirements for building various components.
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
 
 [page openmpi]:   http://www.open-mpi.org/
-[link openmpi]:   https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.bz2
+[link openmpi]:   https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.4.tar.bz2
+[newer openmpi]:  https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.bz2
 
 
 <!-- general -->
