@@ -2,9 +2,10 @@
 # An example for building particular combinations of VTK with
 # - mesa (off-screen only)
 
-vtk=VTK-7.1.0
+vtk=VTK-8.1.0
 # mesa=mesa-11.2.2
-mesa=mesa-13.0.3
+# mesa=mesa-13.0.3
+mesa=mesa-17.1.1
 
 ./makeVTK \
     $vtk \

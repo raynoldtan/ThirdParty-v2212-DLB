@@ -200,7 +200,9 @@ do
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         withMESA=true
         MESA_INCLUDE="${2%%/}/include"
+        # Could be under (lib64 | lib)
         MESA_LIBRARY="${2%%/}/lib$WM_COMPILER_LIB_ARCH/libOSMesa.so"
+        [ -f "$MESA_LIBRARY" ] || MESA_LIBRARY="${2%%/}/lib/libOSMesa.so"
         shift
         ;;
     -mesa-include)
