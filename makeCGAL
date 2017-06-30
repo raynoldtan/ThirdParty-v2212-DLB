@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2012-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -34,15 +34,51 @@
 #     simply specify a 'system' version. For example,
 #         makeCGAL boost-system gmp-system
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Get CGAL, boost and gmp/mpfr versions
-. $WM_PROJECT_DIR/etc/config.sh/functions
-unset -f _foamAddPath _foamAddLib _foamAddMan   # get settings only
-unset BOOST_ARCH_PATH CGAL_ARCH_PATH            # purge current values
+# Short-circuit test for an installation
+if [ "$1" = "-test" ]
+then
+    [ "$#" -eq 3 ] || { echo "${0##*/} -test : needs 2 argument"; exit 1; }
+    dir="$2" # <- CGAL_ARCH_PATH
+    if [ -d "$dir/include" -a -r "$dir/lib$WM_COMPILER_LIB_ARCH/libCGAL.so" ]
+    then
+        echo "    CGAL  headers in $dir/include"
+        echo "    CGAL  libs    in $dir/lib$WM_COMPILER_LIB_ARCH"
+        # Additional information about boost
+        dir="$3" # <- BOOST_ARCH_PATH
+        for root in "$dir" /usr
+        do
+            if [ -d "$root/include/boost" \
+              -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.so" ]
+            then
+                echo "    BOOST headers in $root/include"
+                echo "    BOOST libs    in $root/lib$WM_COMPILER_LIB_ARCH"
+                break
+            fi
+        done
+        exit 0
+    else
+        exit 2
+    fi
+fi
+#------------------------------------------------------------------------------
+# Run from third-party directory only
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
 
-# compiler first, let CGAL config override GMP (eg, when there is no GMP)
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/CGAL)
+unset BOOST_ARCH_PATH CGAL_ARCH_PATH                     # Purge current values
+
+# CGAL, boost and gmp/mpfr versions from OpenFOAM etc/config.sh files.
+# Get compiler first and let CGAL config override GMP (eg, when there is no GMP)
+_foamEtc config.sh/compiler
+_foamEtc config.sh/CGAL
 
 boostPACKAGE=${boost_version:-boost-system}
 gmpPACKAGE=${gmp_version:-gmp-system}
@@ -50,22 +86,12 @@ mpfrPACKAGE=${mpfr_version:-mpfr-system}
 cgalPACKAGE=$cgal_version
 
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
-#------------------------------------------------------------------------------
-Script="${0##*/}"
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [CGAL-VERSION] [boost-VERSION] [gmp-VERSION] [mpfr-VERSION]
+usage: ${0##*/} [OPTION] [CGAL-VERSION] [boost-VERSION] [gmp-VERSION] [mpfr-VERSION]
 options:
   -cmake PATH       with cmake from the path given
   -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
@@ -82,7 +108,7 @@ options:
 Normally builds against ThirdParty boost and gmp/mpfr when possible.
 To override this behaviour (and use the system boost and/or gmp/mpfr),
 simply specify a 'system' version. For example,
-    $Script boost-system gmp-system
+    ${0##*/} boost-system gmp-system
 
 Use gmp-none to disable use of gmp/mpfr (eg, not available)
 
@@ -90,7 +116,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Ensure CMake gets the correct C/C++ compiler
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
@@ -100,16 +126,10 @@ unset optHeadersOnly
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    '')
-        # discard empty arguments
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         CMAKE_PATH="${2%%/}"
@@ -196,6 +216,7 @@ else
 
     (
         cd $BOOST_SOURCE_DIR || exit 1
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
         rm -rf $BOOST_ARCH_PATH
 
@@ -254,11 +275,11 @@ SUMMARY
 # CGAL-4.9 normally builds into 'lib64', older versions into 'lib'.
 #
 #   CGAL_SOURCE_DIR : location of the original sources
-#   CGAL_BINARY_DIR : location of the build
+#   CGAL_BUILD_DIR  : location of the build
 #   CGAL_ARCH_PATH  : installation directory
 
 CGAL_SOURCE_DIR=$sourceBASE/$cgalPACKAGE
-CGAL_BINARY_DIR=$buildBASE/$cgalPACKAGE
+CGAL_BUILD_DIR=$buildBASE/$cgalPACKAGE
 : ${CGAL_ARCH_PATH:=$installBASE/$cgalPACKAGE}      # Fallback
 
 # gmp/mpfr are installed without compiler name
@@ -353,21 +374,22 @@ fi
 
 (
     # Remove any existing build folder and recreate
-    if [ -d $CGAL_BINARY_DIR ]
+    if [ -d $CGAL_BUILD_DIR ]
     then
         echo "removing old build directory"
-        echo "    $CGAL_BINARY_DIR"
-        rm -rf $CGAL_BINARY_DIR
+        echo "    $CGAL_BUILD_DIR"
+        rm -rf $CGAL_BUILD_DIR
     fi
-    mkdir -p $CGAL_BINARY_DIR
+    mkdir -p $CGAL_BUILD_DIR
 
-    cd $CGAL_BINARY_DIR || exit 1
+    cd $CGAL_BUILD_DIR || exit 1
+    export GIT_DIR=$CGAL_SOURCE_DIR/.git # Mask seeing our own git-repo
 
     unset configBoost configGmp configMpfr
     echo "----"
     echo "Configuring $cgalPACKAGE with boost $BOOST_VERSION"
     echo "    Source         : $CGAL_SOURCE_DIR"
-    echo "    Build          : $CGAL_BINARY_DIR"
+    echo "    Build          : $CGAL_BUILD_DIR"
     echo "    Target         : $CGAL_ARCH_PATH"
 
 
@@ -403,7 +425,7 @@ CMAKE_OPTIONS
     elif _foamIsNone $GMP_ARCH_PATH
     then
         echo "    disabled       : gmp"
-        configGmp="-DCGAL_DISABLE_GMP:BOOL=TRUE"  # Also used for mpfr
+        configGmp="-DCGAL_DISABLE_GMP=TRUE"  # Also used for mpfr
     elif [ -d "$GMP_ARCH_PATH" ]
     then
         echo "    ThirdParty     : gmp"
@@ -425,7 +447,7 @@ CMAKE_OPTIONS
     elif _foamIsNone $MPFR_ARCH_PATH
     then
         echo "    disabled       : mpfr"
-        configGmp="-DCGAL_DISABLE_GMP:BOOL=TRUE"  # Also used for mpfr
+        configGmp="-DCGAL_DISABLE_GMP=TRUE"  # Also used for mpfr
     elif [ -d "$MPFR_ARCH_PATH" ]
     then
         echo "    ThirdParty     : mpfr"
@@ -449,13 +471,15 @@ CMAKE_OPTIONS
         -DCMAKE_INSTALL_PREFIX=$CGAL_ARCH_PATH \
         -DCGAL_INSTALL_LIB_DIR=lib$WM_COMPILER_LIB_ARCH \
         -DCMAKE_BUILD_TYPE=Release \
+        -DWITH_CGAL_ImageIO=OFF \
         -DWITH_CGAL_Qt5=OFF \
         ${optHeadersOnly:+-DCGAL_HEADER_ONLY=TRUE} \
         $configBoost $configGmp $configMpfr \
+        ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
         $CGAL_SOURCE_DIR \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install || exit 1
-    set +x
 
     echo "----"
     echo "create '\$CGAL_ARCH_PATH/share/files'"

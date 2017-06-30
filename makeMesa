@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -32,22 +32,27 @@
 #     Building with mesa-12.x.x fails to create an include/GL directory and
 #     an "osmesa.h" file. Both make it fairly useless for off-screen VTK.
 #
-#     Building with mesa-11.x is fine and mesa-13.x also seems to be okay.
+#     Building with mesa-11.x, mesa-13.x and mesa-17.x seems to be okay.
 #
-#------------------------------------------------------------------------------
-# Special purpose script, no default version.
-unset mesaPACKAGE
-
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} || exit 1
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
+
+unset vtk_version mesa_version                           # Purge current values
+
+# mesa version from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/vtk
+
+mesaPACKAGE=$mesa_version
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -66,27 +71,28 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Ensure configure gets the correct C/C++ compiler
+# Compiler settings for CMake/configure
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
 # Non-standard location for clang?
-unset thirdPartyClang
-if [ "$WM_COMPILER_TYPE" = ThirdParty -a "$WM_COMPILER" = Clang ]
-then
+case "$WM_COMPILER_TYPE-$WM_COMPILER" in
+ThirdParty-Clang*)
     thirdPartyClang=true
-fi
+    ;;
+*)
+    unset thirdPartyClang
+    ;;
+esac
 
 # Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
     -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
+        useGcc
         unset thirdPartyClang
         ;;
     mesa-*)
@@ -142,6 +148,17 @@ fi
 MESA_SOURCE_DIR=$sourceBASE/$mesaPACKAGE
 MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
 
+#
+# Manual adjustments to mesa
+# - avoid GLES (GLES1) since <GLES/gl.h> may mask the <GL/gl.h> header
+adjustMESA()
+{
+    pkgconfigAdjust $MESA_ARCH_PATH
+
+    \rm -rf $MESA_ARCH_PATH/include/GLES $MESA_ARCH_PATH/include/GLES1
+    echo "removed all gles1 includes"
+}
+
 (
     # configuration options:
     unset configOpt
@@ -156,6 +173,7 @@ MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
     buildDIR=$buildBASE/$mesaPACKAGE
 
     cd $MESA_SOURCE_DIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
     # remove any existing build
     rm -rf $MESA_ARCH_PATH
@@ -184,16 +202,20 @@ MESA_ARCH_PATH=$installBASE/$mesaPACKAGE
         --disable-xvmc \
         --disable-glx \
         --disable-dri \
+        --disable-gbm \
         --disable-egl \
+        --disable-gles1 \
         --enable-texture-float \
         --enable-gallium-osmesa --with-gallium-drivers=swrast \
         $configOpt \
-        && make -j $WM_NCOMPPROCS \
-        && make install \
-        && echo "Built $mesaPACKAGE"
+    && set +x \
+    && make -j $WM_NCOMPPROCS \
+    && make install \
+    && echo "Built $mesaPACKAGE" \
+    && adjustMESA
 ) || {
     echo "Error building: MESA"
     exit 1
 }
 
-# ----------------------------------------------------------------- end-of-file
+# -----------------------------------------------------------------------------

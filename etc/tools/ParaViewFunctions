@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -29,14 +29,26 @@
 #
 #------------------------------------------------------------------------------
 
-# sourceBASE, buildBASE, installBASE defined in tools/ThirdPartyFunctions
+# Variables referenced by the functions. Initialization at the end of the file.
+unset CMAKE_VARIABLES
+unset withVERBOSE
+unset withMPI     MPI_MAX_PROCS
+unset withQT      QT_VERSION      QMAKE_PATH
+unset withMESA    MESA_INCLUDE    MESA_LIBRARY    withOSMESA
+unset withPYTHON  PYTHON_INCLUDE  PYTHON_LIBRARY
+unset withGL2
+BUILD_TYPE=Release  # The cmake build type
+
+# sourceBASE, buildBASE, installBASE and BUILD_SUFFIX
+#   are defined in tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
 
 #
 # Where things are or should be put
 #   ParaView_VERSION and ParaView_MAJOR should already have been set
 #
 #   ParaView_SOURCE_DIR : location of the original sources
-#   ParaView_BINARY_DIR : location of the build
+#   ParaView_BUILD_DIR  : location of the build
 #   ParaView_DIR        : location of the installed program
 #
 setParaViewDirs()
@@ -61,21 +73,17 @@ setParaViewDirs()
         exit 1
     }
 
-    # ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
-    ParaView_BINARY_DIR=$buildBASE/ParaView-$ParaView_VERSION
+    ParaView_BUILD_DIR=$buildBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
+    ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
 
-    # ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION${OBJ_ADD:+-$OBJ_ADD}
-    ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION
-
-    export ParaView_SOURCE_DIR ParaView_BINARY_DIR ParaView_DIR
+    export ParaView_SOURCE_DIR ParaView_BUILD_DIR ParaView_DIR
 
     echo
     echo "ParaView_SOURCE_DIR=$ParaView_SOURCE_DIR"
-    echo "ParaView_BINARY_DIR=$ParaView_BINARY_DIR"
+    echo "ParaView_BUILD_DIR=$ParaView_BUILD_DIR"
     echo "ParaView_DIR=$ParaView_DIR"
 
-    # Forcefully override the .git path for the ParaView source code directory
-    export GIT_DIR=$ParaView_SOURCE_DIR/.git
+    export GIT_DIR=$ParaView_SOURCE_DIR/.git # Mask seeing our own git-repo
 }
 
 
@@ -104,26 +112,6 @@ setParaViewVersion()
 #------------------------------------------------------------------------------
 
 #
-# Compare version information (specified vs what is found in CMakeLists.txt)
-# Parse this type of content:
-#   set (PARAVIEW_VERSION_FULL "5.0.1")
-#
-checkVersion()
-{
-    local ver=$(
-        sed -ne 's/^ *set *( *PARAVIEW_VERSION_FULL[ "]*\([.0-9]*\).*$/\1/ip' \
-        $ParaView_SOURCE_DIR/CMakeLists.txt
-    )
-
-    if [ "$ParaView_VERSION" != "$ver" ]
-    then
-        echo "(${ver:-none}) mismatch?"
-    else
-        echo "(${ver:-none})"
-    fi
-}
-
-#
 # Set CMake cache variables
 #
 addCMakeVariable()
@@ -143,7 +131,7 @@ addVerbosity()
 {
     if [ "${withVERBOSE:=false}" = true ]
     then
-        addCMakeVariable  "CMAKE_VERBOSE_MAKEFILE=TRUE"
+        addCMakeVariable "CMAKE_VERBOSE_MAKEFILE=TRUE"
     fi
 }
 
@@ -158,12 +146,10 @@ addMpiSupport()
         return
     fi
 
-    OBJ_ADD="$OBJ_ADD-mpi"
-
-    addCMakeVariable  "PARAVIEW_USE_MPI=ON VTK_USE_MPI=ON"
+    addCMakeVariable "PARAVIEW_USE_MPI=ON VTK_USE_MPI=ON"
     if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
     then
-        addCMakeVariable  "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
+        addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
     fi
 }
 
@@ -177,8 +163,6 @@ addPythonSupport()
     then
         return
     fi
-
-    OBJ_ADD="$OBJ_ADD-py"
 
     if pythonBin=$(which python 2>/dev/null)
     then
@@ -219,9 +203,9 @@ addPythonSupport()
             exit 1
         }
 
-        addCMakeVariable  "PARAVIEW_ENABLE_PYTHON=ON"
-        addCMakeVariable  "PYTHON_INCLUDE_DIRS=$pythonInclude"
-        addCMakeVariable  "PYTHON_LIBRARY=$PYTHON_LIBRARY"
+        addCMakeVariable "PARAVIEW_ENABLE_PYTHON=ON"
+        addCMakeVariable "PYTHON_INCLUDE_DIRS=$pythonInclude"
+        addCMakeVariable "PYTHON_LIBRARY=$PYTHON_LIBRARY"
 
         echo "----"
         echo "Python information:"
@@ -252,19 +236,17 @@ addMesaSupport()
 
     if [ -d "$MESA_INCLUDE" -a -f "$MESA_LIBRARY" ]
     then
-        OBJ_ADD="$OBJ_ADD-mesa"
-
-        addCMakeVariable  "VTK_OPENGL_HAS_OSMESA:BOOL=ON"
-        addCMakeVariable  "OSMESA_INCLUDE_DIR=$MESA_INCLUDE"
-        addCMakeVariable  "OSMESA_LIBRARY=$MESA_LIBRARY"
+        addCMakeVariable "VTK_OPENGL_HAS_OSMESA=ON"
+        addCMakeVariable "OSMESA_INCLUDE_DIR=$MESA_INCLUDE"
+        addCMakeVariable "OSMESA_LIBRARY=$MESA_LIBRARY"
 
     else
-       echo "*** Error: no MESA information found"
-       echo "***        Deactivate MESA support by not using the -mesa option, "
-       echo "***        or set the correct paths for:"
-       echo "***        -mesa-include ($MESA_INCLUDE)"
-       echo "***        -mesa-lib ($MESA_LIBRARY)"
-       exit 1
+        echo "*** Error: no MESA information found"
+        echo "***   Deactivate MESA support by not using the -mesa option, "
+        echo "***   or set the correct paths for:"
+        echo "***       -mesa-include ($MESA_INCLUDE)"
+        echo "***       -mesa-lib ($MESA_LIBRARY)"
+        exit 1
     fi
 }
 
@@ -276,45 +258,42 @@ addGL2Support()
 {
     if [ "${withGL2:=false}" = true ]
     then
-        addCMakeVariable  "VTK_RENDERING_BACKEND=OpenGL2"
+        addCMakeVariable "VTK_RENDERING_BACKEND=OpenGL2"
     fi
 }
 
 
+#
+# Qt 4/5 support
+#
 addQtSupport()
 {
-    QtVersion=none
+    QT_VERSION=none
+    : ${withQT:=true}  # default is on
 
-    if [ "${withQT:=false}" != true ]
+    if [ "$withQT" = false ]
     then
+        # Explicitly disabled
+        addCMakeVariable "PARAVIEW_BUILD_QT_GUI=OFF"
         return
     fi
 
-    addCMakeVariable "PARAVIEW_BUILD_QT_GUI=ON"
+    local qmake qtLib
 
-    local qmake=$(findQtMake)
-
-    # From somewhere other than in the path
-    if [ "${qmake:=qmake}" != qmake ]
+    # Check qmake can be found and handle version differences
+    qmake=$(findQtMake)
+    if QT_VERSION=$($qmake -query QT_VERSION 2>/dev/null)
     then
-        addCMakeVariable "QT_QMAKE_EXECUTABLE:FILEPATH=$qmake"
-    fi
+        addCMakeVariable "PARAVIEW_BUILD_QT_GUI=ON"
 
-    # Check qmake can be found
-    if type $qmake >/dev/null 2>&1
-    then
-        # Check the Qt version selected
-        # parse -> "Using Qt version X.Y.Z in ..."
-        QtVersion=$($qmake -query QT_VERSION)
-
-        case "$QtVersion" in
-        3.* | 4.[0-4]*)
+        case "$QT_VERSION" in
+        (3.* | 4.[0-4]*)
             # QT is too old
             cat <<ERROR
 ----
 Error: ${0##*/}
 
-QT version ($QtVersion) provided < 4.5
+QT version ($QT_VERSION) provided < 4.5
 Please use the -qmake option to specify the location of a newer QT version
 For example,
     ... -qmake /usr/local/qt-4.6.2/bin/qmake
@@ -324,12 +303,32 @@ ERROR
             exit 1
             ;;
 
-        5.*)
-            # QT4 is the default, must specify QT5 explicitly
-            addCMakeVariable "PARAVIEW_QT_VERSION:STRING=5"
+        (4.*)
+            # Default changed to Qt5 with paraview 5.2.1, so specify explicitly
+            addCMakeVariable "PARAVIEW_QT_VERSION=4"
+
+            # Non-system installation - specify location of qmake
+            if [ "$qmake" != /usr/bin/qmake ]
+            then
+                addCMakeVariable "QT_QMAKE_EXECUTABLE=$qmake"
+            fi
+            ;;
+
+        (5.*)
+            # Default changed to Qt5 with paraview 5.2.1, so specify explicitly
+            addCMakeVariable "PARAVIEW_QT_VERSION=5"
+
+            # Non-system installation - find CMake config files
+            if [ "$qmake" != /usr/bin/qmake ] \
+               && qtLib="$($qmake -query QT_INSTALL_LIBS)/cmake/Qt5" \
+               && [ -d "$qtLib" ]
+            then
+                addCMakeVariable "Qt5_DIR=$qtLib"
+            fi
             ;;
         esac
     else
+        QT_VERSION=none
         echo "Error: cannot find qmake either at \$QMAKE_PATH or in current \$PATH"
         echo
         exit 1
@@ -354,17 +353,17 @@ configParaView()
     local cmake=$(findCMake)
 
     # Remove any existing build folder and recreate
-    if [ -d $ParaView_BINARY_DIR ]
+    if [ -d $ParaView_BUILD_DIR ]
     then
         echo "removing old build directory"
-        echo "    $ParaView_BINARY_DIR"
-        rm -rf $ParaView_BINARY_DIR
+        echo "    $ParaView_BUILD_DIR"
+        rm -rf $ParaView_BUILD_DIR
     fi
-    mkdir -p $ParaView_BINARY_DIR
+    mkdir -p $ParaView_BUILD_DIR
 
-    addCMakeVariable  "CMAKE_BUILD_TYPE:STRING=$buildType"
+    addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
+    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
 
     echo "----"
     echo "Configuring paraview-$ParaView_VERSION (major version: $ParaView_MAJOR)"
@@ -372,16 +371,16 @@ configParaView()
     echo "    Python support : ${withPYTHON:-false}"
     echo "    MESA   support : ${withMESA:-false}"
     echo "    GL2  rendering : ${withGL2:-false}"
-    echo "    Qt dev support : ${withQT:-false}"
+    echo "    QT dev support : ${withQT:-true}"
     echo "    Source         : $ParaView_SOURCE_DIR"
-    echo "    Build          : $ParaView_BINARY_DIR"
+    echo "    Build          : $ParaView_BUILD_DIR"
     echo "    Target         : $ParaView_DIR"
-    echo "    Build type     : $buildType"
-    echo "    Cmake          : $cmake"
+    echo "    cmake          : $cmake"
+    echo "    Build suffix   : ${BUILD_SUFFIX:-none}"
     echo "----"
     echo
     echo "$cmake" \
-        -DCMAKE_INSTALL_PREFIX:PATH=$ParaView_DIR \
+        -DCMAKE_INSTALL_PREFIX=$ParaView_DIR \
         $CMAKE_VARIABLES \
         $ParaView_SOURCE_DIR
     echo
@@ -390,7 +389,7 @@ configParaView()
 
     # Run cmake to create Makefiles
     $cmake \
-        -DCMAKE_INSTALL_PREFIX:PATH=$ParaView_DIR \
+        -DCMAKE_INSTALL_PREFIX=$ParaView_DIR \
         $CMAKE_VARIABLES \
         $ParaView_SOURCE_DIR
 }
@@ -402,7 +401,7 @@ configParaView()
 #
 makeParaView()
 {
-    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
+    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
     echo "    Done make"
@@ -421,43 +420,49 @@ makeParaView()
 #
 installParaView()
 {
-    cd $ParaView_BINARY_DIR || exit 1  # Change to build folder
+    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
     echo "    Installing ParaView to $ParaView_DIR"
 
     make install
 
-cat<< INFO
+    # System or non-system installation of QT?
+    local qmake qtLib QT_VERSION
+    if qmake=$(findQtMake 2>/dev/null)
+    then
+        qtLib=$($qmake -query QT_INSTALL_LIBS)
+        QT_VERSION=$($qmake -query QT_VERSION 2>/dev/null)
+    fi
 
-    ---
-    Installation complete for paraview-$ParaView_VERSION
+    /bin/cat<<INFO
+
+====
+Installation complete for paraview-$ParaView_VERSION with qt-${QT_VERSION:-none}
     ParaView_DIR=$ParaView_DIR
 
-    You may need to update the OpenFOAM environment by running:
-        wmRefresh
-    ---
+You may need to update the OpenFOAM environment by running:
+    wmRefresh
 INFO
+
+    # Non-system installation of QT?
+    if [ "$qmake" != /usr/bin/qmake -a -d "$qtLib" ]
+    then
+        /bin/cat<<INFO
+
+And adjust your LD_LIBRARY_PATH to include the following:
+    $qtLib
+INFO
+    fi
+
+    echo "===="
 }
 
 
 #------------------------------------------------------------------------------
 
-# Clear the referenced variables before using any of the functions
-unset withMPI  withVERBOSE
-unset withQT      QMAKE_PATH
-unset withMESA    MESA_INCLUDE    MESA_LIBRARY
-unset withPYTHON  PYTHON_INCLUDE  PYTHON_LIBRARY
-unset CMAKE_VARIABLES
-unset OBJ_ADD
-unset buildType
-
 # Start with these general settings
-addCMakeVariable  "BUILD_SHARED_LIBS:BOOL=ON  VTK_USE_RPATH:BOOL=OFF"
+addCMakeVariable "BUILD_SHARED_LIBS=ON" "BUILD_TESTING=OFF"
 
 # Include development files in "make install"
-addCMakeVariable  "PARAVIEW_INSTALL_DEVELOPMENT_FILES:BOOL=ON"
-
-# Don't build test tree
-addCMakeVariable  "BUILD_TESTING:BOOL=OFF"
-
+addCMakeVariable "PARAVIEW_INSTALL_DEVELOPMENT_FILES=ON"
 
 #------------------------------------------------------------------------------

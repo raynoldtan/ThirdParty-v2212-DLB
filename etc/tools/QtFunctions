@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -26,7 +26,15 @@
 #
 # Description
 #     Functions for helping relocate a QT installation
+#     To be loaded *after* etc/tools/ThirdPartyFunctions
 #
+#------------------------------------------------------------------------------
+
+# Qt-related variables. Initialization at the end of the file.
+
+qtTYPE=qt-everywhere-opensource-src
+unset qtVERSION # No default version
+
 #------------------------------------------------------------------------------
 
 #
@@ -35,114 +43,33 @@
 #
 createQtConf()
 {
-    echo "create:"
-    echo "    $QT_ARCH_PATH/bin/qt.conf"
+    local confFile="$QT_ARCH_PATH/bin/qt.conf"
 
-    [ -n "$QT_ARCH_PATH" -a -d "$QT_ARCH_PATH/bin" ] || {
+    if [ -n "$QT_ARCH_PATH" -a -d "$QT_ARCH_PATH/bin" ]
+    then
+        /bin/cat << QT_CONF > $confFile
+[Paths]
+Prefix=$QT_ARCH_PATH
+QT_CONF
+        echo "    created qt.conf"
+
+    else
         echo "Error: QT_ARCH_PATH not correctly set"
-        return
-    }
-
-    echo "[Paths]"            > $QT_ARCH_PATH/bin/qt.conf
-    echo "Prefix=$QT_ARCH_PATH" >> $QT_ARCH_PATH/bin/qt.conf
+    fi
 }
 
-
-#
-# Adjust pkgconfig information
-# to generalize *location=, -L/... and -I/...
-# to use ${prefix}
-#
-adjustPkgConfig()
-{
-    echo "edit pkgconfig:"
-    echo "    $QT_ARCH_PATH/lib/pkgconfig/*.pc"
-
-    [ -n "$QT_ARCH_PATH" -a -d "$QT_ARCH_PATH/lib/pkgconfig" ] || {
-        echo "Error: QT_ARCH_PATH not correctly set"
-        return
-    }
-
-    (
-        cd $QT_ARCH_PATH/lib/pkgconfig || exit
-
-        unset nfiles
-        for i in *.pc
-        do
-            if [ -f "$i" ]
-            then
-                nfiles="x$nfiles"
-                sed -i \
-                    -e 's@\(location=\)'"$QT_ARCH_PATH/"'@\1${prefix}/@' \
-                    -e 's@\(-[IL]\)'"$QT_ARCH_PATH/"'@\1${prefix}/@g'    \
-                    $i
-            fi
-        done
-        echo "    edited ${#nfiles} files"
-    )
-}
-
-
-#
-# Change prefix=... and Prefix=... to use ${prefix}
-#
-changePrefix()
-{
-    echo "relocate QT installation to new prefix directory:"
-    echo "    $QT_ARCH_PATH"
-    echo "edit:"
-    echo "    $QT_ARCH_PATH/bin/qt.conf"
-    echo "    $QT_ARCH_PATH/lib/pkgconfig/*.pc"
-
-    [ -n "$QT_ARCH_PATH" -a -d "$QT_ARCH_PATH/bin" -a -d "$QT_ARCH_PATH/lib/pkgconfig" ] || {
-        echo "Error: QT_ARCH_PATH not correctly set"
-        return
-    }
-
-    # adjust qt.conf
-    for i in $QT_ARCH_PATH/bin/qt.conf
-    do
-        if [ -f "$i" ]
-        then
-            nfiles="x$nfiles"
-            sed -i \
-                -e 's@^\([Pp]refix=\).*$@\1'"$QT_ARCH_PATH@" \
-                $i
-            echo "    edited 1 file"
-        fi
-    done
-
-    # adjust pkgconfig files
-    (
-        cd $QT_ARCH_PATH/lib/pkgconfig || exit
-
-        unset nfiles
-        for i in *.pc
-        do
-            if [ -f "$i" ]
-            then
-                nfiles="x$nfiles"
-                sed -i \
-                    -e 's@^\([Pp]refix=\).*$@\1'"$QT_ARCH_PATH@" \
-                    $i
-            fi
-        done
-        echo "    edited ${#nfiles} files"
-    )
-
-}
 
 # ------------------------------------------------------------------------------
 
 #
-# create qt.conf and adjustPkgConfig to use ${prefix} internally
+# create qt.conf and adjust locations to use ${prefix} internally
 #
 finalizeQt()
 {
     echo "Create/Edit files to ease later relocation of a QT installation"
     createQtConf
-    adjustPkgConfig
+    pkgconfigAdjust $QT_ARCH_PATH
 }
 
 
-# ----------------------------------------------------------------- end-of-file
+# -----------------------------------------------------------------------------

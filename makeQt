@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -28,16 +28,13 @@
 # Description
 #     Build script for QT (the qt-everywhere-opensource-src package)
 #
-#------------------------------------------------------------------------------
-qtVERSION=4.8.7
-qtTYPE=qt-everywhere-opensource-src
-
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
@@ -48,18 +45,18 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [VERSION]
+usage: ${0##*/} [OPTION] [qt-VERSION]
 options:
   -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
-* build $qtTYPE, version $qtVERSION
+* build $qtTYPE, version ${qtVERSION:-undefined}
 
 USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Export WM settings in a form that GNU configure recognizes
+# Compiler/linker settings for CMake/configure
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
@@ -69,13 +66,10 @@ USAGE
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    -gcc)
-        export CC=gcc    # use gcc/g++
-        export CXX=g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     -qt-[1-9]* | [1-9]* | qt-*)
         # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
         qtVERSION="${1%%/}";
@@ -145,6 +139,7 @@ else
         buildDIR=$buildBASE/$qtPACKAGE
 
         cd $QT_SOURCE_DIR || exit 1
+        export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
         [ -e Makefile ] && make distclean 2>/dev/null
 
         # Remove any existing build folder and recreate
@@ -174,4 +169,4 @@ else
     }
 fi
 
-# ----------------------------------------------------------------- end-of-file
+# -----------------------------------------------------------------------------

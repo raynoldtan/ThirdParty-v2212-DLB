@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -28,29 +28,30 @@
 # Description
 #     Build script for ThirdParty
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} || exit 1
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 [ -n "$FOAM_EXT_LIBBIN" ] || {
-    echo "Error: FOAM_EXT_LIBBIN not set"
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
+    echo "Error (${0##*/}) : \$FOAM_EXT_LIBBIN not set for ThirdParty"
+    echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-# Export WM settings in a form that GNU configure recognizes
+# Compiler/linker settings for CMake/configure
 [ -n "$WM_CC" ]         &&  export CC="$WM_CC"
 [ -n "$WM_CXX" ]        &&  export CXX="$WM_CXX"
 [ -n "$WM_CFLAGS" ]     &&  export CFLAGS="$WM_CFLAGS"
 [ -n "$WM_CXXFLAGS" ]   &&  export CXXFLAGS="$WM_CXXFLAGS"
 [ -n "$WM_LDFLAGS" ]    &&  export LDFLAGS="$WM_LDFLAGS"
 
+useGccFlag $@           # Scan arguments for a '-gcc' option
 
 warnBuildIssues()
 {
@@ -74,139 +75,19 @@ echo
 echo ========================================
 echo Start ThirdParty Allwmake
 echo ========================================
-
-
 echo
 echo ========================================
 echo Build MPI libraries if required
 echo "    $MPI_ARCH_PATH"
 case "$WM_MPLIB" in
-OPENMPI)
-    if [ -r $MPI_ARCH_PATH/lib${WM_COMPILER_LIB_ARCH}/libmpi.so ]
-    then
-        echo "    have $WM_MPLIB shared library ($FOAM_MPI)"
-        echo
-    elif [ -r $MPI_ARCH_PATH/lib${WM_COMPILER_LIB_ARCH}/libmpi.a ]
-    then
-        echo "    have $WM_MPLIB static library ($FOAM_MPI)"
-        echo
-    else
-    (
-        # configuration options:
-        # Start with GridEngine support - builds without external libraries
-        configOpt="--with-sge"
-
-        # Add InfiniBand support
-        ibDir=/usr/local/ofed
-        ibLib=$infbDIR/lib${WM_COMPILER_LIB_ARCH}
-        if [ -d "$ibDir" -a -d "$ibLib" ]
-        then
-            configOpt="$configOpt --with-verbs=$ibDir --with-verbs-lib=$ibLib"
-        fi
-
-        # end of configuration options
-        # ----------------------------
-        mpiPACKAGE="${MPI_ARCH_PATH##*/}"
-        sourceDIR=$sourceBASE/$mpiPACKAGE
-        buildDIR=$buildBASE/$mpiPACKAGE
-
-        cd $sourceDIR || exit 1
-        [ -e Makefile ] && make distclean 2>/dev/null
-
-        rm -rf $MPI_ARCH_PATH
-        rm -rf $buildDIR
-        mkdir -p $buildDIR
-        cd $buildDIR
-
-        set -x
-        $sourceDIR/configure \
-            --prefix=$MPI_ARCH_PATH \
-            --disable-orterun-prefix-by-default \
-            --enable-shared --disable-static \
-            --libdir=$MPI_ARCH_PATH/lib${WM_COMPILER_LIB_ARCH} \
-            --enable-mpi-fortran=none \
-            --disable-mpi-profile \
-            $configOpt \
-        && make -j $WM_NCOMPPROCS \
-        && make install \
-        && echo "Built: $mpiPACKAGE"
-    ) || {
-        echo "Error building: $mpiPACKAGE"
-        exit 1
-    }
-    fi
+(OPENMPI | MPICH)
+    ./make$WM_MPLIB -test "$MPI_ARCH_PATH" || ./make$WM_MPLIB
     ;;
-
-MPICH)
-    if [ -r $MPI_ARCH_PATH/lib/libmpich.so ]
-    then
-        echo "    have $WM_MPLIB shared library ($FOAM_MPI)"
-        echo
-    elif [ -r $MPI_ARCH_PATH/lib/libmpich.a ]
-    then
-        echo "    have $WM_MPLIB static library ($FOAM_MPI)"
-        echo
-    else
-    (
-        # WARNING: unmaintained build code:
-        # ---------------------------------
-        mpiPACKAGE="${MPI_ARCH_PATH##*/}"
-        sourceDIR=$sourceBASE/$mpiPACKAGE
-        cd $sourceDIR || exit 1
-
-        set -x
-        [ -e Makefile ] && make distclean 2>/dev/null
-        rm -rf $MPI_ARCH_PATH
-        rm -rf util/machines/machines.*
-
-        ./configure \
-            --prefix=$MPI_ARCH_PATH \
-            --without-mpe \
-            --disable-f77 \
-            --disable-f90 \
-            --disable-f90modules \
-            --disable-mpedbg \
-            --disable-devdebug \
-            --disable-debug \
-            --enable-sharedlib=$MPI_ARCH_PATH/lib \
-            --with-device=ch_p4 \
-            ;
-
-        # For MPICH2 below 1.5a1 uncomment this line and comment next
-        # make && make install
-
-        # For MPICH2 1.5a1 or above
-        make -j $WM_NCOMPPROCS && make install
-
-        make distclean
-
-        if [ -r $MPI_ARCH_PATH ]
-        then
-            cd $MPI_ARCH_PATH/bin
-            for file in *
-            do
-                sed s%$MPI_ARCH_PATH%'$MPI_ARCH_PATH'%g $file > temp.$$
-                mv temp.$$ $file
-                chmod 0755 $file
-            done
-
-            cd $MPI_ARCH_PATH/lib
-
-            if [ -r libmpich.so.1.0 ]
-            then
-                rm *.so
-                ln -s libmpich.so.1.0 libmpich.so
-            fi
-        fi
-    )
-    fi
-    ;;
-
 esac
 
 
 #------------------------------------------------------------------------------
-# Building scotch is still a bit of a pain
+# Building scotch on different platforms is still a bit of a pain
 
 # Get SCOTCH_VERSION, SCOTCH_ARCH_PATH
 if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch)
@@ -225,7 +106,7 @@ echo "    $SCOTCH_ARCH_PATH"
 
 SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
 
-# This needs generalizing, but works fairly well
+# Needs generalizing, but works fairly well
 scotchMakefile=../../etc/wmakeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
 
 if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
@@ -238,53 +119,55 @@ elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
     cd $SCOTCH_SOURCE_DIR/src || exit 1
+    export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
     rm -rf $SCOTCH_ARCH_PATH
 
     applyPatch $SCOTCH_VERSION ..       # patch at parent-level
 
     prefixDIR=$SCOTCH_ARCH_PATH
+    incDIR=$SCOTCH_ARCH_PATH/include
     libDIR=$FOAM_EXT_LIBBIN
 
     mkdir -p $prefixDIR 2>/dev/null
-    mkdir -p $libDIR 2>/dev/null
-
-    configOpt="prefix=$prefixDIR libdir=$libDIR"
+    mkdir -p $incDIR    2>/dev/null
+    mkdir -p $libDIR    2>/dev/null
 
     if [ -f $scotchMakefile ]
     then
         rm -f Makefile.inc
         ln -s $scotchMakefile Makefile.inc
     fi
-
     [ -f Makefile.inc ] || {
         echo " Error: scotch needs an appropriate Makefile.inc"
         exit 1
     }
 
-    # handle non-gcc compilers
-    unset configEnv
-    [ "${WM_CC:-gcc}" != gcc ] && configEnv="CC=$WM_CC CCS=$WM_CC"
+    export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
+    export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
 
-    make realclean 2>/dev/null  # for safety
+    make realclean 2>/dev/null  # Extra safety
+    make -j $WM_NCOMPPROCS scotch \
+     && make \
+        prefix=$prefixDIR \
+        includedir=$incDIR \
+        libdir=$libDIR \
+        install
 
-    make -j $WM_NCOMPPROCS $configEnv scotch \
-    && make $configOpt install
-
-    # cleanup, could also remove Makefile.inc
-    make realclean 2>/dev/null
+    make realclean 2>/dev/null || true      # Failed cleanup is uncritical
 ) || warnBuildIssues SCOTCH
 else
     warnNotFound SCOTCH
 fi
 
 # Build ptscotch if MPI (ThirdParty or system) is available
-# and normal scotch was build (has include and library)
+# and normal scotch was built (has include and library)
 if [ "${FOAM_MPI:-dummy}" != dummy ] && \
    [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
   -a -r $FOAM_EXT_LIBBIN/libscotch.so ] || \
 {
+    # Report that the above tests failed and pass-through the failure
     echo
-    echo "    WARNING: skipping pt-scotch - 'scotch.h' include file not found!"
+    echo "    WARNING: skipping pt-scotch - no mpi or <scotch.h> not found"
     false
 }
 then
@@ -302,6 +185,7 @@ then
     else
     (
         cd $SCOTCH_SOURCE_DIR/src || exit 1
+        export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
         echo
 
         prefixDIR=$SCOTCH_ARCH_PATH
@@ -309,41 +193,42 @@ then
         libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
 
         mkdir -p $prefixDIR 2>/dev/null
-        mkdir -p $libDIR 2>/dev/null
-
-        configOpt="prefix=$prefixDIR includedir=$incDIR libdir=$libDIR"
+        mkdir -p $incDIR    2>/dev/null
+        mkdir -p $libDIR    2>/dev/null
 
         if [ -f $scotchMakefile ]
         then
             rm -f Makefile.inc
             ln -s $scotchMakefile Makefile.inc
         fi
-
         [ -f Makefile.inc ] || {
-            echo " Error: scotch needs an appropriate Makefile.inc"
+            echo " Error: ptscotch needs an appropriate Makefile.inc"
             exit 1
         }
 
-        # handle non-gcc compilers
-        unset configEnv
-        [ "${WM_CC:-gcc}" != gcc ] && configEnv="CC=$WM_CC CCS=$WM_CC"
+        export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
+        export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
 
-        make realclean 2>/dev/null  # for safety
+        make realclean 2>/dev/null  # Extra safety
+        make -j $WM_NCOMPPROCS ptscotch \
+         && make \
+            prefix=$prefixDIR \
+            includedir=$incDIR \
+            libdir=$libDIR \
+            install
 
-        make -j $WM_NCOMPPROCS $configEnv ptscotch \
-        && make $configOpt install
-
-        # cleanup, could also remove Makefile.inc
-        make realclean 2>/dev/null
-    )
+        make realclean 2>/dev/null || true  # Failed cleanup is uncritical
+    ) || warnBuildIssues PTSCOTCH
     fi
 
-    # verify existence of ptscotch include
+    # Verify existence of ptscotch include
     [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h ] || {
         echo
         echo "    WARNING: required include file 'ptscotch.h' not found!"
     }
 fi
+
+# Could now remove $SCOTCH_SOURCE_DIR/src/Makefile.inc
 
 
 #------------------------------------------------------------------------------
@@ -353,7 +238,7 @@ echo
 echo ========================================
 echo Build Metis decomposition
 
-# get METIS_VERSION, METIS_ARCH_PATH
+# Get METIS_VERSION, METIS_ARCH_PATH
 if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
 then
     . $settings
@@ -366,11 +251,11 @@ if [ -f $METIS_ARCH_PATH/include/metis.h \
 then
     echo "    metis header in $METIS_ARCH_PATH/include"
     echo "    metis libs   in $FOAM_EXT_LIBBIN"
-    echo
 elif [ -d "$METIS_SOURCE_DIR" ]
 then
 (
     cd $METIS_SOURCE_DIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
     rm -rf $METIS_ARCH_PATH
 
     # Adjust metis integer size to match OpenFOAM label-size
@@ -381,10 +266,10 @@ then
     # - build normally and use mv to relocate it
 
     make config shared=1 prefix=$METIS_ARCH_PATH \
-    && make -j $WM_NCOMPPROCS install \
-    && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
+     && make -j $WM_NCOMPPROCS install \
+     && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
 
-    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # failure is not critical
+    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # Failed rmdir is uncritical
 ) || warnBuildIssues METIS
 else
     warnNotFound METIS
@@ -392,53 +277,27 @@ fi
 
 
 #------------------------------------------------------------------------------
-
-# CGAL is optional
 echo
 echo ========================================
 echo Build CGAL
-if [ -d "$CGAL_ARCH_PATH/include" \
-  -a -r "$CGAL_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libCGAL.so" ]
+if [ -n "$CGAL_ARCH_PATH" ]
 then
-    # first some information about boost
-    for root in "$BOOST_ARCH_PATH" /usr
-    do
-        if [ -d "$root/include/boost" \
-          -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.so" ]
-        then
-            echo "    BOOST headers in $root/include"
-            echo "    BOOST libs    in $root/lib$WM_COMPILER_LIB_ARCH"
-            break
-        fi
-    done
-    echo "    CGAL  headers in $CGAL_ARCH_PATH/include"
-    echo "    CGAL  libs    in $CGAL_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
-elif [ -n "$CGAL_ARCH_PATH" ]
-then
+    ./makeCGAL -test "$CGAL_ARCH_PATH" "$BOOST_ARCH_PATH" || \
     ./makeCGAL || warnBuildIssues CGAL
 else
-    warnNotFound CGAL
+    warnNotFound CGAL   # CGAL is optional
 fi
 
-
-# FFTW is optional
 echo
 echo ========================================
 echo Build FFTW
-if [ -d "$FFTW_ARCH_PATH/include" \
-  -a -r "$FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libfftw3.so" ]
+if [ -n "$FFTW_ARCH_PATH" ]
 then
-    echo "    FFTW  headers in $FFTW_ARCH_PATH/include"
-    echo "    FFTW  libs    in $FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
-elif [ -n "$FFTW_ARCH_PATH" ]
-then
+    ./makeFFTW -test "$FFTW_ARCH_PATH" || \
     ./makeFFTW || warnBuildIssues FFTW
 else
-    warnNotFound FFTW
+    warnNotFound FFTW   # FFTW is optional
 fi
-
-
-#------------------------------------------------------------------------------
 
 echo
 echo ========================================

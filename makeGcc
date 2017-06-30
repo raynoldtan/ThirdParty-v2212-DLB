@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM.
@@ -40,13 +40,23 @@
 #
 #         WM_COMPILER=Gcc51 ./makeGcc -system
 #
+# ----------------------------------------------
+# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# get default GCC, mpfr, gmp and mpc versions
-WM_COMPILER_TYPE=ThirdParty       # ensure we get the correct compiler settings
-: ${WM_COMPILER:=Gcc}             # this will still fail if 'Clang' was set
+# Run from third-party directory only
+cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+    echo "    Check your OpenFOAM environment and installation"
+    exit 1
+}
+. etc/tools/ThirdPartyFunctions
+#------------------------------------------------------------------------------
 
-. $WM_PROJECT_DIR/etc/config.sh/functions
-_foamSource $($WM_PROJECT_DIR/bin/foamEtcFile config.sh/compiler)
+[ "${WM_COMPILER#Gcc}" = "$WM_COMPILER" ] && WM_COMPILER=Gcc        # Force gcc
+WM_COMPILER_TYPE=ThirdParty                # Ensure we get the correct settings
+
+# Default GCC, mpfr, gmp and mpc versions from OpenFOAM etc/config.sh file:
+_foamEtc config.sh/compiler
 
 gmpPACKAGE=${gmp_version:-gmp-system}
 mpfrPACKAGE=${mpfr_version:-mpfr-system}
@@ -54,23 +64,12 @@ mpcPACKAGE=${mpc_version:-mpc-system}
 gccPACKAGE=$gcc_version
 
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
-    echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    The environment variables are inconsistent with the installation."
-    echo "    Check the OpenFOAM entries in your dot-files and source them."
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
-#------------------------------------------------------------------------------
-Script=${0##*/}
-
 usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: $Script [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
+usage: ${0##*/} [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
 options:
   -multilib         for 64-bit systems with 32-bit support required
   -no-multilib      for 64-bit systems without 32-bit support (DEFAULT)
@@ -96,9 +95,9 @@ unset optThreadSafe # unset=auto
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+
     -multi*)
         optMultilib=enable
         ;;
@@ -165,6 +164,18 @@ GMP_ARCH_PATH=$installBASE/$gmpPACKAGE
 MPFR_ARCH_PATH=$installBASE/$mpfrPACKAGE
 MPC_ARCH_PATH=$installBASE/$mpcPACKAGE
 
+# Prefix <dir> to LD_LIBRARY_PATH, if it exists. 0 on success, 1 on failure
+addLib()
+{
+    if [ -d "$1" ]
+    then
+        export LD_LIBRARY_PATH=$1:$LD_LIBRARY_PATH
+        return 0
+    else
+        return 1
+    fi
+}
+
 
 # ================
 # Build GMP
@@ -184,6 +195,7 @@ else
     buildDIR=$buildBASE/$gmpPACKAGE
 
     cd $sourceDIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
     make distclean 2>/dev/null
 
     rm -rf $buildDIR
@@ -195,6 +207,7 @@ else
         --prefix=$GMP_ARCH_PATH \
         --libdir=$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
         --enable-cxx \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $gmpPACKAGE"
@@ -204,10 +217,8 @@ else
 }
 fi
 
-if [ -d "$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" ]
+if addLib "$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
 then
-    _foamAddLib "$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
-
     configGMP=$(cat <<CONFIG_OPTIONS
     --with-gmp-include=$GMP_ARCH_PATH/include
     --with-gmp-lib=$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
@@ -236,6 +247,7 @@ else
     buildDIR=$buildBASE/$mpfrPACKAGE
 
     cd $sourceDIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
     make distclean 2>/dev/null
 
     rm -rf $buildDIR
@@ -251,6 +263,7 @@ else
         --prefix=$MPFR_ARCH_PATH \
         --libdir=$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
         $configGMP $configOpt \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $mpfrPACKAGE"
@@ -260,10 +273,8 @@ else
 }
 fi
 
-if [ -d "$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" ]
+if addLib "$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
 then
-    _foamAddLib "$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
-
     configMPFR=$(cat <<CONFIG_OPTIONS
     --with-mpfr-include=$MPFR_ARCH_PATH/include \
     --with-mpfr-lib=$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
@@ -292,6 +303,7 @@ else
     buildDIR=$buildBASE/$mpcPACKAGE
 
     cd $sourceDIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
     make distclean 2>/dev/null
 
     rm -rf $buildDIR
@@ -303,6 +315,7 @@ else
         --prefix=$MPC_ARCH_PATH \
         --libdir=$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
         $configGMP $configMPFR \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $mpcPACKAGE"
@@ -312,10 +325,8 @@ else
 }
 fi
 
-if [ -d "$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" ]
+if addLib "$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
 then
-    _foamAddLib "$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH"
-
     configMPC=$(cat <<CONFIG_OPTIONS
     --with-mpc-include=$MPC_ARCH_PATH/include \
     --with-mpc-lib=$MPC_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
@@ -348,6 +359,7 @@ else
     buildDIR=$buildBASE/$gccPACKAGE
 
     cd $sourceDIR || exit 1
+    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
     make distclean 2>/dev/null
 
     rm -rf $buildDIR
@@ -368,6 +380,7 @@ else
         --with-system-zlib \
         $configGMP $configMPFR $configMPC $configOpt \
         MAKEINFO=missing \
+    && set +x \
     && make -j $WM_NCOMPPROCS \
     && make install \
     && echo "Built: $gccPACKAGE"

@@ -3,7 +3,7 @@
    | =========                 |                                              |
    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
    |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.              |
+   |   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.         |
    |    \\/     M anipulation  |                                              |
    |--------------------------------------------------------------------------|
   -->
@@ -24,8 +24,8 @@ The ThirdParty directory contains a number of build scripts as well as
 some directories:
 
 | Directory         | Contains
-|-------------------|--------------------------------------------
-| etc/              | auxiliary scripts used for the build process
+|-------------------|-------------------------------------------------------
+| etc/              | auxiliary tools and content used for the build process
 | build/            | intermediate build objects
 | platforms/        | the installation directories
 
@@ -121,6 +121,10 @@ ThirdParty components prior to building OpenFOAM itself.
 
 #### Optional Components
 
+`makeADIOS`
+- Only required for ADIOS support,
+  which is currently staged in the [add-ons repository][link AddOns].
+
 `makeCGAL`
 - Builds third-party boost and CGAL.
   Automatically invoked from the ThirdParty `Allwmake`,
@@ -130,6 +134,9 @@ ThirdParty components prior to building OpenFOAM itself.
 - Builds third-party FFTW.
   Automatically invoked from the ThirdParty `Allwmake`,
   but can be invoked directly to resolve possible build errors.
+
+`makeMGridGen`
+- Optional agglomeration routines.
 
 `makeCCMIO`
 - Only required for conversion to/from STARCD/STARCCM+ files.
@@ -146,6 +153,8 @@ ThirdParty components prior to building OpenFOAM itself.
 `makeQt`
 - Script to build a [third-party installation of Qt](#makeQt), including qmake.
 - Possibly needed for `makeParaView`.
+- The associated `etc/relocateQt` may be of independent use.
+  Read the file for more details.
 
 `makeGperftools`
 - Build gperftools (originally Google Performance Tools)
@@ -167,7 +176,8 @@ and save some disk space.
 
 ### Mesa
 - Needed for off-screen rendering.
-- Building with [mesa-11][older mesa] is fine and [mesa-13][link mesa] also seems to be okay.
+- Building with [mesa-11][older11 mesa] and [mesa-13][older13 mesa] both
+  seem okay, as does building with [mesa-17][link mesa].
 - Building with mesa-12 is not possible since it fails to create
   the necessary `include/GL` directory and `osmesa.h` file.
 
@@ -178,32 +188,36 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-5.0.1/VTK  VTK-7.1.0
+      ln -s ParaView-v5.4.0/VTK VTK-8.1.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-5.0.1/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-v5.4.0/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
-      set(VTK_MAJOR_VERSION 7)
+      set(VTK_MAJOR_VERSION 8)
       set(VTK_MINOR_VERSION 1)
       set(VTK_BUILD_VERSION 0)
 
 ### ParaView
-- **ParaView-5.0.1** is the last version for which the OpenFOAM reader
-  modules (eg, to visualize a `blockMeshDict`) work in their present form.
-
 - Building ParaView requires CMake, qmake and a `qt` development files.
   Use the `-cmake`, `-qmake` and `-qt-*` options for `makeParaView` as
   required.
   See additional notes below about [making Qt](#makeQt) if necessary.
 
+#### 5.4.0
+- Compiles without patching.
+  No known issues with the native OpenFOAM reader.
+
+#### 5.3.0
+- Compiles without patching.
+  The native OpenFOAM reader has a bug reading tetrahedrals.
+
 #### 5.2.0
-- Compiles without patching, but the OpenFOAM reader modules
-  (eg, to visualize a `blockMeshDict`) have not yet been migrated
-  to this version.
+- Compiles without patching, but the native OpenFOAM reader is
+  broken in this version.
 
 #### 4.4.0/5.0.0/5.0.1/5.1.2
 - When using `makeParaView`, the following patches will be automatically
@@ -214,6 +228,15 @@ and save some disk space.
   - The SciberQuestToolKit plugin fails to compile with gcc-6.1.0 and causes
     the compilation of ParaView to halt. The easiest solution is to delete
     the ParaView-5.0.1/Plugins/SciberQuestToolKit directory.
+
+### ADIOS
+- The github release currently requires GNU autoconf tools (eg,
+  autoconf, autoheader, automake) for its configuration.
+- Some inconsistency in directory names (ADIOS vs. adios) between releases.
+- Optionally uses bzip2, zlib development headers (eg, libbz2-devel, zlib-devel)
+  for the corresponding compression tranforms.
+- The [zfp floating point compression][page zfp] library is now included as
+  part of ADIOS.
 
 ### Making Qt <a name="makeQt"></a>
 - Building a third-party Qt installation (prior to building ParaView) requires
@@ -229,7 +252,7 @@ and save some disk space.
 
        ./makeParaView -qt-4.8.7 5.0.1
 
-- ParaView does not yet support QT5.
+- ParaView versions prior to 5.3.0 do not properly support QT5.
 
 - If you relocate the third-party directory to another location
   (eg, you built in your home directory, but want to install it in a
@@ -295,7 +318,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 |-----------------------|------------------------
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
 | [scotch, ptscotch][page scotch] | [download][link scotch]
-| [openmpi][page openmpi] | [download][link openmpi]
+| [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
 
 
 ### General <a name="general-packages"></a>
@@ -304,7 +327,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 |-----------------------|------------------------
 | [CMake][page cmake]   | [download][link cmake]
 | [boost][page boost]   | [download][link boost]
-| [CGAL][page CGAL]     | [download][link CGAL] or [older][older CGAL]
+| [CGAL][page CGAL]     | [download][link CGAL]
 | [FFTW][page FFTW]     | [download][link FFTW]
 | [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio]
 | [tecio][page tecio]   | [link tecio][link tecio]
@@ -315,9 +338,9 @@ GNU *configure* can only be used prior to clang version 3.9.
 
 | Name                  | Location
 |-----------------------|------------------------
-| [MESA][page mesa]     | [download][link mesa] or [older][older mesa]
-| [ParaView][page ParaView] | [download][link ParaView]. The reader modules do not yet work with the newest paraview versions.
-| [Qt][page Qt]         | [repo][repo Qt] or [download][link Qt]. The newer [Qt5][newer Qt5] is **not** currently supported by ParaView.
+| [MESA][page mesa]     | [download][link mesa] or [older 13][older13 mesa], [older 11][older11 mesa]
+| [ParaView][page ParaView] | [download][link ParaView]
+| [Qt][page Qt]         | [repo][repo Qt] or [download][link Qt]. The newer [Qt5][newer Qt5] only works with ParaView-5.3.0 and later.
 
 
 ### CMake Minimum Requirements <a name="min-cmake"></a>
@@ -332,7 +355,10 @@ The minimum CMake requirements for building various components.
     2.8.4       cmake-3.6.0
     3.3         ParaView-5.1.2
     3.3         ParaView-5.2.0
-    3.4.3       llvm-3.9.0.src
+    3.3         ParaView-5.3.0
+    3.3         ParaView-5.4.0
+    3.4.3       llvm-3.9.1
+    3.4.3       llvm-4.0.0
     3.5         ParaView-5.1.0
 
 
@@ -362,26 +388,26 @@ The minimum gcc/g++ requirements for building various components.
 [page clang]:     http://llvm.org/
 [page llvm]:      http://llvm.org/
 
-[link clang]:     http://llvm.org/releases/3.7.0/cfe-3.7.0.src.tar.xz
-[link llvm]:      http://llvm.org/releases/3.7.0/llvm-3.7.0.src.tar.xz
+[link clang]:     http://llvm.org/releases/3.7.1/cfe-3.7.1.src.tar.xz
+[link llvm]:      http://llvm.org/releases/3.7.1/llvm-3.7.1.src.tar.xz
 
-[newer clang]:    http://llvm.org/releases/3.9.0/cfe-3.9.0.src.tar.xz
-[newer llvm]:     http://llvm.org/releases/3.9.0/llvm-3.9.0.src.tar.xz
+[newer clang]:    http://llvm.org/releases/4.0.0/cfe-4.0.0.src.tar.xz
+[newer llvm]:     http://llvm.org/releases/4.0.0/llvm-4.0.0.src.tar.xz
 
 
 <!-- parallel -->
 [page adios]:     https://www.olcf.ornl.gov/center-projects/adios/
 [repo adios]:     https://github.com/ornladios/ADIOS
-[link adios]:     https://github.com/ornladios/ADIOS/archive/v1.11.0.tar.gz
-[altlink adios]:  http://users.nccs.gov/%7Epnorbert/adios-1.11.0.tar.gz
+[link adios]:     https://github.com/ornladios/ADIOS/archive/v1.11.1.tar.gz
+[altlink adios]:  http://users.nccs.gov/%7Epnorbert/adios-1.11.1.tar.gz
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
 
 [page openmpi]:   http://www.open-mpi.org/
-[link openmpi]:   http://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.4.tar.bz2
-[newer openmpi]:  https://www.open-mpi.org/software/ompi/v2.0/downloads/openmpi-2.0.1.tar.bz2
+[link openmpi]:   https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.4.tar.bz2
+[newer openmpi]:  https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.bz2
 
 
 <!-- general -->
@@ -389,17 +415,17 @@ The minimum gcc/g++ requirements for building various components.
 [link cmake]:     http://www.cmake.org/files/v3.5/cmake-3.5.2.tar.gz
 
 [page boost]:     http://boost.org
-[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.62.0/boost_1_62_0.tar.bz2
+[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2
 
 [page CGAL]:      http://cgal.org
-[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9/CGAL-4.9.tar.xz
-[older CGAL]:     https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.8.2/CGAL-4.8.2.tar.xz
+[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9.1/CGAL-4.9.1.tar.xz
 
 [page FFTW]:      http://www.fftw.org/
-[link FFTW]:      http://www.fftw.org/fftw-3.3.5.tar.gz
+[link FFTW]:      http://www.fftw.org/fftw-3.3.6-pl1.tar.gz
 
 [page cgns]:      http://cgns.github.io/
-[link ccmio]:     http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
+[link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
+[altlink ccmio]:  http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
 
 [page tecio]:     http://www.tecplot.com/
 [link tecio]:     http://www.tecplot.com/my/tecio-library/ (needs registration)
@@ -411,32 +437,34 @@ The minimum gcc/g++ requirements for building various components.
 <!-- Visualization -->
 
 [page ParaView]:  http://www.paraview.org/
-[link ParaView]:  http://www.paraview.org/files/v5.0/ParaView-v5.0.1-source.tar.gz
-
-[older ParaView-44]:  http://www.paraview.org/files/v4.4/ParaView-v4.4.0-source.tar.gz
-[newer ParaView-51]:  http://www.paraview.org/files/v5.1/ParaView-v5.1.2-source.tar.gz
-[newer ParaView-52]:  http://www.paraview.org/files/v5.2/ParaView-v5.2.0.tar.gz
+[link ParaView]:  http://www.paraview.org/files/v5.4/ParaView-v5.4.0.tar.gz
 
 [page mesa]:  http://mesa3d.org/
-[link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/13.0.1/mesa-13.0.1.tar.xz
-[older mesa]: ftp://ftp.freedesktop.org/pub/mesa/11.2.2/mesa-11.2.2.tar.xz
+[link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
+[older13 mesa]: ftp://ftp.freedesktop.org/pub/mesa/13.0.6/mesa-13.0.6.tar.xz
+[older11 mesa]: ftp://ftp.freedesktop.org/pub/mesa/older-versions/11.x/11.2.2/mesa-11.2.2.tar.xz
 
 [page Qt]: https://www.qt.io/download-open-source/
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
 [link Qt]: http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz
-[newer Qt5]: http://download.qt.io/official_releases/qt/5.7/5.7.0/single/qt-everywhere-opensource-src-5.7.0.tar.gz
+[newer Qt5]: http://download.qt.io/official_releases/qt/5.9/5.9.0/single/qt-everywhere-opensource-src-5.9.0.tar.xz
+
+<!-- OpenFOAM -->
+
+[link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
+[link community-projects]: http://www.openfoam.com/services/community-projects.php
 
 
 <!-- Standard Footer -->
 ## Additional OpenFOAM Links
 
+- [Community AddOns][link AddOns] repository
+- [Collaborative and Community-based Developments][link community-projects]
 - [Download](http://www.openfoam.com/releases) and
   [installation instructions](http://www.openfoam.com/download/installation.php)
 - [Documentation](http://www.openfoam.com/documentation)
-- [Reporting bugs/issues (including bugs/suggestions/feature requests) in OpenFOAM+](http://www.openfoam.com/code/bug-reporting.php)
-- [Collaborative and Community-based Developments](http://www.openfoam.com/services/community-projects.php)
+- [Reporting bugs/issues](http://www.openfoam.com/code/bug-reporting.php) (including bugs/suggestions/feature requests) in OpenFOAM+
 - [Contacting OpenCFD](http://www.openfoam.com/contact)
-
 ---
 
-Copyright 2016 OpenCFD Ltd
+Copyright 2016-2017 OpenCFD Ltd
