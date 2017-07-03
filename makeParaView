@@ -78,6 +78,8 @@ options:
   -mpi              with mpi
   -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
   -python           with python
+  -python-include DIR
+                    location of python headers (current: ${PYTHON_INCLUDE:-none})
   -python-lib PATH  path to python library (current: ${PYTHON_LIBRARY:-none})
   -cmake PATH       with cmake from the path given
   -qmake PATH       with the Qt version corresponding to the qmake path given
@@ -232,6 +234,12 @@ do
         ;;
     -no-python)
         withPYTHON=false
+        ;;
+    -python-include)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withPYTHON=true
+        PYTHON_INCLUDE="${2%%/}"
+        shift
         ;;
     -python-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
