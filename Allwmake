@@ -145,6 +145,9 @@ then
     export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
     export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
 
+    # Consistency for Intel-MPI and non-icc compilers
+    [ -n "$I_MPI_CC" ] || export I_MPI_CC="${CC:-$WM_CC}"
+
     make realclean 2>/dev/null  # Extra safety
     make -j $WM_NCOMPPROCS scotch \
      && make \
@@ -208,6 +211,9 @@ then
 
         export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
         export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
+
+        # Consistency for Intel-MPI and non-icc compilers
+        [ -n "$I_MPI_CC" ] || export I_MPI_CC="${CC:-$WM_CC}"
 
         make realclean 2>/dev/null  # Extra safety
         make -j $WM_NCOMPPROCS ptscotch \
