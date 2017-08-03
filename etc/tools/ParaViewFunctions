@@ -128,10 +128,10 @@ setParaViewVersion()
 #
 addCMakeVariable()
 {
-    while [ -n "$1" ]
+    local i
+    for i
     do
-        CMAKE_VARIABLES="$CMAKE_VARIABLES -D$1"
-        shift
+        [ -n "$i" ] && CMAKE_VARIABLES="$CMAKE_VARIABLES -D$i"
     done
 }
 
@@ -158,7 +158,7 @@ addMpiSupport()
         return
     fi
 
-    addCMakeVariable "PARAVIEW_USE_MPI=ON VTK_USE_MPI=ON"
+    addCMakeVariable "PARAVIEW_USE_MPI=ON" "VTK_USE_MPI=ON"
     if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
     then
         addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
