@@ -191,6 +191,7 @@ else
             --disable-orterun-prefix-by-default \
             --enable-shared --disable-static \
             --enable-mpi-fortran=none \
+            --enable-mpi-thread-multiple \
             $configOpt \
         && set +x \
         && make -j $WM_NCOMPPROCS \
