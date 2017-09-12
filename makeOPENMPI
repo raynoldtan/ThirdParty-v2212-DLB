@@ -71,9 +71,6 @@ _foamEtc config.sh/mpi
 
 mpiPACKAGE=${FOAM_MPI:-openmpi-system}
 
-# Configure with/without mpi-threads
-unset optMpiThreads
-
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -83,8 +80,6 @@ usage() {
 usage: ${0##*/} [OPTION] [openmpi-VERSION]
 options:
   -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
-  -no-thread        disable multiple mpi threads
-  -thread           enable multiple mpi threads
   -help
 
 * build openmpi with
@@ -105,8 +100,6 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
-    -no-thread*) optMpiThreads=disable ;;
-    -thread*)    optMpiThreads=enable ;;
 
     openmpi-[0-9]* | openmpi_[0-9]* | openmpi-system )
         mpiPACKAGE="${1%%/}"
@@ -162,12 +155,6 @@ else
         if [ -d "$ibDir" -a -d "$ibLib" ]
         then
             configOpt="$configOpt --with-verbs=$ibDir --with-verbs-lib=$ibLib"
-        fi
-
-        # Explicitly enable/disable multiple mpi threads
-        if [ -n "$optMpiThreads" ]
-        then
-            configOpt="$configOpt -${optMpiThreads}-mpi-thread-multiple"
         fi
 
         # end of configuration options
