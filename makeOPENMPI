@@ -151,11 +151,14 @@ else
 
         # Add InfiniBand support
         ibDir=/usr/local/ofed
-        ibLib=$infbDIR/lib$WM_COMPILER_LIB_ARCH
-        if [ -d "$ibDir" -a -d "$ibLib" ]
-        then
-            configOpt="$configOpt --with-verbs=$ibDir --with-verbs-lib=$ibLib"
-        fi
+        for libdir in lib$WM_COMPILER_LIB_ARCH lib
+        do
+            if [ -d "$ibDir/$libdir" ]
+            then
+                configOpt="$configOpt --with-verbs=$ibDir --with-verbs-lib=$ibDir/$libdir"
+                break
+            fi
+        done
 
         # end of configuration options
         # ----------------------------
