@@ -417,7 +417,7 @@ downloadFile()
 
 
 #
-# Copy Make/{files,options} from etc/wmakeFiles/PACKAGE
+# Copy Make/{files,options} from etc/makeFiles/PACKAGE
 #
 # $1 = PACKAGE
 # $2 = TARGET DIRECTORY (optional)
@@ -432,7 +432,7 @@ cpMakeFiles()
     local dst="${2:-.}"
     echo "cpMakeFiles" $pkg $dst
 
-    wmakeFiles=$WM_THIRD_PARTY_DIR/etc/wmakeFiles/$pkg
+    wmakeFiles=$WM_THIRD_PARTY_DIR/etc/makeFiles/$pkg
 
     for i in $(cd $wmakeFiles && find . -type f)
     do
