@@ -79,7 +79,8 @@ usage() {
 
 usage: ${0##*/} [OPTION] [openmpi-VERSION]
 options:
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc          Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -memcheck     Configure with --enable-memcheck (requires valgrind.h)
   -help
 
 * build openmpi with
@@ -93,6 +94,8 @@ USAGE
 [ -n "$WM_CC" ]  && export CC="$WM_CC"
 [ -n "$WM_CXX" ] && export CXX="$WM_CXX"
 
+unset optMemchecker
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -100,6 +103,7 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+    -memcheck*) optMemchecker=true ;;
 
     openmpi-[0-9]* | openmpi_[0-9]* | openmpi-system )
         mpiPACKAGE="${1%%/}"
@@ -159,6 +163,11 @@ else
                 break
             fi
         done
+
+        if [ "$optMemchecker" = true ]
+        then
+            configOpt="$configOpt --enable-memchecker --with-valgrind"
+        fi
 
         # end of configuration options
         # ----------------------------
