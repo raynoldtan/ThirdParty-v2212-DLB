@@ -94,6 +94,19 @@ do
 done
 
 
+# Clean various packages via 'wclean'
+for i in libccmio*/Make kahip*/lib/Make
+do
+    [ -d "$i" ] && (
+        echo
+        echo "${i%/Make}"
+        echo "    wclean"
+        echo
+        cd ${i%/Make} && wclean
+    )
+done
+
+
 # Clean out-of-source build directories
 if [ -d build ]
 then

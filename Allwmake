@@ -65,8 +65,7 @@ warnBuildIssues()
 
 warnNotFound()
 {
-    echo "    Optional component ($1) was not found"
-    echo
+    echo "Optional component ($1) was not found"
 }
 
 #------------------------------------------------------------------------------
@@ -101,7 +100,7 @@ fi
 
 echo
 echo ========================================
-echo "Build Scotch decomposition library $SCOTCH_VERSION"
+echo "Scotch decomposition ($SCOTCH_VERSION)"
 echo "    $SCOTCH_ARCH_PATH"
 
 SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
@@ -113,8 +112,8 @@ if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
   -a -r $FOAM_EXT_LIBBIN/libscotch.so \
   -a -r $FOAM_EXT_LIBBIN/libscotcherrexit.so ]
 then
-    echo "    scotch header in $SCOTCH_ARCH_PATH/include"
-    echo "    scotch libs   in $FOAM_EXT_LIBBIN"
+    echo "    scotch include: $SCOTCH_ARCH_PATH/include"
+    echo "    scotch library: $FOAM_EXT_LIBBIN"
 elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
@@ -176,15 +175,15 @@ if [ "${FOAM_MPI:-dummy}" != dummy ] && \
 then
     echo
     echo ========================================
-    echo "Build pt-scotch decomposition library $SCOTCH_VERSION (with $FOAM_MPI)"
+    echo "pt-scotch decomposition ($SCOTCH_VERSION with $FOAM_MPI)"
     echo "    $SCOTCH_ARCH_PATH"
 
     if [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h \
       -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch.so \
       -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotcherrexit.so ]
     then
-        echo "    ptscotch header in $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
-        echo "    ptscotch libs   in $FOAM_EXT_LIBBIN/$FOAM_MPI"
+        echo "    ptscotch include: $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
+        echo "    ptscotch library: $FOAM_EXT_LIBBIN/$FOAM_MPI"
     else
     (
         cd $SCOTCH_SOURCE_DIR/src || exit 1
@@ -239,55 +238,46 @@ fi
 
 #------------------------------------------------------------------------------
 
-# Metis is optional
 echo
 echo ========================================
-echo Build Metis decomposition
-
-# Get METIS_VERSION, METIS_ARCH_PATH
-if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
+# Get KAHIP_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/kahip)
 then
     . $settings
 fi
-
-METIS_SOURCE_DIR=$sourceBASE/$METIS_VERSION
-
-if [ -f $METIS_ARCH_PATH/include/metis.h \
-  -a -r $FOAM_EXT_LIBBIN/libmetis.so ]
+if [ -n "$KAHIP_ARCH_PATH" ]
 then
-    echo "    metis header in $METIS_ARCH_PATH/include"
-    echo "    metis libs   in $FOAM_EXT_LIBBIN"
-elif [ -d "$METIS_SOURCE_DIR" ]
-then
-(
-    cd $METIS_SOURCE_DIR || exit 1
-    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
-    rm -rf $METIS_ARCH_PATH
-
-    # Adjust metis integer size to match OpenFOAM label-size
-    sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
-        include/metis.h
-
-    # No config option for the library location.
-    # - build normally and use mv to relocate it
-
-    make config shared=1 prefix=$METIS_ARCH_PATH \
-     && make -j $WM_NCOMPPROCS install \
-     && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
-
-    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # Failed rmdir is uncritical
-) || warnBuildIssues METIS
+    echo KaHIP decomposition
+    ./makeKAHIP -test "$KAHIP_ARCH_PATH" || \
+    ./makeKAHIP || warnBuildIssues KAHIP
 else
-    warnNotFound METIS
+    warnNotFound KAHIP   # METIS is optional
 fi
-
 
 #------------------------------------------------------------------------------
 echo
 echo ========================================
-echo Build CGAL
+
+# Get METIS_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
+then
+    . $settings
+fi
+if [ -n "$METIS_ARCH_PATH" ]
+then
+    echo Metis decomposition
+    ./makeMETIS -test "$METIS_ARCH_PATH" || \
+    ./makeMETIS || warnBuildIssues METIS
+else
+    warnNotFound METIS   # METIS is optional
+fi
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
 if [ -n "$CGAL_ARCH_PATH" ]
 then
+    echo "CGAL/boost"
     ./makeCGAL -test "$CGAL_ARCH_PATH" "$BOOST_ARCH_PATH" || \
     ./makeCGAL || warnBuildIssues CGAL
 else
@@ -296,9 +286,9 @@ fi
 
 echo
 echo ========================================
-echo Build FFTW
 if [ -n "$FFTW_ARCH_PATH" ]
 then
+    echo FFTW
     ./makeFFTW -test "$FFTW_ARCH_PATH" || \
     ./makeFFTW || warnBuildIssues FFTW
 else

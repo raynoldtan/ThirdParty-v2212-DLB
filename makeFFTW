@@ -38,8 +38,8 @@ then
     dir="$2" # <- FFTW_ARCH_PATH
     if [ -d "$dir/include" -a -r "$dir/lib$WM_COMPILER_LIB_ARCH/libfftw3.so" ]
     then
-        echo "    FFTW headers in $dir/include"
-        echo "    FFTW libs    in $dir/lib$WM_COMPILER_LIB_ARCH"
+        echo "    fftw include: $dir/include"
+        echo "    fftw library: $dir/lib$WM_COMPILER_LIB_ARCH"
         exit 0
     else
         exit 2
