@@ -3,7 +3,7 @@
    | =========                 |                                              |
    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
    |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016 OpenCFD Ltd.              |
+   |   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.         |
    |    \\/     M anipulation  |                                              |
    |--------------------------------------------------------------------------|
   -->
@@ -65,19 +65,25 @@ ThirdParty components prior to building OpenFOAM itself.
 
 ### Build Details
 
-More details can be found the ThirdParty ./BUILD.md information.
+More details can be found the ThirdParty BUILD.md information.
+
+<!-- OpenFOAM -->
+
+[link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
+[link community-projects]: http://www.openfoam.com/community/projects.php
 
 
 <!-- Standard Footer -->
 ## Additional OpenFOAM Links
 
-- [Download](http://www.openfoam.com/releases) and
-  [installation instructions](http://www.openfoam.com/download/installation.php)
+- [Community AddOns][link AddOns] repository
+- [Collaborative and Community-based Developments][link community-projects]
+- [Download](http://www.openfoam.com/download) and
+  [installation instructions](http://www.openfoam.com/code/build-guide.php)
 - [Documentation](http://www.openfoam.com/documentation)
-- [Reporting bugs/issues (including bugs/suggestions/feature requests) in OpenFOAM+](http://www.openfoam.com/code/bug-reporting.php)
-- [Collaborative and Community-based Developments](http://www.openfoam.com/services/community-projects.php)
+- [Reporting bugs/issues](http://www.openfoam.com/code/bug-reporting.php) (including bugs/suggestions/feature requests) in OpenFOAM
 - [Contacting OpenCFD](http://www.openfoam.com/contact)
 
 ---
 
-Copyright 2016 OpenCFD Ltd
+Copyright 2016-2017 OpenCFD Ltd

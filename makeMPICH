@@ -7,20 +7,8 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # Script
 #     makeMPICH
@@ -77,7 +65,7 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [mpich-VERSION]
+usage: ${0##*/} [OPTION] [mpich-VERSION] [-- configure-options]
 options:
   -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
@@ -98,12 +86,14 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
 
     mpich*)
         mpiPACKAGE="${1%%/}"
         ;;
+
     *)
         die "unknown option/argument: '$1'"
         ;;
@@ -145,9 +135,17 @@ else
     echo
 
     (
-        # configuration options:
+        # Configuration options:
         unset configOpt
-        # end of configuration options
+
+        # Additional configure options
+        if [ "$1" = "--" ]
+        then
+            shift
+            configOpt="$configOpt $@"
+        fi
+
+        # End of configuration options
         # ----------------------------
 
         cd $MPI_SOURCE_DIR || exit 1

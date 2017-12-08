@@ -198,13 +198,13 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-v5.4.0/VTK VTK-8.1.0
+      ln -s ParaView-v5.4.1/VTK VTK-8.1.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-v5.4.0/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-v5.4.1/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
       set(VTK_MAJOR_VERSION 8)
@@ -217,7 +217,7 @@ and save some disk space.
   required.
   See additional notes below about [making Qt](#makeQt) if necessary.
 
-#### 5.4.0
+#### 5.4.x
 - Compiles without patching.
   No known issues with the native OpenFOAM reader.
 
@@ -318,8 +318,9 @@ GNU *configure* can only be used prior to clang version 3.9.
 
 | Name                  | Location
 |-----------------------|------------------------
-| [clang][page clang]   | [download][link clang]
-| [llvm][page llvm]     | [download][link llvm]
+| [clang][page clang]   | [download][link clang] or [newer][newer clang]
+| [llvm][page llvm]     | [download][link llvm] or [newer][newer llvm]
+| [openmp][page omp]    | [download][link omp] or [newer][newer omp]
 
 
 ### General <a name="general-packages"></a>
@@ -352,7 +353,7 @@ GNU *configure* can only be used prior to clang version 3.9.
 |-----------------------|------------------------
 | [MESA][page mesa]     | [download][link mesa] or [older 13][older13 mesa], [older 11][older11 mesa]
 | [ParaView][page ParaView] | [download][link ParaView]
-| [Qt][page Qt]         | [repo][repo Qt] or [download][link Qt]. The newer [Qt5][newer Qt5] only works with ParaView-5.3.0 and later.
+| [Qt][page Qt]         | Either the [older QT4][link Qt4] or the [newer QT5][link Qt5], which only works with ParaView-5.3.0 and later.
 
 
 ### CMake Minimum Requirements <a name="min-cmake"></a>
@@ -362,13 +363,14 @@ The minimum CMake requirements for building various components.
     2.8         llvm-3.4.2
     2.8.8       ParaView-5.0.1
     2.8.11      CGAL-4.9
+    2.8.11      CGAL-4.11
     2.8.12.2    llvm-3.7.0
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
     3.3         ParaView-5.1.2
     3.3         ParaView-5.2.0
     3.3         ParaView-5.3.0
-    3.3         ParaView-5.4.0
+    3.3         ParaView-5.4.1
     3.4.3       llvm-3.9.1
     3.4.3       llvm-4.0.0
     3.5         ParaView-5.1.0
@@ -397,21 +399,24 @@ The minimum gcc/g++ requirements for building various components.
 
 
 <!-- clang-related -->
-[page clang]:     http://llvm.org/
 [page llvm]:      http://llvm.org/
+[page clang]:     http://clang.llvm.org/
+[page omp]:       http://openmp.llvm.org/
 
 [link clang]:     http://llvm.org/releases/3.7.1/cfe-3.7.1.src.tar.xz
 [link llvm]:      http://llvm.org/releases/3.7.1/llvm-3.7.1.src.tar.xz
+[link omp]:       http://llvm.org/releases/3.7.1/openmp-3.7.1.src.tar.xz
 
-[newer clang]:    http://llvm.org/releases/4.0.0/cfe-4.0.0.src.tar.xz
-[newer llvm]:     http://llvm.org/releases/4.0.0/llvm-4.0.0.src.tar.xz
+[newer clang]:    http://llvm.org/releases/4.0.1/cfe-4.0.1.src.tar.xz
+[newer llvm]:     http://llvm.org/releases/4.0.1/llvm-4.0.1.src.tar.xz
+[newer omp]:      http://llvm.org/releases/4.0.1/openmp-4.0.1.src.tar.xz
 
 
 <!-- parallel -->
 [page adios]:     https://www.olcf.ornl.gov/center-projects/adios/
 [repo adios]:     https://github.com/ornladios/ADIOS
-[link adios]:     https://github.com/ornladios/ADIOS/archive/v1.11.1.tar.gz
-[altlink adios]:  http://users.nccs.gov/%7Epnorbert/adios-1.11.1.tar.gz
+[link adios]:     https://github.com/ornladios/ADIOS/archive/v1.13.0.tar.gz
+[altlink adios]:  http://users.nccs.gov/%7Epnorbert/adios-1.13.0.tar.gz
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
@@ -439,7 +444,7 @@ The minimum gcc/g++ requirements for building various components.
 [link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9.1/CGAL-4.9.1.tar.xz
 
 [page FFTW]:      http://www.fftw.org/
-[link FFTW]:      http://www.fftw.org/fftw-3.3.6-pl1.tar.gz
+[link FFTW]:      http://www.fftw.org/fftw-3.3.7.tar.gz
 
 [page cgns]:      http://cgns.github.io/
 [link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
@@ -455,7 +460,7 @@ The minimum gcc/g++ requirements for building various components.
 <!-- Visualization -->
 
 [page ParaView]:  http://www.paraview.org/
-[link ParaView]:  http://www.paraview.org/files/v5.4/ParaView-v5.4.0.tar.gz
+[link ParaView]:  http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
@@ -464,8 +469,8 @@ The minimum gcc/g++ requirements for building various components.
 
 [page Qt]: https://www.qt.io/download-open-source/
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
-[link Qt]: http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz
-[newer Qt5]: http://download.qt.io/official_releases/qt/5.9/5.9.0/single/qt-everywhere-opensource-src-5.9.0.tar.xz
+[link Qt4]: http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz
+[link Qt5]: http://download.qt.io/official_releases/qt/5.9/5.9.3/single/qt-everywhere-opensource-src-5.9.3.tar.xz
 
 <!-- OpenFOAM -->
 
@@ -481,8 +486,9 @@ The minimum gcc/g++ requirements for building various components.
 - [Download](http://www.openfoam.com/download) and
   [installation instructions](http://www.openfoam.com/code/build-guide.php)
 - [Documentation](http://www.openfoam.com/documentation)
-- [Reporting bugs/issues](http://www.openfoam.com/code/bug-reporting.php) (including bugs/suggestions/feature requests) in OpenFOAM+
+- [Reporting bugs/issues](http://www.openfoam.com/code/bug-reporting.php) (including bugs/suggestions/feature requests) in OpenFOAM
 - [Contacting OpenCFD](http://www.openfoam.com/contact)
+
 ---
 
 Copyright 2016-2017 OpenCFD Ltd

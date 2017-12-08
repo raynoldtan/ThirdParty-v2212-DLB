@@ -7,20 +7,8 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # Script
 #     makeADIOS
@@ -51,7 +39,7 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [adios-VERSION]
+usage: ${0##*/} [OPTION] [adios-VERSION] [-- configure-options]
 options:
   -cmake PATH       With cmake from the path given
   -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
@@ -75,6 +63,7 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
 
@@ -86,6 +75,7 @@ do
     ADIOS-[1-9]* | adios-[1-9]* | ADIOS-git* | adios-git*)
         adiosPACKAGE="${1%%/}"
         ;;
+
     *)
         die "unknown option/argument: '$1'"
         ;;
@@ -95,7 +85,7 @@ done
 
 [ -n "$adiosPACKAGE" ] || die "The adios-VERSION was not specified"
 
-# nothing to build
+# Nothing to build
 if _foamIsNone "$adiosPACKAGE"
 then
     echo "Using adios-none (skip ThirdParty build of ADIOS)"
@@ -246,7 +236,7 @@ then
     echo "Starting build: $adiosPACKAGE (using configure)"
     echo
     (
-        # configuration options:
+        # Configuration options:
         unset configOpt
 
         # Add InfiniBand support
@@ -257,22 +247,29 @@ then
         fi
 
         # Transport layers
-        if [ -f "/usr/include/bzlib.h" ]
+        if [ -f /usr/include/bzlib.h ]
         then
             configOpt="$configOpt --with-bzip2"
         fi
 
-        if [ -f "/usr/include/zlib.h" ]
+        if [ -f /usr/include/zlib.h ]
         then
             configOpt="$configOpt --with-zlib"
         fi
 
         # Other types of support
-        ## $configOpt="$configOpt --with-hdf5=..."
-        ## $configOpt="$configOpt --with-lustre=..."
+        ## configOpt="$configOpt --with-hdf5=..."
+        ## configOpt="$configOpt --with-lustre=..."
         ## configOpt="$configOpt --enable-research-transports"
 
-        # end of configuration options
+        # Additional configure options
+        if [ "$1" = "--" ]
+        then
+            shift
+            configOpt="$configOpt $@"
+        fi
+
+        # End of configuration options
         # ----------------------------
         buildDIR=$buildBASE/$adiosPACKAGE
 

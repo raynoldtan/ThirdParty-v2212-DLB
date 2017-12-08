@@ -6,6 +6,7 @@
 
 EXE_INC = \
     ${c++LESSWARN} \
+    ${COMP_OPENMP} \
     -DNDEBUG -DMODE_NODESEP \
     -I$(KAHIP_LIB_SRC) \
     -I$(KAHIP_LIB_SRC)/partition \
