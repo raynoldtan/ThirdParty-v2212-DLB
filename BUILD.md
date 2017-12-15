@@ -221,23 +221,8 @@ and save some disk space.
 - Compiles without patching.
   No known issues with the native OpenFOAM reader.
 
-#### 5.3.0
-- Compiles without patching.
-  The native OpenFOAM reader has a bug reading tetrahedrals.
-
-#### 5.2.0
-- Compiles without patching, but the native OpenFOAM reader is
-  broken in this version.
-
-#### 4.4.0/5.0.0/5.0.1/5.1.2
-- When using `makeParaView`, the following patches will be automatically
-  applied (see the `etc/patches` directory):
-  - Bugfix for STL reader - affects 4.4.0 only.
-  - Broken installation (ui_pqExportStateWizard.h) - affects 4.4.0/5.0.0/5.0.1/5.1.x
-  - Building with gcc-6.1.0 - affects 4.4.0/5.0.0/5.0.1 (patch applied for 5.0.1)
-  - The SciberQuestToolKit plugin fails to compile with gcc-6.1.0 and causes
-    the compilation of ParaView to halt. The easiest solution is to delete
-    the ParaView-5.0.1/Plugins/SciberQuestToolKit directory.
+#### 5.3.0 and older are neither recommended nor supported
+- Various compilation issues and known bugs.
 
 ### ADIOS
 - The github release currently requires GNU autoconf tools (eg,
@@ -260,7 +245,7 @@ and save some disk space.
 
 3. Build ParaView using this third-party QT. For example,
 
-       ./makeParaView -qt-4.8.7 5.0.1
+       ./makeParaView -qt-4.8.7 5.4.1
 
 - ParaView versions prior to 5.3.0 do not properly support QT5.
 
@@ -361,19 +346,14 @@ GNU *configure* can only be used prior to clang version 3.9.
 The minimum CMake requirements for building various components.
 
     2.8         llvm-3.4.2
-    2.8.8       ParaView-5.0.1
     2.8.11      CGAL-4.9
     2.8.11      CGAL-4.11
     2.8.12.2    llvm-3.7.0
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
-    3.3         ParaView-5.1.2
-    3.3         ParaView-5.2.0
-    3.3         ParaView-5.3.0
     3.3         ParaView-5.4.1
     3.4.3       llvm-3.9.1
     3.4.3       llvm-4.0.0
-    3.5         ParaView-5.1.0
 
 
 ### GCC Minimum Requirements <a name="min-gcc"></a>

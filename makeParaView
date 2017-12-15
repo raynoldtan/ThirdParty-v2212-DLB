@@ -14,7 +14,7 @@
 #     makeParaView
 #
 # Description
-#     Make and install ParaView 4 or 5.
+#     Make and install ParaView.
 #     The ParaView sources should be located under one of these locations:
 #       - $WM_THIRD_PARTY_DIR/ParaView-VERSION
 #       - $WM_THIRD_PARTY_DIR/ParaView-vVERSION
@@ -103,7 +103,7 @@ For finer control, the build stages can be selected or deselected individually:
 To make a different paraview version, simply specify on the command-line.
 For example,
 
-    ./makeParaview 5.0.1
+    ./makeParaview 5.4.1
 
 Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 
