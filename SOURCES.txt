@@ -1,4 +1,4 @@
-Quick summary of third-party versions for recent OpenFOAM versions.
+Short summary of third-party software versions for recent OpenFOAM versions.
 
 OpenFOAM-1712
 ---------------
@@ -8,6 +8,7 @@ boost_1_64_0
 fftw-3.3.7          *minor*
 openmpi-1.10.4
 scotch_6.0.3
+kahip-2.00d         *new*
 
 
 OpenFOAM-1706
@@ -50,11 +51,19 @@ scotch_6.0.3
 
 OpenFOAM-v2.4+
 ---------------
-CGAL-4.6
+CGAL-4.6            *update*
 ParaView-4.1.0
-cmake-2.8.12.1
-openmpi-1.8.5
-scotch_6.0.3
+openmpi-1.8.5       *update*
+scotch_6.0.3        *update*
+
+
+---------------
+OpenFOAM-v2.3
+---------------
+CGAL-4.3
+ParaView-4.1.0
+openmpi-1.6.5
+scotch_6.0.0
 
 
 ---------------

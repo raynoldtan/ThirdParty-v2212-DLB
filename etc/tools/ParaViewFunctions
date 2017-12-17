@@ -16,7 +16,7 @@
 #     ParaView make/install helper functions
 #
 # Note
-#     Obtainining paths via 'python-config' is possible, but may not always
+#     Obtaining paths via 'python-config' is possible, but may not always
 #     resolve properly:
 #
 #         python-config --includes

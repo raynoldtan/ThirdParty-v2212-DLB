@@ -13,7 +13,7 @@
 #     etc/tools/ThirdPartyFunctions
 #
 # Description
-#     Functions for managing the third-party packages
+#     Various functions used in building ThirdParty packages
 #
 #     Define the standard buildBASE and installBASE for the platform
 #     Define WM_NCOMPPROCS always.
@@ -46,16 +46,21 @@ useGccFlag()
     done
 }
 
-# Return mpiicc (for INTELMPI) or mpicc etc.
+# Return <mpicc> by default or <mpiicc> if possible for INTELMPI.
+# Cray doesn't have <mpicc>, but its <cc> manages mpi paths directly.
+# NOTE: could further refine based on $CC or $WM_CC, but not yet needed
 whichMpicc()
 {
-    local mpicc
+    local mpicc=$(command -v mpicc)
     case "$WM_MPLIB" in
     (INTELMPI)
-        mpicc=$(command -v mpiicc)      # Try using intel 'mpiicc'
+        mpicc=$(command -v mpiicc)  # Intel <mpiicc> available?
+        ;;
+    (CRAY-MPI*)
+        : ${mpicc:=cc}              # Cray <cc> if there is no <mpicc>
         ;;
     esac
-    echo "${mpicc:-mpicc}"              # mpiicc | mpicc
+    echo "${mpicc:-mpicc}"
 }
 
 #------------------------------------------------------------------------------
@@ -105,7 +110,6 @@ else
     WM_NCOMPPROCS=1
 fi
 export WM_NCOMPPROCS
-# echo "Building on $WM_NCOMPPROCS cores"
 
 
 #
