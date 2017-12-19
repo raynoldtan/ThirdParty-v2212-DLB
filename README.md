@@ -72,6 +72,7 @@ More details can be found the ThirdParty BUILD.md information.
 [link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
 [link community-projects]: http://www.openfoam.com/community/projects.php
 
+---
 
 <!-- Standard Footer -->
 ## Additional OpenFOAM Links

@@ -49,7 +49,7 @@ openmpi-1.10.0      *update*
 scotch_6.0.3
 
 
-OpenFOAM-v2.4+
+OpenFOAM-v2.4
 ---------------
 CGAL-4.6            *update*
 ParaView-4.1.0

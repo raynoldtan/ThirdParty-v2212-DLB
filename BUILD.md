@@ -297,8 +297,12 @@ install the 32-bit development libraries by default.
 The minimum version of clang required is 3.3.
 
 *Attention*: If you are building a newer version of clang, you may need to
-update your CMake beforehand.
-GNU *configure* can only be used prior to clang version 3.9.
+update your CMake beforehand since GNU *configure* can only be used prior
+to clang version 3.9.
+
+If your system gcc is particularly old
+(see [minimum gcc requirements for clang](#min-gcc))
+you may have additional hurdles to using the newest versions of clang.
 
 
 | Name                  | Location
@@ -364,6 +368,10 @@ The minimum gcc/g++ requirements for building various components.
     4.7         llvm-3.6.2
     4.7         llvm-3.5.2
     4.4         llvm-3.4.2
+
+If your system gcc/g++ is too old to build the desired llvm/clang
+version, you may need to build a lower llvm/clang version and then use
+that clang compiler for building the newer llvm/clang version.
 
 
 <!-- gcc-related -->
@@ -457,6 +465,7 @@ The minimum gcc/g++ requirements for building various components.
 [link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
 [link community-projects]: http://www.openfoam.com/community/projects.php
 
+---
 
 <!-- Standard Footer -->
 ## Additional OpenFOAM Links
