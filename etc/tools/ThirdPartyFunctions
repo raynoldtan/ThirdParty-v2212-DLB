@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2018 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -26,6 +26,35 @@ installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER
 
 unset BUILD_SUFFIX
 #------------------------------------------------------------------------------
+# Export WM compiler settings (and flags) for CMake/configure
+# $1 = true: export compiler flags too
+exportCompiler()
+{
+    if test -n "$WM_CC" && command -v "$WM_CC" >/dev/null
+    then
+        export CC="$WM_CC"
+        if [ "$1" = true -a -n "$WM_CFLAGS" ]
+        then
+            export CFLAGS="$WM_CFLAGS"
+        fi
+    fi
+
+    if test -n "$WM_CXX" && command -v "$WM_CXX" >/dev/null
+    then
+        export CXX="$WM_CXX"
+        if [ "$1" = true -a -n "$WM_CXXFLAGS" ]
+        then
+            export CXXFLAGS="$WM_CXXFLAGS"
+        fi
+    fi
+}
+
+# Export WM linker settings for CMake/configure
+exportLinker()
+{
+    [ -n "$WM_LDFLAGS" ] && export LDFLAGS="$WM_LDFLAGS"
+}
+
 # Force use of gcc/g++
 useGcc()
 {

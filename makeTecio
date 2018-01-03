@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -61,9 +61,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 # Parse options
 while [ "$#" -gt 0 ]
