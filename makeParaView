@@ -7,26 +7,14 @@
 #    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # Script
 #     makeParaView
 #
 # Description
-#     Make and install ParaView 4 or 5.
+#     Make and install ParaView.
 #     The ParaView sources should be located under one of these locations:
 #       - $WM_THIRD_PARTY_DIR/ParaView-VERSION
 #       - $WM_THIRD_PARTY_DIR/ParaView-vVERSION
@@ -78,6 +66,8 @@ options:
   -mpi              with mpi
   -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
   -python           with python
+  -python-include DIR
+                    location of python headers (current: ${PYTHON_INCLUDE:-none})
   -python-lib PATH  path to python library (current: ${PYTHON_LIBRARY:-none})
   -cmake PATH       with cmake from the path given
   -qmake PATH       with the Qt version corresponding to the qmake path given
@@ -113,7 +103,7 @@ For finer control, the build stages can be selected or deselected individually:
 To make a different paraview version, simply specify on the command-line.
 For example,
 
-    ./makeParaview 5.0.1
+    ./makeParaview 5.4.1
 
 Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 
@@ -233,6 +223,12 @@ do
     -no-python)
         withPYTHON=false
         ;;
+    -python-include)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withPYTHON=true
+        PYTHON_INCLUDE="${2%%/}"
+        shift
+        ;;
     -python-lib)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         withPYTHON=true
@@ -291,7 +287,7 @@ done
 
 [ -n "$ParaView_VERSION" ] || die "The paraview-VERSION was not specified"
 
-# nothing to build
+# Nothing to build
 if _foamIsNone "$ParaView_VERSION"
 then
     echo "Using paraview-none (skip ThirdParty build of ParaView)"

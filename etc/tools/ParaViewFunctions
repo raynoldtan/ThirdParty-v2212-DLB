@@ -6,26 +6,26 @@
 #    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # File
 #     etc/tools/ParaViewFunctions
 #
 # Description
 #     ParaView make/install helper functions
+#
+# Note
+#     Obtaining paths via 'python-config' is possible, but may not always
+#     resolve properly:
+#
+#         python-config --includes
+#         >>
+#             -I/usr/include/python2.7 -I/usr/include/python2.7
+#
+#         python-config --libs
+#         >>
+#             -lpython2.7 -lpthread -ldl -lutil -lm
 #
 #------------------------------------------------------------------------------
 
@@ -116,10 +116,10 @@ setParaViewVersion()
 #
 addCMakeVariable()
 {
-    while [ -n "$1" ]
+    local i
+    for i
     do
-        CMAKE_VARIABLES="$CMAKE_VARIABLES -D$1"
-        shift
+        [ -n "$i" ] && CMAKE_VARIABLES="$CMAKE_VARIABLES -D$i"
     done
 }
 
@@ -146,7 +146,7 @@ addMpiSupport()
         return
     fi
 
-    addCMakeVariable "PARAVIEW_USE_MPI=ON VTK_USE_MPI=ON"
+    addCMakeVariable "PARAVIEW_USE_MPI=ON" "VTK_USE_MPI=ON"
     if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
     then
         addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
@@ -159,68 +159,91 @@ addMpiSupport()
 #
 addPythonSupport()
 {
-    if [ "${withPYTHON:=false}" != true ]
+    if [ "${withPYTHON:-false}" != true ]
     then
         return
     fi
 
-    if pythonBin=$(which python 2>/dev/null)
-    then
-        if [ -n "$PYTHON_LIBRARY" ]
-        then
-            # Check $PYTHON_LIBRARY if it has been set
-            if [ ! -e "$PYTHON_LIBRARY" ]
-            then
-                echo "*** Error: libpython not found at location specified " \
-                     "by -pythnon-lib input: PYTHON_LIBRARY=$PYTHON_LIBRARY"
-            fi
-        else
-            # Try to get $PYTHON_LIBRARY from dynamically linked binary
-            PYTHON_LIBRARY=$(ldd $pythonBin | \
-                sed -ne '/libpython/s/.* => \(.*\) (.*/\1/p')
+    local pythonBin pythonConfig pythonMajor
 
-            [ -e "$PYTHON_LIBRARY" ] || {
-                echo "*** Error: Unable to determine path to python library."
-            }
-        fi
-
-        [ -e "$PYTHON_LIBRARY" ] || {
-            echo "    Please set the full path to the python library "
-            echo "    (including libpython) using the -python-lib option, "
-            echo "    or deactivate python support by not using the -python "
-            echo "    option"
-            exit 1
-        }
-
-        pythonMajor=$(echo $PYTHON_LIBRARY | sed 's/.*libpython\(.*\)\.so.*/\1/')
-        pythonInclude=/usr/include/python$pythonMajor
-
-        # Note - we could also allow for a PYTHON_INCLUDE variable ...
-        [ -d "$pythonInclude" -a -f "$pythonInclude/Python.h" ] || {
-            echo "    No python headers found in $pythonInclude/"
-            echo "    Please install python headers or deactivate "
-            echo "    python support by not using the -python option"
-            exit 1
-        }
-
-        addCMakeVariable "PARAVIEW_ENABLE_PYTHON=ON"
-        addCMakeVariable "PYTHON_INCLUDE_DIRS=$pythonInclude"
-        addCMakeVariable "PYTHON_LIBRARY=$PYTHON_LIBRARY"
-
-        echo "----"
-        echo "Python information:"
-        echo "    executable     : $pythonBin"
-        echo "    version        : $pythonMajor"
-        echo "    include path   : $pythonInclude"
-        echo "    library        : $PYTHON_LIBRARY"
-
-        unset pythonBin pythonInclude pythonMajor
-    else
+    pythonBin=$(which python 2>/dev/null) || {
         echo "*** Error: python not found"
         echo "***        Deactivate python support by not using the -python "
         echo "***        option"
         exit 1
+    }
+
+    if [ -n "$PYTHON_LIBRARY" ]
+    then
+
+        # PYTHON_LIBRARY set:
+        [ -e "$PYTHON_LIBRARY" ] || \
+            echo "*** Error: libpython not found at location specified " \
+                 "by -python-lib : PYTHON_LIBRARY=$PYTHON_LIBRARY"
+
+    else
+
+        # Fallback: get PYTHON_LIBRARY from dynamically linked binary
+
+        PYTHON_LIBRARY=$(ldd $pythonBin | \
+            sed -ne '/libpython/s/^.* => \(.*\) (.*/\1/p')
+
+        [ -e "$PYTHON_LIBRARY" ] || {
+            echo "*** Error: Unable to determine path to python library."
+        }
+
     fi
+
+    [ -e "$PYTHON_LIBRARY" ] || {
+        echo "    Please set the full path to the python library "
+        echo "    (including libpython) using the -python-lib option, "
+        echo "    or deactivate python support by not using the -python "
+        echo "    option"
+        exit 1
+    }
+
+    # Guess major from library
+    pythonMajor=$(echo $PYTHON_LIBRARY | sed 's/.*libpython\(.*\)\.so.*/\1/')
+
+    if [ -n "$PYTHON_INCLUDE" ]
+    then
+
+        # PYTHON_INCLUDE set:
+        [ -d "$PYTHON_INCLUDE" -a -f "$PYTHON_INCLUDE/Python.h" ] || \
+            echo "*** Error: Python.h not found at location specified " \
+                 "by -python-include : PYTHON_INCLUDE=$PYTHON_INCLUDE"
+
+    elif pythonConfig=$(which python-config 2>/dev/null)
+    then
+        # Guess from python-config
+        # parse '-I/usr/include/python2.7 -I/usr/include/python2.7'
+        # -> '/usr/include/python2.7'
+        PYTHON_INCLUDE=$(python-config --includes | sed -ne 's/^-I\([^ ][^ ]*\).*$/\1/p')
+
+    else
+
+        # Fallback to system headers
+        PYTHON_INCLUDE=/usr/include/python$pythonMajor
+
+    fi
+
+    [ -d "$PYTHON_INCLUDE" -a -f "$PYTHON_INCLUDE/Python.h" ] || {
+        echo "    No python headers found in $PYTHON_INCLUDE/"
+        echo "    Please install python headers or deactivate "
+        echo "    python support by not using the -python option"
+        exit 1
+    }
+
+    addCMakeVariable "PARAVIEW_ENABLE_PYTHON=ON"
+    addCMakeVariable "PYTHON_INCLUDE_DIRS=$PYTHON_INCLUDE"
+    addCMakeVariable "PYTHON_LIBRARY=$PYTHON_LIBRARY"
+
+    echo "----"
+    echo "Python information:"
+    echo "    executable     : $pythonBin"
+    echo "    version        : $pythonMajor"
+    echo "    include path   : $PYTHON_INCLUDE"
+    echo "    library        : $PYTHON_LIBRARY"
 }
 
 

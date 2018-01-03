@@ -7,26 +7,14 @@
 #    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # Script
 #     Allwmake
 #
 # Description
-#     Build script for ThirdParty
+#     Build script for ThirdParty applications/libraries
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
@@ -65,8 +53,7 @@ warnBuildIssues()
 
 warnNotFound()
 {
-    echo "    Optional component ($1) was not found"
-    echo
+    echo "Optional component ($1) was not found"
 }
 
 #------------------------------------------------------------------------------
@@ -101,20 +88,20 @@ fi
 
 echo
 echo ========================================
-echo "Build Scotch decomposition library $SCOTCH_VERSION"
+echo "Scotch decomposition ($SCOTCH_VERSION)"
 echo "    $SCOTCH_ARCH_PATH"
 
 SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
 
 # Needs generalizing, but works fairly well
-scotchMakefile=../../etc/wmakeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
+scotchMakefile=../../etc/makeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
 
 if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
   -a -r $FOAM_EXT_LIBBIN/libscotch.so \
   -a -r $FOAM_EXT_LIBBIN/libscotcherrexit.so ]
 then
-    echo "    scotch header in $SCOTCH_ARCH_PATH/include"
-    echo "    scotch libs   in $FOAM_EXT_LIBBIN"
+    echo "    scotch include: $SCOTCH_ARCH_PATH/include"
+    echo "    scotch library: $FOAM_EXT_LIBBIN"
 elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
@@ -145,6 +132,9 @@ then
     export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
     export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
 
+    # Consistency for Intel-MPI and non-icc compilers
+    [ -n "$I_MPI_CC" ] || export I_MPI_CC="${CC:-$WM_CC}"
+
     make realclean 2>/dev/null  # Extra safety
     make -j $WM_NCOMPPROCS scotch \
      && make \
@@ -173,15 +163,15 @@ if [ "${FOAM_MPI:-dummy}" != dummy ] && \
 then
     echo
     echo ========================================
-    echo "Build pt-scotch decomposition library $SCOTCH_VERSION (with $FOAM_MPI)"
+    echo "pt-scotch decomposition ($SCOTCH_VERSION with $FOAM_MPI)"
     echo "    $SCOTCH_ARCH_PATH"
 
     if [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h \
       -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch.so \
       -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotcherrexit.so ]
     then
-        echo "    ptscotch header in $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
-        echo "    ptscotch libs   in $FOAM_EXT_LIBBIN/$FOAM_MPI"
+        echo "    ptscotch include: $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
+        echo "    ptscotch library: $FOAM_EXT_LIBBIN/$FOAM_MPI"
     else
     (
         cd $SCOTCH_SOURCE_DIR/src || exit 1
@@ -209,6 +199,9 @@ then
         export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
         export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
 
+        # Consistency for Intel-MPI and non-icc compilers
+        [ -n "$I_MPI_CC" ] || export I_MPI_CC="${CC:-$WM_CC}"
+
         make realclean 2>/dev/null  # Extra safety
         make -j $WM_NCOMPPROCS ptscotch \
          && make \
@@ -233,55 +226,46 @@ fi
 
 #------------------------------------------------------------------------------
 
-# Metis is optional
 echo
 echo ========================================
-echo Build Metis decomposition
-
-# Get METIS_VERSION, METIS_ARCH_PATH
-if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
+# Get KAHIP_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/kahip)
 then
     . $settings
 fi
-
-METIS_SOURCE_DIR=$sourceBASE/$METIS_VERSION
-
-if [ -f $METIS_ARCH_PATH/include/metis.h \
-  -a -r $FOAM_EXT_LIBBIN/libmetis.so ]
+if [ -n "$KAHIP_ARCH_PATH" ]
 then
-    echo "    metis header in $METIS_ARCH_PATH/include"
-    echo "    metis libs   in $FOAM_EXT_LIBBIN"
-elif [ -d "$METIS_SOURCE_DIR" ]
-then
-(
-    cd $METIS_SOURCE_DIR || exit 1
-    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
-    rm -rf $METIS_ARCH_PATH
-
-    # Adjust metis integer size to match OpenFOAM label-size
-    sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
-        include/metis.h
-
-    # No config option for the library location.
-    # - build normally and use mv to relocate it
-
-    make config shared=1 prefix=$METIS_ARCH_PATH \
-     && make -j $WM_NCOMPPROCS install \
-     && mv $METIS_ARCH_PATH/lib/libmetis.so $FOAM_EXT_LIBBIN
-
-    rmdir $METIS_ARCH_PATH/lib 2>/dev/null || true # Failed rmdir is uncritical
-) || warnBuildIssues METIS
+    echo KaHIP decomposition
+    ./makeKAHIP -test "$KAHIP_ARCH_PATH" || \
+    ./makeKAHIP || warnBuildIssues KAHIP
 else
-    warnNotFound METIS
+    warnNotFound KAHIP   # METIS is optional
 fi
-
 
 #------------------------------------------------------------------------------
 echo
 echo ========================================
-echo Build CGAL
+
+# Get METIS_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
+then
+    . $settings
+fi
+if [ -n "$METIS_ARCH_PATH" ]
+then
+    echo Metis decomposition
+    ./makeMETIS -test "$METIS_ARCH_PATH" || \
+    ./makeMETIS || warnBuildIssues METIS
+else
+    warnNotFound METIS   # METIS is optional
+fi
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
 if [ -n "$CGAL_ARCH_PATH" ]
 then
+    echo "CGAL/boost"
     ./makeCGAL -test "$CGAL_ARCH_PATH" "$BOOST_ARCH_PATH" || \
     ./makeCGAL || warnBuildIssues CGAL
 else
@@ -290,9 +274,9 @@ fi
 
 echo
 echo ========================================
-echo Build FFTW
 if [ -n "$FFTW_ARCH_PATH" ]
 then
+    echo FFTW
     ./makeFFTW -test "$FFTW_ARCH_PATH" || \
     ./makeFFTW || warnBuildIssues FFTW
 else

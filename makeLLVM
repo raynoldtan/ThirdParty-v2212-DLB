@@ -7,20 +7,8 @@
 #    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # Script
 #     makeLLVM
@@ -35,12 +23,16 @@
 #    For example, when building from tar files (version 4.0.0)
 #
 #    1) Unpack LLVM:
-#        tar -xJf llvm-4.0.0.src.tar.xz
-#        mv llvm-4.0.0.src  llvm-4.0.0
+#        tar -xJf llvm-4.0.1.src.tar.xz
+#        mv llvm-4.0.1.src  llvm-4.0.1
 #
 #    2) Unpack Clang (also know as cfe):
-#        tar -xJf cfe-4.0.0.src.tar.xz
-#        mv cfe-4.0.0.src  llvm-4.0.0/tools/clang
+#        tar -xJf cfe-4.0.1.src.tar.xz
+#        mv cfe-4.0.1.src  llvm-4.0.1/tools/clang
+#
+#    3) Unpack openmp (optional):
+#        tar -xJf openmp-4.0.1.src.tar.xz
+#        mv openmp-4.0.1.src  llvm-4.0.1/tools/openmp
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE

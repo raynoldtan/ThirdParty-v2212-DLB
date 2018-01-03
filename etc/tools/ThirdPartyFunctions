@@ -6,26 +6,14 @@
 #    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # File
 #     etc/tools/ThirdPartyFunctions
 #
 # Description
-#     Functions for managing the third-party packages
+#     Various functions used in building ThirdParty packages
 #
 #     Define the standard buildBASE and installBASE for the platform
 #     Define WM_NCOMPPROCS always.
@@ -58,16 +46,21 @@ useGccFlag()
     done
 }
 
-# Return mpiicc (for INTELMPI) or mpicc etc.
+# Return <mpicc> by default or <mpiicc> if possible for INTELMPI.
+# Cray doesn't have <mpicc>, but its <cc> manages mpi paths directly.
+# NOTE: could further refine based on $CC or $WM_CC, but not yet needed
 whichMpicc()
 {
-    local mpicc
+    local mpicc=$(command -v mpicc)
     case "$WM_MPLIB" in
     (INTELMPI)
-        mpicc=$(command -v mpiicc)      # Try using intel 'mpiicc'
+        mpicc=$(command -v mpiicc)  # Intel <mpiicc> available?
+        ;;
+    (CRAY-MPI*)
+        : ${mpicc:=cc}              # Cray <cc> if there is no <mpicc>
         ;;
     esac
-    echo "${mpicc:-mpicc}"              # mpiicc | mpicc
+    echo "${mpicc:-mpicc}"
 }
 
 #------------------------------------------------------------------------------
@@ -117,7 +110,6 @@ else
     WM_NCOMPPROCS=1
 fi
 export WM_NCOMPPROCS
-# echo "Building on $WM_NCOMPPROCS cores"
 
 
 #
@@ -417,7 +409,7 @@ downloadFile()
 
 
 #
-# Copy Make/{files,options} from etc/wmakeFiles/PACKAGE
+# Copy Make/{files,options} from etc/makeFiles/PACKAGE
 #
 # $1 = PACKAGE
 # $2 = TARGET DIRECTORY (optional)
@@ -432,7 +424,7 @@ cpMakeFiles()
     local dst="${2:-.}"
     echo "cpMakeFiles" $pkg $dst
 
-    wmakeFiles=$WM_THIRD_PARTY_DIR/etc/wmakeFiles/$pkg
+    wmakeFiles=$WM_THIRD_PARTY_DIR/etc/makeFiles/$pkg
 
     for i in $(cd $wmakeFiles && find . -type f)
     do

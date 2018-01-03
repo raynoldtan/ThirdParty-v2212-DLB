@@ -7,20 +7,8 @@
 #    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM.
-#
-#     OpenFOAM is free software: you can redistribute it and/or modify it
-#     under the terms of the GNU General Public License as published by
-#     the Free Software Foundation, either version 3 of the License, or
-#     (at your option) any later version.
-#
-#     OpenFOAM is distributed in the hope that it will be useful, but WITHOUT
-#     ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-#     FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-#     for more details.
-#
-#     You should have received a copy of the GNU General Public License
-#     along with OpenFOAM.  If not, see <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
 #
 # Script
 #     makeCCMIO
@@ -111,29 +99,48 @@ CCMIO_ARCH_PATH=$installBASE/$ccmioPACKAGE
 # Sources must be available
 [ -d "$CCMIO_SOURCE_DIR" ] || die "Missing sources: '$ccmioPACKAGE'"
 
+#
+# Manual installation
+#
+install()
+{
+    # Ensure a clean build next time
+    wclean
+
+    local incdir=$CCMIO_ARCH_PATH/include/libccmio
+
+    # Make headers available:
+    mkdir -m 0755 -p $incdir
+
+    /bin/cp -pv libccmio/ccmio*.h $incdir
+}
+
+echo "Starting build: $ccmioPACKAGE ($targetType)"
+echo
 (
     cd $CCMIO_SOURCE_DIR || exit 1
     export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
-    incDIR=$CCMIO_ARCH_PATH/include/libccmio
-    libDIR=$CCMIO_ARCH_PATH/lib
+    rm -rf $CCMIO_ARCH_PATH
+    rm -f $FOAM_EXT_LIBBIN/libccmio.so
 
-    mkdir -p $incDIR 2>/dev/null
-    mkdir -p $libDIR 2>/dev/null
+    libdir=$CCMIO_ARCH_PATH/lib
 
     cpMakeFiles libccmio 2>/dev/null
 
     # Place static libraries in sub-directory:
     if [ "$targetType" = lib ]
     then
-        export FOAM_EXT_LIBBIN=$libDIR
+        mkdir -m 0755 -p $libdir 2>/dev/null
+        export FOAM_EXT_LIBBIN=$libdir
     fi
 
-    if wmake $targetType
-    then
-        # Make headers available:
-        /bin/cp -pv libccmio/ccmio*.h $incDIR
-    fi
-)
+    wmake -j $WM_NCOMPPROCS -s $targetType \
+    && echo "Built: ccmio" \
+    && install
+) || {
+    echo "Error building: ccmio"
+    exit 1
+}
 
 #------------------------------------------------------------------------------
