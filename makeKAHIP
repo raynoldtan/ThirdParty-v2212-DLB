@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2017-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -118,6 +118,8 @@ then
     echo "Using kahip-system"
     exit 0
 fi
+
+requireWMakeToolchain
 
 #------------------------------------------------------------------------------
 #

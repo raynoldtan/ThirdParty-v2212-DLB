@@ -92,6 +92,29 @@ whichMpicc()
     echo "${mpicc:-mpicc}"
 }
 
+# The presence of wmkdep etc required for building with wmake
+requireWMakeToolchain()
+{
+    local dir="${WM_DIR:-$WM_PROJECT_DIR/wmake}"
+    local src="$dir/src"
+    local bin="$dir/platforms/$WM_ARCH$WM_COMPILER/wmkdep"
+
+    test -x $bin || {
+        echo "Warning: the 'wmkdep' binary is missing - attempting to build it"
+        ( cd $src && make -s )
+    }
+
+    test -x $bin || {
+        exec 1>&2
+        echo
+        echo "Error: cannot use wmake build for '${0##*/}"
+        echo "    The 'wmkdep' binary is missing"
+        echo "    Please run the top-level OpenFOAM Allwmake first"
+        echo
+        exit 1
+    }
+}
+
 #------------------------------------------------------------------------------
 # Some functions as per OpenFOAM etc/config.sh/functions
 
