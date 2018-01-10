@@ -294,7 +294,7 @@ install the 32-bit development libraries by default.
 
 ### Clang Compiler <a name="clang-compiler"></a>
 
-The minimum version of clang required is 3.3.
+The minimum version of clang required is 3.5.
 
 *Attention*: If you are building a newer version of clang, you may need to
 update your CMake beforehand since GNU *configure* can only be used prior
