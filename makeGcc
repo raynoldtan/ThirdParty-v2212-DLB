@@ -39,6 +39,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
+unset GMP_ARCH_PATH MPFR_ARCH_PATH                                  # Purge old
 
 [ "${WM_COMPILER#Gcc}" = "$WM_COMPILER" ] && WM_COMPILER=Gcc        # Force gcc
 WM_COMPILER_TYPE=ThirdParty                # Ensure we get the correct settings
@@ -99,12 +100,15 @@ do
         gmpPACKAGE="gmp-system"
         mpfrPACKAGE="mpfr-system"
         mpcPACKAGE="mpc-system"
+        unset GMP_ARCH_PATH MPFR_ARCH_PATH
         ;;
     gmp-[4-9]* | gmp-system)
         gmpPACKAGE="${1%%/}"
+        unset GMP_ARCH_PATH
         ;;
     mpfr-[2-9]* | mpfr-system)
         mpfrPACKAGE="${1%%/}"
+        unset MPFR_ARCH_PATH
         ;;
     mpc-[0-9]* | mpc-system)
         mpcPACKAGE="${1%%/}"
@@ -169,7 +173,7 @@ addLib()
 # Build GMP
 # ================
 echo "---------------"
-if [ -d $GMP_ARCH_PATH ]
+if [ -d "$GMP_ARCH_PATH" ]
 then
     echo "Already built: $gmpPACKAGE"
 elif _foamIsSystem $GMP_ARCH_PATH

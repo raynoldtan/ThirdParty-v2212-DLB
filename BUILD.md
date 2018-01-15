@@ -83,9 +83,9 @@ automatically as part of the top-level OpenFOAM `Allwmake`.
 Nonetheless it may be necessary or useful to build various
 ThirdParty components prior to building OpenFOAM itself.
 
+### Bootstrapping *(optional)*
 
-### Build Sequence
-1. `makeGcc` _or_ `makeLLVM` <a name="makeGcc"></a> *(optional)*
+* `makeGcc` _or_ `makeLLVM` <a name="makeGcc"></a>
    - Makes a third-party [gcc](#gcc-compiler) or [clang](#clang-compiler) installation,
      which is needed if the system gcc is [too old](#gcc-compiler).
      If your system compiler is recent enough, you can skip this step.
@@ -93,30 +93,75 @@ ThirdParty components prior to building OpenFOAM itself.
      OpenFOAM `etc/bashrc` or your equivalent `prefs.sh` file:
      - `WM_COMPILER_TYPE=ThirdParty`
      - `WM_COMPILER=Gcc48` (for example)
-     - or `WM_COMPILER=Clang` and adjust the `clang_version` entry in the OpenFOAM
+     - `WM_COMPILER=Clang40` (for example)
+     - or `WM_COMPILER=Clang` and adjust `clang_version` in the OpenFOAM
      `etc/config.sh/compiler` or equivalent.
    - More description is contained in the header comments of the
      `makeGcc` and `makeLLVM` files.
    - *Attention*: If you are building a newer version of clang, you may need to
      update your CMake beforehand.
-2. `makeCmake`  *(optional)*
+* `makeCmake`
    - Makes a third-party [CMake](#general-packages) installation, which is
      needed if a system CMake does not exist or is [too old](#min-cmake),
    - Note that CMake is being used by an number of third-party packages
      (CGAL, LLVM, ParaView, VTK, ...)
      so this may become an increasingly important aspect of the build.
-3. `Allwmake`
+
+Note that the order of the bootstrapping process may need to be
+reversed, or even require a few loops. For example, if you may need a
+newer version of CMake before being able to build LLVM/Clang and
+subsequently use the newly build clang to create a newer version of
+CMake in the desired location.
+
+Additionally, if you are using clang but with ThirdParty locations for
+gmp/mpfr you will need some extra work. Here is an example:
+
+* Compile a new ThirdParty clang version:
+
+      ./makeLLVM llvm-4.0.1
+
+* Now adjust the OpenFOAM `prefs.sh` to use the new compiler settings,
+  and update the OpenFOAM environment (eg, `wmRefresh`)
+
+* Next use (abuse) the `makeGcc` script to compile gmp/mpfr libraries.
+  It is best to pass the desired versions explicitly, and necessary
+  to set the CC/CXX variables so that the correct compiler is used:
+
+      CC=clang CXX=clang++  ./makeGcc gmp-6.1.2 mpfr-4.0.0 gcc-system
+
+  specifying `gcc-system` effectively disables building of gcc,
+  but will build the gmp/mpfr components.
+
+* As a final step, it will be necessary to add the ThirdParty
+  gmp/mpfr locations in the OpenFOAM config files since they are
+  normally only used in combination with a ThirdParty gcc.
+  The location to make these changes is in the `etc/config.sh/CGAL`,
+  since this is the component that uses the mpfr library.
+  For example,
+
+      gmp_version=gmp-6.1.2
+      mpfr_version=mpfr-4.0.0
+
+      export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$gmp_version
+      export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mpfr_version
+
+* Update update the OpenFOAM environment (eg, `wmRefresh`) again.
+
+
+### Build Sequence
+
+1. `Allwmake`
    - This will be automatically invoked by the top-level OpenFOAM `Allwmake`, but
      can also be invoked directly to find possible build errors.
    - Builds an mpi library (openmpi or mpich), scotch decomposition, boost, CGAL, FFTW.
    - If the optional kahip or metis  directories are found, they will also be compiled.
-4. `makeParaView`  *(optional but highly recommended)*
+2. `makeParaView`  *(optional but highly recommended)*
    - This is optional, but extremely useful for visualization and for
      run-time post-processing function objects.
      You can build this at a later point in time, but then you should
      remember to rebuild the post-processing function objects and the
      reader module as well.
-5. Make any additional optional components
+3. Make any additional optional components
 
 
 #### Optional Components
@@ -179,6 +224,9 @@ and save some disk space.
 
 
 ## Build Notes
+
+### CGAL
+- The zlib library and zlib development headers are required.
 
 ### Scotch
 - The zlib library and zlib development headers are required.
@@ -480,4 +528,4 @@ that clang compiler for building the newer llvm/clang version.
 
 ---
 
-Copyright 2016-2017 OpenCFD Ltd
+Copyright 2016-2018 OpenCFD Ltd
