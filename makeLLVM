@@ -162,8 +162,16 @@ else
     echo "Starting build: $llvmPACKAGE (using cmake)"
     echo
     (
+        # Configuration options:
+        unset configOpt
+
         cd $LLVM_SOURCE_DIR || exit 1
         export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
+
+        if [ -f tools/openmp/CMakeLists.txt ]
+        then
+            configOpt="$configOpt -DLLVM_TOOL_OPENMP_BUILD=ON"
+        fi
 
         rm -rf $LLVM_BUILD_DIR
         mkdir -p $LLVM_BUILD_DIR
@@ -176,6 +184,7 @@ else
             -DCMAKE_INSTALL_PREFIX=$LLVM_ARCH_PATH \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=ON \
+            $configOpt \
             $LLVM_SOURCE_DIR \
         && set +x \
         && make -j $WM_NCOMPPROCS \
