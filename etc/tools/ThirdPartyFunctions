@@ -118,18 +118,24 @@ requireWMakeToolchain()
 #------------------------------------------------------------------------------
 # Some functions as per OpenFOAM etc/config.sh/functions
 
-unset -f _foamAddLib _foamAddMan _foamAddPath   # Get settings only
-unset -f _foamEtc
+unset -f _foamAddLib _foamAddLibAuto _foamAddMan _foamAddPath # Get settings only
+unset -f _foamClean _foamEtc
+
+if [ -x "$WM_PROJECT_DIR/bin/foamCleanPath" ]
+then
+    # Cleaning environment variables
+    _foamClean()
+    {
+         local var=$1
+         shift
+         eval $($WM_PROJECT_DIR/bin/foamCleanPath -sh-env=$var "$@")
+    }
+else
+    _foamClean() { echo "No foamCleanPath" 1>&2; }
+fi
 
 # Source an etc file
-_foamEtc()
-{
-    local file
-    if [ $# -gt 0 ] && file=$($WM_PROJECT_DIR/bin/foamEtcFile "$@")
-    then
-        . $file
-    fi
-}
+_foamEtc() { eval "$($WM_PROJECT_DIR/bin/foamEtcFile -sh $@)"; }
 
 #------------------------------------------------------------------------------
 
