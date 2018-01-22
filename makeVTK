@@ -40,7 +40,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 unset vtk_version mesa_version                           # Purge current values
 
 # vtk version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/vtk
+_foamEtc -config vtk
 
 VTK_VERSION="${vtk_version##*-}"               # Without prefix
 

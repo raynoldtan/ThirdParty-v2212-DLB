@@ -58,7 +58,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-_foamEtc config.sh/metis
+_foamEtc -config metis
 
 metisPACKAGE=${METIS_VERSION:-metis-system}
 targetType=libso

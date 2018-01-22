@@ -34,7 +34,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 #------------------------------------------------------------------------------
 
 # Boost version (headers only) from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/CGAL
+_foamEtc -config CGAL
 
 boostPACKAGE=${boost_version:-boost-system}
 tecioPACKAGE=tecio

@@ -34,7 +34,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 #------------------------------------------------------------------------------
 
 # libccmio version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/ccmio
+_foamEtc -config ccmio
 
 ccmioPACKAGE=${ccmio_version:-libccmio-2.6.1}
 targetType=lib  # Default is static linkage

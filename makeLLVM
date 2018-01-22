@@ -50,7 +50,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 WM_COMPILER_TYPE=ThirdParty                # Ensure we get the correct settings
 
 # LLVM/Clang version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/compiler
+_foamEtc -config compiler
 
 llvmPACKAGE=$clang_version
 

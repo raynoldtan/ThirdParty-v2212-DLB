@@ -30,7 +30,7 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
 #------------------------------------------------------------------------------
 
 # mgridgen version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/mgridgen
+_foamEtc -config mgridgen
 
 mgridgenPACKAGE=${MGRIDGEN_VERSION:-mgridgen-none}
 

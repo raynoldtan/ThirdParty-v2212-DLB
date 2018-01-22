@@ -29,7 +29,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 #------------------------------------------------------------------------------
 
 # Gperftools version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/gperftools
+_foamEtc -config gperftools
 
 gperftoolsPACKAGE=${gperftools_version:-gperftools-system}
 

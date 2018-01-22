@@ -29,7 +29,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 #------------------------------------------------------------------------------
 
 # ADIOS version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/ADIOS
+_foamEtc -config ADIOS
 
 adiosPACKAGE=${adios_version:-adios-none}
 
