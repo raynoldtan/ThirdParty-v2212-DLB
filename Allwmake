@@ -100,6 +100,12 @@ then
 elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
+    # Older versions ok, but scotch-6.0.5a cannot build in parallel.
+    # Force serial build
+    export WM_NCOMPPROCS=1
+    echo "*** building scotch in serial ***"
+    echo
+
     cd $SCOTCH_SOURCE_DIR/src || exit 1
     export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
     rm -rf $SCOTCH_ARCH_PATH
@@ -169,6 +175,11 @@ then
         echo "    ptscotch library: $FOAM_EXT_LIBBIN/$FOAM_MPI"
     else
     (
+        # Older versions ok, but scotch-6.0.5a cannot build in parallel.
+        # Force serial build
+        export WM_NCOMPPROCS=1
+        echo "*** building pt-scotch in serial ***"
+
         cd $SCOTCH_SOURCE_DIR/src || exit 1
         export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
         echo

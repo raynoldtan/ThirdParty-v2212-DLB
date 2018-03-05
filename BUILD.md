@@ -457,6 +457,7 @@ that clang compiler for building the newer llvm/clang version.
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
+[link scotch]:    https://gforge.inria.fr/frs/download.php/file/37398/scotch_6.0.5a.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
 [link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
