@@ -25,12 +25,15 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
+# Dynamic library endings (default is .so)
+[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+
 # Short-circuit test for an installation
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 3 ] || { echo "${0##*/} -test : needs 2 argument"; exit 1; }
     dir="$2" # <- CGAL_ARCH_PATH
-    if [ -d "$dir/include" -a -r "$dir/lib$WM_COMPILER_LIB_ARCH/libCGAL.so" ]
+    if [ -d "$dir/include" -a -r "$dir/lib$WM_COMPILER_LIB_ARCH/libCGAL.$SO" ]
     then
         echo "    CGAL  include: $dir/include"
         echo "    CGAL  library: $dir/lib$WM_COMPILER_LIB_ARCH"
@@ -39,7 +42,7 @@ then
         for root in "$dir" /usr
         do
             if [ -d "$root/include/boost" \
-              -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.so" ]
+              -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.$SO" ]
             then
                 echo "    boost include: $root/include"
                 echo "    boost library: $root/lib$WM_COMPILER_LIB_ARCH"
@@ -450,10 +453,10 @@ fi
         configBoost=$(cat <<CMAKE_OPTIONS
  -DBoost_INCLUDE_DIR=$boostInc
  -DBoost_LIBRARY_DIRS=$boostLib
- -DBoost_THREAD_LIBRARY=$boostLib/libboost_thread.so
- -DBoost_THREAD_LIBRARY_RELEASE=$boostLib/libboost_thread.so
- -DBoost_SYSTEM_LIBRARY=$boostLib/libboost_system.so
- -DBoost_SYSTEM_LIBRARY_RELEASE=$boostLib/libboost_system.so
+ -DBoost_THREAD_LIBRARY=$boostLib/libboost_thread.$SO
+ -DBoost_THREAD_LIBRARY_RELEASE=$boostLib/libboost_thread.$SO
+ -DBoost_SYSTEM_LIBRARY=$boostLib/libboost_system.$SO
+ -DBoost_SYSTEM_LIBRARY_RELEASE=$boostLib/libboost_system.$SO
  -DBoost_VERSION=$BOOST_VERSION
 CMAKE_OPTIONS
 )
@@ -475,12 +478,12 @@ CMAKE_OPTIONS
             $GMP_ARCH_PATH/lib \
         ;
         do
-            if [ -f "$libdir/libgmp.so" ]
+            if [ -f "$libdir/libgmp.$SO" ]
             then
                 configGmp=$(cat <<CMAKE_OPTIONS
  -DGMP_INCLUDE_DIR=$GMP_ARCH_PATH/include
  -DGMP_LIBRARIES_DIR=$libdir
- -DGMP_LIBRARIES=$libdir/libgmp.so
+ -DGMP_LIBRARIES=$libdir/libgmp.$SO
 CMAKE_OPTIONS
 )
                 break
@@ -506,12 +509,12 @@ CMAKE_OPTIONS
             $MPFR_ARCH_PATH/lib \
         ;
         do
-            if [ -f "$libdir/libmpfr.so" ]
+            if [ -f "$libdir/libmpfr.$SO" ]
             then
                 configMpfr=$(cat <<CMAKE_OPTIONS
  -DMPFR_INCLUDE_DIR=$MPFR_ARCH_PATH/include
  -DMPFR_LIBRARIES_DIR=$libdir
- -DMPFR_LIBRARIES=$libdir/libmpfr.so
+ -DMPFR_LIBRARIES=$libdir/libmpfr.$SO
 CMAKE_OPTIONS
 )
                 break

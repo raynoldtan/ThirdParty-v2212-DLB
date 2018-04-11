@@ -19,6 +19,9 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
+# Dynamic library endings (default is .so)
+[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+
 # Run from third-party directory only
 cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
@@ -92,8 +95,8 @@ SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
 scotchMakefile=../../etc/makeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
 
 if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
-  -a -r $FOAM_EXT_LIBBIN/libscotch.so \
-  -a -r $FOAM_EXT_LIBBIN/libscotcherrexit.so ]
+  -a -r $FOAM_EXT_LIBBIN/libscotch.$SO \
+  -a -r $FOAM_EXT_LIBBIN/libscotcherrexit.$SO ]
 then
     echo "    scotch include: $SCOTCH_ARCH_PATH/include"
     echo "    scotch library: $FOAM_EXT_LIBBIN"
@@ -154,7 +157,7 @@ fi
 # and normal scotch was built (has include and library)
 if [ "${FOAM_MPI:-dummy}" != dummy ] && \
    [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
-  -a -r $FOAM_EXT_LIBBIN/libscotch.so ] || \
+  -a -r $FOAM_EXT_LIBBIN/libscotch.$SO ] || \
 {
     # Report that the above tests failed and pass-through the failure
     echo
@@ -168,8 +171,8 @@ then
     echo "    $SCOTCH_ARCH_PATH"
 
     if [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h \
-      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch.so \
-      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotcherrexit.so ]
+      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch.$SO \
+      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotcherrexit.$SO ]
     then
         echo "    ptscotch include: $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
         echo "    ptscotch library: $FOAM_EXT_LIBBIN/$FOAM_MPI"

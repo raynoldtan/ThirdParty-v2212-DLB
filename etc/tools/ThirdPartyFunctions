@@ -24,6 +24,9 @@ sourceBASE=$WM_THIRD_PARTY_DIR
 buildBASE=$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER
 installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER
 
+# Dynamic library endings (default is .so)
+[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+
 unset BUILD_SUFFIX
 #------------------------------------------------------------------------------
 # Export WM compiler settings (and flags) for CMake/configure
@@ -52,7 +55,10 @@ exportCompiler()
 # Export WM linker settings for CMake/configure
 exportLinker()
 {
-    [ -n "$WM_LDFLAGS" ] && export LDFLAGS="$WM_LDFLAGS"
+    if [ -n "$WM_LDFLAGS" ]
+    then
+        export LDFLAGS="$WM_LDFLAGS"
+    fi
 }
 
 # Force use of gcc/g++
@@ -161,19 +167,18 @@ setBuildSuffix()
 # - use max number of cores for building
 #
 unset WM_HOSTS WM_SCHEDULER
-if [ -r /proc/cpuinfo ]
-then
-    WM_NCOMPPROCS=$(egrep "^processor" /proc/cpuinfo | wc -l)
-else
-    WM_NCOMPPROCS=1
-fi
+
+WM_NCOMPPROCS=$(egrep -c "^processor" /proc/cpuinfo 2>/dev/null) || \
+WM_NCOMPPROCS=$(getconf _NPROCESSORS_ONLN 2>/dev/null) || \
+WM_NCOMPPROCS=1
+: ${WM_NCOMPPROCS:=1}
 export WM_NCOMPPROCS
 
 
 #
 # If WM_CONTINUE_ON_ERROR not set activate the shell option "stop on error"
 #
-if [ -z "${WM_CONTINUE_ON_ERROR}" ]
+if [ -z "$WM_CONTINUE_ON_ERROR" ]
 then
     set -e
 fi
@@ -383,7 +388,7 @@ pkgconfigNewPrefix()
             if [ -f "$i" -a ! -L "$i" ]
             then
                 nfiles="x$nfiles"
-                sed -i -e 's@^\(prefix=\).*$@\1'"$dir@" $i
+                sed -i~ -e 's@^\(prefix=\).*$@\1'"$dir@" $i
             fi
         done
         echo "    $libdir/*.pc  (edited ${#nfiles})"
@@ -431,7 +436,7 @@ pkgconfigAdjust()
             if [ -f "$i" -a ! -L "$i" ]
             then
                 nfiles="x$nfiles"
-                sed -i \
+                sed -i~ \
                     -e 's@^\(includedir=\)'"$dir/"'@\1${prefix}/@' \
                     -e 's@^\(libdir=\)'"$dir/"'@\1${prefix}/@'     \
                     -e 's@\(_location=\)'"$dir/"'@\1${prefix}/@'   \
