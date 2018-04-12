@@ -1,5 +1,10 @@
 Short summary of third-party software versions for recent OpenFOAM versions.
 
+OpenFOAM-1806
+---------------
+ParaView-5.5.0      *major*
+
+
 OpenFOAM-1712
 ---------------
 CGAL-4.9.1
@@ -41,7 +46,7 @@ openmpi-1.10.2      *minor*
 scotch_6.0.3
 
 
-OpenFOAM-v3.0+
+OpenFOAM-3.0+
 ---------------
 CGAL-4.7            *update*
 ParaView-4.4.0      *update*
@@ -49,7 +54,7 @@ openmpi-1.10.0      *update*
 scotch_6.0.3
 
 
-OpenFOAM-v2.4
+OpenFOAM-2.4
 ---------------
 CGAL-4.6            *update*
 ParaView-4.1.0
@@ -58,7 +63,7 @@ scotch_6.0.3        *update*
 
 
 ---------------
-OpenFOAM-v2.3
+OpenFOAM-2.3
 ---------------
 CGAL-4.3
 ParaView-4.1.0

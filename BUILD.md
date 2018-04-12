@@ -3,7 +3,7 @@
    | =========                 |                                              |
    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
    |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.         |
+   |   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.         |
    |    \\/     M anipulation  |                                              |
    |--------------------------------------------------------------------------|
   -->
@@ -289,11 +289,11 @@ and save some disk space.
    unpack in the third-party directory.
 2. Use the `makeQt` script with the QT version number. For example,
 
-       ./makeQt 4.8.7
+       ./makeQt 5.9.3
 
 3. Build ParaView using this third-party QT. For example,
 
-       ./makeParaView -qt-4.8.7 5.4.1
+       ./makeParaView -qt-5.9.3  5.5.0
 
 - ParaView versions prior to 5.3.0 do not properly support QT5.
 
@@ -390,7 +390,7 @@ you may have additional hurdles to using the newest versions of clang.
 |-----------------------|------------------------
 | [MESA][page mesa]     | [download][link mesa] or [older 13][older13 mesa], [older 11][older11 mesa]
 | [ParaView][page ParaView] | [download][link ParaView]
-| [Qt][page Qt]         | Either the [older QT4][link Qt4] or the [newer QT5][link Qt5], which only works with ParaView-5.3.0 and later.
+| [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older QT4][link Qt4] for previous ParaView versions.
 
 
 ### CMake Minimum Requirements <a name="min-cmake"></a>
@@ -403,9 +403,9 @@ The minimum CMake requirements for building various components.
     2.8.12.2    llvm-3.7.0
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
-    3.3         ParaView-5.4.1
+    3.3         ParaView-5.5.0
     3.4.3       llvm-3.9.1
-    3.4.3       llvm-4.0.0
+    3.4.3       llvm-4.0.0 - llvm-6.0.0
 
 
 ### GCC Minimum Requirements <a name="min-gcc"></a>
@@ -497,7 +497,8 @@ that clang compiler for building the newer llvm/clang version.
 <!-- Visualization -->
 
 [page ParaView]:  http://www.paraview.org/
-[link ParaView]:  http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
+[link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
+[link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.0.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
