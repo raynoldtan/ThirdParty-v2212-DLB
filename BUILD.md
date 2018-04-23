@@ -196,9 +196,6 @@ gmp/mpfr you will need some extra work. Here is an example:
 `makeCCMIO`
 - Only required for conversion to/from STARCD/STARCCM+ files.
 
-`makeTecio`
-- Only required for conversion of results to Tecplot format.
-
 `makeMesa`, `makeVTK`
 - Additional support for building offscreen rendering components.
   Useful if you want to render on computer servers without graphics cards.
@@ -369,7 +366,6 @@ you may have additional hurdles to using the newest versions of clang.
 | [CGAL][page CGAL]     | [download][link CGAL]
 | [FFTW][page FFTW]     | [download][link FFTW]
 | [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio]
-| [tecio][page tecio]   | [link tecio][link tecio]
 | gperftools            | [repo][repo gperftools] or [download][link gperftools]
 
 
@@ -486,9 +482,6 @@ that clang compiler for building the newer llvm/clang version.
 [page cgns]:      http://cgns.github.io/
 [link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
 [altlink ccmio]:  http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
-
-[page tecio]:     http://www.tecplot.com/
-[link tecio]:     http://www.tecplot.com/my/tecio-library/ (needs registration)
 
 [repo gperftools]: https://github.com/gperftools/gperftools
 [link gperftools]: https://github.com/gperftools/gperftools/releases/download/gperftools-2.5/gperftools-2.5.tar.gz
