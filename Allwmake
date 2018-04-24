@@ -92,7 +92,10 @@ echo "    $SCOTCH_ARCH_PATH"
 SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
 
 # Needs generalizing, but works fairly well
-scotchMakefile=../../etc/makeFiles/scotch/Makefile.inc.i686_pc_linux2.shlib-OpenFOAM
+scotchMakefile=etc/makeFiles/scotch/Makefile.inc.OpenFOAM-"$(uname -s)".shlib
+
+[ -f $scotchMakefile ] || \
+    scotchMakefile=${scotchMakefile%/*}/Makefile.inc.OpenFOAM-Linux.shlib
 
 if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
   -a -r $FOAM_EXT_LIBBIN/libscotch.$SO \
@@ -122,6 +125,9 @@ then
     mkdir -p $prefixDIR 2>/dev/null
     mkdir -p $incDIR    2>/dev/null
     mkdir -p $libDIR    2>/dev/null
+
+    # Makefile relative to this directory
+    scotchMakefile=../../$scotchMakefile
 
     if [ -f $scotchMakefile ]
     then
