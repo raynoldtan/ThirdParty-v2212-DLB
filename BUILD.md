@@ -243,17 +243,17 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-v5.4.1/VTK VTK-8.1.0
+      ln -s ParaView-v5.5.1/VTK VTK-9.0.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-v5.4.1/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-v5.5.1/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
-      set(VTK_MAJOR_VERSION 8)
-      set(VTK_MINOR_VERSION 1)
+      set(VTK_MAJOR_VERSION 9)
+      set(VTK_MINOR_VERSION 0)
       set(VTK_BUILD_VERSION 0)
 
 ### ParaView
@@ -261,6 +261,11 @@ and save some disk space.
   Use the `-cmake`, `-qmake` and `-qt-*` options for `makeParaView` as
   required.
   See additional notes below about [making Qt](#makeQt) if necessary.
+
+#### 5.5.x
+- Requires patching for the vtk-m configuration (on some systems).
+- Recommended patching for ParaView Catalyst.
+  No known issues with the native OpenFOAM reader.
 
 #### 5.4.x
 - Compiles without patching.
@@ -282,7 +287,7 @@ and save some disk space.
 - Building a third-party Qt installation (prior to building ParaView) requires
   some additional effort, but should nonetheless work smoothly.
 
-1. Download a [*qt-everywhere-opensource-src*][link Qt] package and
+1. Download a [*qt-everywhere-opensource-src*][link Qt5] package and
    unpack in the third-party directory.
 2. Use the `makeQt` script with the QT version number. For example,
 
@@ -290,7 +295,7 @@ and save some disk space.
 
 3. Build ParaView using this third-party QT. For example,
 
-       ./makeParaView -qt-5.9.3  5.5.0
+       ./makeParaView -qt-5.9.3  5.5.1
 
 - ParaView versions prior to 5.3.0 do not properly support QT5.
 
@@ -298,6 +303,11 @@ and save some disk space.
   (eg, you built in your home directory, but want to install it in a
   central location), you will need to use the `etc/relocateQt` script
   afterwards.
+
+*Note* On some older systems it can be quite difficult to build the
+latest QT. In these cases, it is sometimes possible to build a
+slightly older QT (eg, [qt-5.6.3][link Qt56]) instead.
+
 
 ---
 
@@ -386,7 +396,7 @@ you may have additional hurdles to using the newest versions of clang.
 |-----------------------|------------------------
 | [MESA][page mesa]     | [download][link mesa] or [older 13][older13 mesa], [older 11][older11 mesa]
 | [ParaView][page ParaView] | [download][link ParaView]
-| [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older QT4][link Qt4] for previous ParaView versions.
+| [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older qt-56][link Qt56] for older systems.
 
 
 ### CMake Minimum Requirements <a name="min-cmake"></a>
@@ -399,7 +409,7 @@ The minimum CMake requirements for building various components.
     2.8.12.2    llvm-3.7.0
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
-    3.3         ParaView-5.5.0
+    3.3         ParaView-5.5.1
     3.4.3       llvm-3.9.1
     3.4.3       llvm-4.0.0 - llvm-6.0.0
 
@@ -491,7 +501,7 @@ that clang compiler for building the newer llvm/clang version.
 
 [page ParaView]:  http://www.paraview.org/
 [link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
-[link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.0.tar.gz
+[link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.1.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
@@ -500,7 +510,7 @@ that clang compiler for building the newer llvm/clang version.
 
 [page Qt]: https://www.qt.io/download-open-source/
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
-[link Qt4]: http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz
+[link Qt56]: http://download.qt.io/official_releases/qt/5.6/5.6.3/single/qt-everywhere-opensource-src-5.6.3.tar.xz
 [link Qt5]: http://download.qt.io/official_releases/qt/5.9/5.9.3/single/qt-everywhere-opensource-src-5.9.3.tar.xz
 
 <!-- OpenFOAM -->
