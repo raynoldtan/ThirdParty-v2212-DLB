@@ -42,7 +42,15 @@ unset vtk_version mesa_version                           # Purge current values
 # vtk version from OpenFOAM etc/config.sh file:
 _foamEtc -config vtk
 
-VTK_VERSION="${vtk_version##*-}"               # Without prefix
+VTK_VERSION="$vtk_version"
+
+case "$VTK_VERSION" in
+[Vv]*)
+    VTK_VERSION="${VTK_VERSION##*-}"        # Without "VTK-" prefix
+    ;;
+esac
+VTK_VERSION="${VTK_VERSION%%-*}"            # Without suffix (eg, -mesa)
+
 
 # New rendering backend (starting with vtk 7?).
 withGL2=auto # auto-config based on version

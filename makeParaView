@@ -47,7 +47,13 @@ then
 fi
 unset ParaView_DIR ParaView_INCLUDE_DIR PV_PLUGIN_PATH
 
-ParaView_VERSION="${ParaView_VERSION##*-}"               # Without prefix
+case "$ParaView_VERSION" in
+[Pp]*)
+    ParaView_VERSION="${ParaView_VERSION##*-}"  # Without "ParaView-" prefix
+    ;;
+esac
+ParaView_VERSION="${ParaView_VERSION%%-*}"      # Without suffix (eg, -python)
+
 
 # Set initial ParaView_MAJOR based on current value of ParaView_VERSION
 setParaViewVersion ${ParaView_VERSION:-none}
