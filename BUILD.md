@@ -243,13 +243,13 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-v5.5.1/VTK VTK-9.0.0
+      ln -s ParaView-v5.5.2/VTK VTK-9.0.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-v5.5.1/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-v5.5.2/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
       set(VTK_MAJOR_VERSION 9)
@@ -265,6 +265,7 @@ and save some disk space.
 #### 5.5.x
 - Requires patching for the vtk-m configuration (on some systems).
 - Recommended patching for ParaView Catalyst.
+- Recommended patching for file series
   No known issues with the native OpenFOAM reader.
 
 #### 5.4.x
@@ -295,7 +296,7 @@ and save some disk space.
 
 3. Build ParaView using this third-party QT. For example,
 
-       ./makeParaView -qt-5.9.3  5.5.1
+       ./makeParaView -qt-5.9.3  5.5.2
 
 - ParaView versions prior to 5.3.0 do not properly support QT5.
 
@@ -409,7 +410,7 @@ The minimum CMake requirements for building various components.
     2.8.12.2    llvm-3.7.0
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
-    3.3         ParaView-5.5.1
+    3.3         ParaView-5.5.2
     3.4.3       llvm-3.9.1
     3.4.3       llvm-4.0.0 - llvm-6.0.0
     3.6         ADIOS2
@@ -502,7 +503,7 @@ that clang compiler for building the newer llvm/clang version.
 
 [page ParaView]:  http://www.paraview.org/
 [link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
-[link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.1.tar.gz
+[link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
