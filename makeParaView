@@ -37,7 +37,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 unset ParaView_VERSION                                   # Purge current values
 
 # ParaView_VERSION from etc/config.sh file:
-_foamEtc -config paraview
+_foamConfig paraview
 
 # Avoid any potential conflicts (especially if building from git)
 if [ -d "$ParaView_DIR" ]

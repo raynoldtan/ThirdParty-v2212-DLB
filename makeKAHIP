@@ -61,7 +61,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-_foamEtc -config kahip
+_foamConfig kahip
 
 kahipPACKAGE=${KAHIP_VERSION:-kahip-system}
 targetType=libso

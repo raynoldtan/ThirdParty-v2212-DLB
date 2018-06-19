@@ -67,8 +67,8 @@ unset BOOST_ARCH_PATH CGAL_ARCH_PATH GMP_ARCH_PATH MPFR_ARCH_PATH   # Purge old
 
 # CGAL, boost and gmp/mpfr versions from OpenFOAM etc/config.sh files.
 # Get compiler first and let CGAL config override GMP and MPFR
-_foamEtc -config compiler
-_foamEtc -config CGAL
+_foamConfig compiler
+_foamConfig CGAL
 
 boostPACKAGE=${boost_version:-boost-system}
 gmpPACKAGE=${gmp_version:-gmp-system}

@@ -58,7 +58,7 @@ _foamAddPath() { true; }
 WM_MPLIB=OPENMPI                                # Ensure we get the correct MPI
 
 # openmpi version from OpenFOAM etc/config.sh file:
-_foamEtc -config mpi
+_foamConfig mpi
 
 mpiPACKAGE=${FOAM_MPI:-openmpi-system}
 

@@ -45,7 +45,7 @@ unset GMP_ARCH_PATH MPFR_ARCH_PATH                                  # Purge old
 WM_COMPILER_TYPE=ThirdParty                # Ensure we get the correct settings
 
 # Default GCC, mpfr, gmp and mpc versions from OpenFOAM etc/config.sh file:
-_foamEtc -config compiler
+_foamConfig compiler
 
 gmpPACKAGE=${gmp_version:-gmp-system}
 mpfrPACKAGE=${mpfr_version:-mpfr-system}

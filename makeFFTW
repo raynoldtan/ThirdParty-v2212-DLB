@@ -47,7 +47,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 #------------------------------------------------------------------------------
 
 # FFTW version from OpenFOAM etc/config.sh file:
-_foamEtc -config FFTW
+_foamConfig FFTW
 
 fftwPACKAGE=${fftw_version:-fftw-system}
 

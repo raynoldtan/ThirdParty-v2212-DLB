@@ -27,7 +27,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 # ADIOS2 version from OpenFOAM etc/config.sh file:
-_foamEtc -config ADIOS2
+_foamConfig ADIOS2
 
 adios2PACKAGE=${adios2_version:-adios-none}
 
