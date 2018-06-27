@@ -231,7 +231,7 @@ and save some disk space.
 
 ### Mesa
 - Needed for off-screen rendering.
-- Building with [mesa-11][older11 mesa] and [mesa-13][older13 mesa] both
+- Building with [mesa-11][link mesa11] and [mesa-13][link mesa13] both
   seem okay, as does building with [mesa-17][link mesa].
 - Building with mesa-12 is not possible since it fails to create
   the necessary `include/GL` directory and `osmesa.h` file.
@@ -261,6 +261,32 @@ and save some disk space.
   Use the `-cmake`, `-qmake` and `-qt-*` options for `makeParaView` as
   required.
   See additional notes below about [making Qt](#makeQt) if necessary.
+
+**NOTE** this step may not be entirely successful for your particular
+system. Building ParaView itself is generally not a significant problem
+but its dependency on particular Qt versions can be a problem.
+
+If you fail at this step due to Qt dependencies, you may have success
+building a slightly older Qt version. Another alternative may be to
+use the ParaView-5.4 sources that were included in the ThirdParty-v1712
+source pack. This, however, has never been tested in combination with
+the OpenFOAM Catalyst insitu visualization.
+
+
+#### 5.5.x binary package
+
+For general functionality, the paraview version distributed with
+the operating system or a [binary package][download ParaView]])
+may be sufficient for your needs.
+- No known issues with the native OpenFOAM reader.
+
+
+Using a binary package does mean you miss these elements (which may or
+may not be important for you):
+- cannot visualize a `blockMeshDict`
+- cannot build Catalyst insitu visualization
+- no alternative OpenFOAM reader module for some special features not
+  found in the native OpenFOAM reader.
 
 #### 5.5.x
 - Requires patching for the vtk-m configuration (on some systems).
@@ -395,8 +421,8 @@ you may have additional hurdles to using the newest versions of clang.
 
 | Name                  | Location
 |-----------------------|------------------------
-| [MESA][page mesa]     | [download][link mesa] or [older 13][older13 mesa], [older 11][older11 mesa]
-| [ParaView][page ParaView] | [download][link ParaView]
+| [MESA][page mesa]     | [download][link mesa] or [older 13][link mesa13], [older 11][link mesa11]
+| [ParaView][page ParaView] | [download][link ParaView] or [older paraview-54][link ParaView54] or [binaries][download ParaView]
 | [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older qt-56][link Qt56] for older systems.
 
 
@@ -502,13 +528,14 @@ that clang compiler for building the newer llvm/clang version.
 <!-- Visualization -->
 
 [page ParaView]:  http://www.paraview.org/
+[download ParaView]: https://www.paraview.org/download/
 [link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
 [link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
-[older13 mesa]: ftp://ftp.freedesktop.org/pub/mesa/13.0.6/mesa-13.0.6.tar.xz
-[older11 mesa]: ftp://ftp.freedesktop.org/pub/mesa/older-versions/11.x/11.2.2/mesa-11.2.2.tar.xz
+[link mesa13]: ftp://ftp.freedesktop.org/pub/mesa/13.0.6/mesa-13.0.6.tar.xz
+[link mesa11]: ftp://ftp.freedesktop.org/pub/mesa/older-versions/11.x/11.2.2/mesa-11.2.2.tar.xz
 
 [page Qt]: https://www.qt.io/download-open-source/
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
