@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2012 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2018 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -29,7 +29,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 #------------------------------------------------------------------------------
 
 # Gperftools version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/gperftools
+_foamConfig gperftools
 
 gperftoolsPACKAGE=${gperftools_version:-gperftools-system}
 
@@ -51,9 +51,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 # Parse options
 while [ "$#" -gt 0 ]

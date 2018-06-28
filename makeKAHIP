@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2017-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -19,6 +19,9 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
+# Dynamic library endings (default is .so)
+[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+
 # Short-circuit test for an installation
 if [ "$1" = "-test" ]
 then
@@ -27,11 +30,11 @@ then
     if [ -d "$dir/include" ]
     then
         for lib in \
-            $FOAM_EXT_LIBBIN/libkahip.so \
+            $FOAM_EXT_LIBBIN/libkahip.$SO \
             $dir/lib/libkahip.a \
-            $dir/lib/libkahip.so \
+            $dir/lib/libkahip.$SO \
             $dir/lib$WM_COMPILER_LIB_ARCH/libkahip.a \
-            $dir/lib$WM_COMPILER_LIB_ARCH/libkahip.so \
+            $dir/lib$WM_COMPILER_LIB_ARCH/libkahip.$SO \
             ;
         do
             if [ -r "$lib" ]
@@ -58,7 +61,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-_foamEtc config.sh/kahip
+_foamConfig kahip
 
 kahipPACKAGE=${KAHIP_VERSION:-kahip-system}
 targetType=libso
@@ -119,6 +122,8 @@ then
     exit 0
 fi
 
+requireWMakeToolchain
+
 #------------------------------------------------------------------------------
 #
 # Build KaHIP
@@ -160,7 +165,7 @@ echo
     export GIT_DIR=$KAHIP_SOURCE_DIR/.git # Mask seeing our own git-repo
 
     rm -rf $KAHIP_ARCH_PATH
-    rm -f $FOAM_EXT_LIBBIN/libkahip.so
+    rm -f $FOAM_EXT_LIBBIN/libkahip.$SO
 
     libdir=$KAHIP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
 

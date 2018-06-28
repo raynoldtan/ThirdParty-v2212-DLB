@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2018 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -50,7 +50,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 WM_COMPILER_TYPE=ThirdParty                # Ensure we get the correct settings
 
 # LLVM/Clang version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/compiler
+_foamConfig compiler
 
 llvmPACKAGE=$clang_version
 
@@ -72,10 +72,8 @@ options:
 USAGE
     exit 1
 }
-#-----------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+#------------------------------------------------------------------------------
+exportCompiler          # Compiler info for CMake/configure
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -164,8 +162,16 @@ else
     echo "Starting build: $llvmPACKAGE (using cmake)"
     echo
     (
+        # Configuration options:
+        unset configOpt
+
         cd $LLVM_SOURCE_DIR || exit 1
         export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
+
+        if [ -f tools/openmp/CMakeLists.txt ]
+        then
+            configOpt="$configOpt -DLLVM_TOOL_OPENMP_BUILD=ON"
+        fi
 
         rm -rf $LLVM_BUILD_DIR
         mkdir -p $LLVM_BUILD_DIR
@@ -178,6 +184,7 @@ else
             -DCMAKE_INSTALL_PREFIX=$LLVM_ARCH_PATH \
             -DCMAKE_BUILD_TYPE=Release \
             -DBUILD_SHARED_LIBS=ON \
+            $configOpt \
             $LLVM_SOURCE_DIR \
         && set +x \
         && make -j $WM_NCOMPPROCS \

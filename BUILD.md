@@ -3,7 +3,7 @@
    | =========                 |                                              |
    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
    |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.         |
+   |   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.         |
    |    \\/     M anipulation  |                                              |
    |--------------------------------------------------------------------------|
   -->
@@ -83,9 +83,9 @@ automatically as part of the top-level OpenFOAM `Allwmake`.
 Nonetheless it may be necessary or useful to build various
 ThirdParty components prior to building OpenFOAM itself.
 
+### Bootstrapping *(optional)*
 
-### Build Sequence
-1. `makeGcc` _or_ `makeLLVM` <a name="makeGcc"></a> *(optional)*
+* `makeGcc` _or_ `makeLLVM` <a name="makeGcc"></a>
    - Makes a third-party [gcc](#gcc-compiler) or [clang](#clang-compiler) installation,
      which is needed if the system gcc is [too old](#gcc-compiler).
      If your system compiler is recent enough, you can skip this step.
@@ -93,30 +93,75 @@ ThirdParty components prior to building OpenFOAM itself.
      OpenFOAM `etc/bashrc` or your equivalent `prefs.sh` file:
      - `WM_COMPILER_TYPE=ThirdParty`
      - `WM_COMPILER=Gcc48` (for example)
-     - or `WM_COMPILER=Clang` and adjust the `clang_version` entry in the OpenFOAM
+     - `WM_COMPILER=Clang40` (for example)
+     - or `WM_COMPILER=Clang` and adjust `clang_version` in the OpenFOAM
      `etc/config.sh/compiler` or equivalent.
    - More description is contained in the header comments of the
      `makeGcc` and `makeLLVM` files.
    - *Attention*: If you are building a newer version of clang, you may need to
      update your CMake beforehand.
-2. `makeCmake`  *(optional)*
+* `makeCmake`
    - Makes a third-party [CMake](#general-packages) installation, which is
      needed if a system CMake does not exist or is [too old](#min-cmake),
    - Note that CMake is being used by an number of third-party packages
      (CGAL, LLVM, ParaView, VTK, ...)
      so this may become an increasingly important aspect of the build.
-3. `Allwmake`
+
+Note that the order of the bootstrapping process may need to be
+reversed, or even require a few loops. For example, if you may need a
+newer version of CMake before being able to build LLVM/Clang and
+subsequently use the newly build clang to create a newer version of
+CMake in the desired location.
+
+Additionally, if you are using clang but with ThirdParty locations for
+gmp/mpfr you will need some extra work. Here is an example:
+
+* Compile a new ThirdParty clang version:
+
+      ./makeLLVM llvm-4.0.1
+
+* Now adjust the OpenFOAM `prefs.sh` to use the new compiler settings,
+  and update the OpenFOAM environment (eg, `wmRefresh`)
+
+* Next use (abuse) the `makeGcc` script to compile gmp/mpfr libraries.
+  It is best to pass the desired versions explicitly, and necessary
+  to set the CC/CXX variables so that the correct compiler is used:
+
+      CC=clang CXX=clang++  ./makeGcc gmp-6.1.2 mpfr-4.0.0 gcc-system
+
+  specifying `gcc-system` effectively disables building of gcc,
+  but will build the gmp/mpfr components.
+
+* As a final step, it will be necessary to add the ThirdParty
+  gmp/mpfr locations in the OpenFOAM config files since they are
+  normally only used in combination with a ThirdParty gcc.
+  The location to make these changes is in the `etc/config.sh/CGAL`,
+  since this is the component that uses the mpfr library.
+  For example,
+
+      gmp_version=gmp-6.1.2
+      mpfr_version=mpfr-4.0.0
+
+      export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$gmp_version
+      export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mpfr_version
+
+* Update update the OpenFOAM environment (eg, `wmRefresh`) again.
+
+
+### Build Sequence
+
+1. `Allwmake`
    - This will be automatically invoked by the top-level OpenFOAM `Allwmake`, but
      can also be invoked directly to find possible build errors.
    - Builds an mpi library (openmpi or mpich), scotch decomposition, boost, CGAL, FFTW.
    - If the optional kahip or metis  directories are found, they will also be compiled.
-4. `makeParaView`  *(optional but highly recommended)*
+2. `makeParaView`  *(optional but highly recommended)*
    - This is optional, but extremely useful for visualization and for
      run-time post-processing function objects.
      You can build this at a later point in time, but then you should
      remember to rebuild the post-processing function objects and the
      reader module as well.
-5. Make any additional optional components
+3. Make any additional optional components
 
 
 #### Optional Components
@@ -151,9 +196,6 @@ ThirdParty components prior to building OpenFOAM itself.
 `makeCCMIO`
 - Only required for conversion to/from STARCD/STARCCM+ files.
 
-`makeTecio`
-- Only required for conversion of results to Tecplot format.
-
 `makeMesa`, `makeVTK`
 - Additional support for building offscreen rendering components.
   Useful if you want to render on computer servers without graphics cards.
@@ -180,13 +222,16 @@ and save some disk space.
 
 ## Build Notes
 
+### CGAL
+- The zlib library and zlib development headers are required.
+
 ### Scotch
 - The zlib library and zlib development headers are required.
 
 
 ### Mesa
 - Needed for off-screen rendering.
-- Building with [mesa-11][older11 mesa] and [mesa-13][older13 mesa] both
+- Building with [mesa-11][link mesa11] and [mesa-13][link mesa13] both
   seem okay, as does building with [mesa-17][link mesa].
 - Building with mesa-12 is not possible since it fails to create
   the necessary `include/GL` directory and `osmesa.h` file.
@@ -198,17 +243,17 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-v5.4.1/VTK VTK-8.1.0
+      ln -s ParaView-v5.5.2/VTK VTK-9.0.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-v5.4.1/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-v5.5.2/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
-      set(VTK_MAJOR_VERSION 8)
-      set(VTK_MINOR_VERSION 1)
+      set(VTK_MAJOR_VERSION 9)
+      set(VTK_MINOR_VERSION 0)
       set(VTK_BUILD_VERSION 0)
 
 ### ParaView
@@ -216,6 +261,38 @@ and save some disk space.
   Use the `-cmake`, `-qmake` and `-qt-*` options for `makeParaView` as
   required.
   See additional notes below about [making Qt](#makeQt) if necessary.
+
+**NOTE** this step may not be entirely successful for your particular
+system. Building ParaView itself is generally not a significant problem
+but its dependency on particular Qt versions can be a problem.
+
+If you fail at this step due to Qt dependencies, you may have success
+building a slightly older Qt version. Another alternative may be to
+use the ParaView-5.4 sources that were included in the ThirdParty-v1712
+source pack. This, however, has never been tested in combination with
+the OpenFOAM Catalyst insitu visualization.
+
+
+#### 5.5.x binary package
+
+For general functionality, the paraview version distributed with
+the operating system or a [binary package][download ParaView]])
+may be sufficient for your needs.
+- No known issues with the native OpenFOAM reader.
+
+
+Using a binary package does mean you miss these elements (which may or
+may not be important for you):
+- cannot visualize a `blockMeshDict`
+- cannot build Catalyst insitu visualization
+- no alternative OpenFOAM reader module for some special features not
+  found in the native OpenFOAM reader.
+
+#### 5.5.x
+- Requires patching for the vtk-m configuration (on some systems).
+- Recommended patching for ParaView Catalyst.
+- Recommended patching for file series
+  No known issues with the native OpenFOAM reader.
 
 #### 5.4.x
 - Compiles without patching.
@@ -237,15 +314,15 @@ and save some disk space.
 - Building a third-party Qt installation (prior to building ParaView) requires
   some additional effort, but should nonetheless work smoothly.
 
-1. Download a [*qt-everywhere-opensource-src*][link Qt] package and
+1. Download a [*qt-everywhere-opensource-src*][link Qt5] package and
    unpack in the third-party directory.
 2. Use the `makeQt` script with the QT version number. For example,
 
-       ./makeQt 4.8.7
+       ./makeQt 5.9.3
 
 3. Build ParaView using this third-party QT. For example,
 
-       ./makeParaView -qt-4.8.7 5.4.1
+       ./makeParaView -qt-5.9.3  5.5.2
 
 - ParaView versions prior to 5.3.0 do not properly support QT5.
 
@@ -253,6 +330,11 @@ and save some disk space.
   (eg, you built in your home directory, but want to install it in a
   central location), you will need to use the `etc/relocateQt` script
   afterwards.
+
+*Note* On some older systems it can be quite difficult to build the
+latest QT. In these cases, it is sometimes possible to build a
+slightly older QT (eg, [qt-5.6.3][link Qt56]) instead.
+
 
 ---
 
@@ -294,7 +376,7 @@ install the 32-bit development libraries by default.
 
 ### Clang Compiler <a name="clang-compiler"></a>
 
-The minimum version of clang required is 3.3.
+The minimum version of clang required is 3.5.
 
 *Attention*: If you are building a newer version of clang, you may need to
 update your CMake beforehand since GNU *configure* can only be used prior
@@ -321,7 +403,6 @@ you may have additional hurdles to using the newest versions of clang.
 | [CGAL][page CGAL]     | [download][link CGAL]
 | [FFTW][page FFTW]     | [download][link FFTW]
 | [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio]
-| [tecio][page tecio]   | [link tecio][link tecio]
 | gperftools            | [repo][repo gperftools] or [download][link gperftools]
 
 
@@ -340,9 +421,9 @@ you may have additional hurdles to using the newest versions of clang.
 
 | Name                  | Location
 |-----------------------|------------------------
-| [MESA][page mesa]     | [download][link mesa] or [older 13][older13 mesa], [older 11][older11 mesa]
-| [ParaView][page ParaView] | [download][link ParaView]
-| [Qt][page Qt]         | Either the [older QT4][link Qt4] or the [newer QT5][link Qt5], which only works with ParaView-5.3.0 and later.
+| [MESA][page mesa]     | [download][link mesa] or [older 13][link mesa13], [older 11][link mesa11]
+| [ParaView][page ParaView] | [download][link ParaView] or [older paraview-54][link ParaView54] or [binaries][download ParaView]
+| [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older qt-56][link Qt56] for older systems.
 
 
 ### CMake Minimum Requirements <a name="min-cmake"></a>
@@ -355,9 +436,10 @@ The minimum CMake requirements for building various components.
     2.8.12.2    llvm-3.7.0
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
-    3.3         ParaView-5.4.1
+    3.3         ParaView-5.5.2
     3.4.3       llvm-3.9.1
-    3.4.3       llvm-4.0.0
+    3.4.3       llvm-4.0.0 - llvm-6.0.0
+    3.6         ADIOS2
 
 
 ### GCC Minimum Requirements <a name="min-gcc"></a>
@@ -409,6 +491,7 @@ that clang compiler for building the newer llvm/clang version.
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
+[link scotch]:    https://gforge.inria.fr/frs/download.php/file/37398/scotch_6.0.5a.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
 [link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
@@ -438,9 +521,6 @@ that clang compiler for building the newer llvm/clang version.
 [link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
 [altlink ccmio]:  http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
 
-[page tecio]:     http://www.tecplot.com/
-[link tecio]:     http://www.tecplot.com/my/tecio-library/ (needs registration)
-
 [repo gperftools]: https://github.com/gperftools/gperftools
 [link gperftools]: https://github.com/gperftools/gperftools/releases/download/gperftools-2.5/gperftools-2.5.tar.gz
 
@@ -448,16 +528,18 @@ that clang compiler for building the newer llvm/clang version.
 <!-- Visualization -->
 
 [page ParaView]:  http://www.paraview.org/
-[link ParaView]:  http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
+[download ParaView]: https://www.paraview.org/download/
+[link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
+[link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
-[older13 mesa]: ftp://ftp.freedesktop.org/pub/mesa/13.0.6/mesa-13.0.6.tar.xz
-[older11 mesa]: ftp://ftp.freedesktop.org/pub/mesa/older-versions/11.x/11.2.2/mesa-11.2.2.tar.xz
+[link mesa13]: ftp://ftp.freedesktop.org/pub/mesa/13.0.6/mesa-13.0.6.tar.xz
+[link mesa11]: ftp://ftp.freedesktop.org/pub/mesa/older-versions/11.x/11.2.2/mesa-11.2.2.tar.xz
 
 [page Qt]: https://www.qt.io/download-open-source/
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
-[link Qt4]: http://download.qt.io/official_releases/qt/4.8/4.8.7/qt-everywhere-opensource-src-4.8.7.tar.gz
+[link Qt56]: http://download.qt.io/official_releases/qt/5.6/5.6.3/single/qt-everywhere-opensource-src-5.6.3.tar.xz
 [link Qt5]: http://download.qt.io/official_releases/qt/5.9/5.9.3/single/qt-everywhere-opensource-src-5.9.3.tar.xz
 
 <!-- OpenFOAM -->
@@ -480,4 +562,4 @@ that clang compiler for building the newer llvm/clang version.
 
 ---
 
-Copyright 2016-2017 OpenCFD Ltd
+Copyright 2016-2018 OpenCFD Ltd

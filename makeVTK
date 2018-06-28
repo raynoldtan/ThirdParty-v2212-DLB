@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -40,9 +40,17 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 unset vtk_version mesa_version                           # Purge current values
 
 # vtk version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/vtk
+_foamConfig vtk
 
-VTK_VERSION="${vtk_version##*-}"               # Without prefix
+VTK_VERSION="$vtk_version"
+
+case "$VTK_VERSION" in
+[Vv]*)
+    VTK_VERSION="${VTK_VERSION##*-}"        # Without "VTK-" prefix
+    ;;
+esac
+VTK_VERSION="${VTK_VERSION%%-*}"            # Without suffix (eg, -mesa)
+
 
 # New rendering backend (starting with vtk 7?).
 withGL2=auto # auto-config based on version
@@ -95,9 +103,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 # Various building stages
 unset runPATCH runCONFIG runMAKE runINSTALL

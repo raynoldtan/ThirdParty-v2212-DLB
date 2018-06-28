@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2018 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -37,9 +37,23 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 unset ParaView_VERSION                                   # Purge current values
 
 # ParaView_VERSION from etc/config.sh file:
-_foamEtc config.sh/paraview
+_foamConfig paraview
 
-ParaView_VERSION="${ParaView_VERSION##*-}"               # Without prefix
+# Avoid any potential conflicts (especially if building from git)
+if [ -d "$ParaView_DIR" ]
+then
+    _foamClean PATH "$ParaView_DIR"
+    _foamClean LD_LIBRARY_PATH "$ParaView_DIR"
+fi
+unset ParaView_DIR ParaView_INCLUDE_DIR PV_PLUGIN_PATH
+
+case "$ParaView_VERSION" in
+[Pp]*)
+    ParaView_VERSION="${ParaView_VERSION##*-}"  # Without "ParaView-" prefix
+    ;;
+esac
+ParaView_VERSION="${ParaView_VERSION%%-*}"      # Without suffix (eg, -python)
+
 
 # Set initial ParaView_MAJOR based on current value of ParaView_VERSION
 setParaViewVersion ${ParaView_VERSION:-none}
@@ -111,9 +125,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 # Various building stages
 unset runPATCH runCONFIG runMAKE runINSTALL

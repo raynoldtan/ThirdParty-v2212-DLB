@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2017-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -19,6 +19,9 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
+# Dynamic library endings (default is .so)
+[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+
 # Short-circuit test for an installation
 if [ "$1" = "-test" ]
 then
@@ -27,11 +30,11 @@ then
     if [ -d "$dir/include" ]
     then
         for lib in \
-            $FOAM_EXT_LIBBIN/libmetis.so \
+            $FOAM_EXT_LIBBIN/libmetis.$SO \
             $dir/lib/libmetis.a \
-            $dir/lib/libmetis.so \
+            $dir/lib/libmetis.$SO \
             $dir/lib$WM_COMPILER_LIB_ARCH/libmetis.a \
-            $dir/lib$WM_COMPILER_LIB_ARCH/libmetis.so \
+            $dir/lib$WM_COMPILER_LIB_ARCH/libmetis.$SO \
             ;
         do
             if [ -r "$lib" ]
@@ -58,7 +61,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-_foamEtc config.sh/metis
+_foamConfig metis
 
 metisPACKAGE=${METIS_VERSION:-metis-system}
 targetType=libso
@@ -81,9 +84,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -145,10 +146,10 @@ install()
 
     if [ "$targetType" = libso ]
     then
-        \mv $libdir/libmetis.so $FOAM_EXT_LIBBIN
+        \mv $libdir/libmetis.$SO $FOAM_EXT_LIBBIN
         rmdir $libdir 2>/dev/null # Failed rmdir is uncritical
 
-        echo "Installing: $FOAM_EXT_LIBBIN/libmetis.so"
+        echo "Installing: $FOAM_EXT_LIBBIN/libmetis.$SO"
     fi
     return 0
 }
@@ -167,7 +168,7 @@ echo
     export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
     rm -rf $METIS_ARCH_PATH
-    rm -f $FOAM_EXT_LIBBIN/libmetis.so
+    rm -f $FOAM_EXT_LIBBIN/libmetis.$SO
 
     # Adjust metis integer size to match OpenFOAM label-size
     sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \

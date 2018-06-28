@@ -3,7 +3,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2011-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2018 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -304,7 +304,7 @@ addQtSupport()
     local qmake qtLib
 
     # Check qmake can be found and handle version differences
-    qmake=$(findQtMake)
+    qmake=$(findQMake)
     if QT_VERSION=$($qmake -query QT_VERSION 2>/dev/null)
     then
         addCMakeVariable "PARAVIEW_BUILD_QT_GUI=ON"
@@ -450,7 +450,7 @@ installParaView()
 
     # System or non-system installation of QT?
     local qmake qtLib QT_VERSION
-    if qmake=$(findQtMake 2>/dev/null)
+    if qmake=$(findQMake 2>/dev/null)
     then
         qtLib=$($qmake -query QT_INSTALL_LIBS)
         QT_VERSION=$($qmake -query QT_VERSION 2>/dev/null)

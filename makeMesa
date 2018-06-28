@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -37,7 +37,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 unset vtk_version mesa_version                           # Purge current values
 
 # mesa version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/vtk
+_foamConfig vtk
 
 mesaPACKAGE=$mesa_version
 
@@ -59,9 +59,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 # Non-standard location for clang?
 case "$WM_COMPILER_TYPE-$WM_COMPILER" in

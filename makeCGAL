@@ -4,7 +4,7 @@
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
 #   \\  /    A nd           | Copyright (C) 2012-2016 OpenFOAM Foundation
-#    \\/     M anipulation  | Copyright (C) 2016-2017 OpenCFD Ltd.
+#    \\/     M anipulation  | Copyright (C) 2016-2018 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -25,12 +25,15 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
+# Dynamic library endings (default is .so)
+[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+
 # Short-circuit test for an installation
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 3 ] || { echo "${0##*/} -test : needs 2 argument"; exit 1; }
     dir="$2" # <- CGAL_ARCH_PATH
-    if [ -d "$dir/include" -a -r "$dir/lib$WM_COMPILER_LIB_ARCH/libCGAL.so" ]
+    if [ -d "$dir/include" -a -r "$dir/lib$WM_COMPILER_LIB_ARCH/libCGAL.$SO" ]
     then
         echo "    CGAL  include: $dir/include"
         echo "    CGAL  library: $dir/lib$WM_COMPILER_LIB_ARCH"
@@ -39,7 +42,7 @@ then
         for root in "$dir" /usr
         do
             if [ -d "$root/include/boost" \
-              -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.so" ]
+              -a -r "$root/lib$WM_COMPILER_LIB_ARCH/libboost_system.$SO" ]
             then
                 echo "    boost include: $root/include"
                 echo "    boost library: $root/lib$WM_COMPILER_LIB_ARCH"
@@ -60,13 +63,12 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-
-unset BOOST_ARCH_PATH CGAL_ARCH_PATH                     # Purge current values
+unset BOOST_ARCH_PATH CGAL_ARCH_PATH GMP_ARCH_PATH MPFR_ARCH_PATH   # Purge old
 
 # CGAL, boost and gmp/mpfr versions from OpenFOAM etc/config.sh files.
-# Get compiler first and let CGAL config override GMP (eg, when there is no GMP)
-_foamEtc config.sh/compiler
-_foamEtc config.sh/CGAL
+# Get compiler first and let CGAL config override GMP and MPFR
+_foamConfig compiler
+_foamConfig CGAL
 
 boostPACKAGE=${boost_version:-boost-system}
 gmpPACKAGE=${gmp_version:-gmp-system}
@@ -104,12 +106,9 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 unset optHeadersOnly
-
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -127,24 +126,26 @@ do
         gmpPACKAGE="gmp-system"
         mpfrPACKAGE="mpfr-system"
         boostPACKAGE="boost-system"
-        unset BOOST_ARCH_PATH           # avoid inconsistency
+        unset BOOST_ARCH_PATH GMP_ARCH_PATH MPFR_ARCH_PATH
         ;;
     -no-lib)
         optHeadersOnly=true
         ;;
     gmp-[4-9]* | gmp-system | gmp-none)
         gmpPACKAGE="${1%%/}"
+        unset GMP_ARCH_PATH
         ;;
     mpfr-[2-9]* | mpfr-system | mpfr-none)
         mpfrPACKAGE="${1%%/}"
-        ;;
-    CGAL-[0-9]*)
-        cgalPACKAGE="${1%%/}"
-        unset CGAL_ARCH_PATH            # avoid inconsistency
+        unset MPFR_ARCH_PATH
         ;;
     boost-[0-9]* | boost_[0-9]* | boost-system )
         boostPACKAGE="${1%%/}"
-        unset BOOST_ARCH_PATH           # avoid inconsistency
+        unset BOOST_ARCH_PATH
+        ;;
+    CGAL-[0-9]*)
+        cgalPACKAGE="${1%%/}"
+        unset CGAL_ARCH_PATH
         ;;
     *)
         die "unknown option/argument: '$1'"
@@ -189,14 +190,37 @@ then
     echo "Using boost-system (skip ThirdParty build of BOOST)"
 
     # Tagged as 'system' but could actually point to a central location
-    [ -d "$BOOST_ARCH_PATH/include" ] || {
+
+    if [ -d "$boostInc" ]
+    then
+        if BOOST_ARCH_PATH=$(cd $BOOST_ARCH_PATH 2>/dev/null && pwd -P)
+        then
+            boostPACKAGE=${BOOST_ARCH_PATH##*/}
+        else
+            echo "ERROR: bad path for BOOST_ARCH_PATH"
+            echo "stopping build"
+            exit 1
+        fi
+
+        libdir="$BOOST_ARCH_PATH/lib"
+    else
         boostInc="/usr/include"
         boostLib="/usr/lib$WM_COMPILER_LIB_ARCH"
-    }
+        libdir="/usr/lib"
+    fi
+
+    # Use lib/ when lib64/ does not exist
+    [ ! -d "$boostLib" -a -d "$libdir" ] && boostLib="$libdir"
 
 elif [ -f "$boostInc/boost/version.hpp" ]
 then
     echo "Using $boostPACKAGE"
+
+    libdir="$BOOST_ARCH_PATH/lib"
+
+    # Use lib when lib64 does not exist
+    [ ! -d "$boostLib" -a -d "$libdir" ] && boostLib="$libdir"
+
 else
     echo "Starting build: $boostPACKAGE"
     echo
@@ -221,7 +245,7 @@ else
     }
 fi
 
-# nothing left to build
+# Nothing left to build
 if _foamIsSystem $cgalPACKAGE
 then
     echo "Using cgal-system (skip ThirdParty build of CGAL)"
@@ -243,18 +267,6 @@ else
 fi
 
 #------------------------------------------------------------------------------
-
-cat<<SUMMARY
-CGAL configuration
-------------------
-    CGAL    = $cgalPACKAGE
-    BOOST   = $boostPACKAGE
-    GMP     = $gmpPACKAGE
-    MPFR    = $mpfrPACKAGE
-------------------
-SUMMARY
-
-#------------------------------------------------------------------------------
 #
 # Build CGAL
 # For 64-bit:
@@ -271,22 +283,61 @@ CGAL_BUILD_DIR=$buildBASE/$cgalPACKAGE
 : ${CGAL_ARCH_PATH:=$installBASE/$cgalPACKAGE}      # Fallback
 
 # gmp/mpfr are installed without compiler name
-installBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH
-
-GMP_ARCH_PATH=$installBASE/$gmpPACKAGE
-MPFR_ARCH_PATH=$installBASE/$mpfrPACKAGE
+mpfrBASE=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH
 
 # Enable/disable gmp/mpfr together
 if _foamIsNone $gmpPACKAGE || _foamIsNone $mpfrPACKAGE
 then
     GMP_ARCH_PATH=none
     MPFR_ARCH_PATH=none
-elif _foamIsSystem $GMP_ARCH_PATH || _foamIsSystem $MPFR_ARCH_PATH
+elif _foamIsSystem $gmpPACKAGE || _foamIsSystem $mpfrPACKAGE
 then
-    GMP_ARCH_PATH=system    # for an accurate record
-    MPFR_ARCH_PATH=system
+    # May really be system, but could also by a central installation
+    # Ensure everything is accurately recorded. Resolve paths etc.
+
+    if [ -d "$GMP_ARCH_PATH" ]
+    then
+        if GMP_ARCH_PATH=$(cd $GMP_ARCH_PATH 2>/dev/null && pwd -P)
+        then
+            gmpPACKAGE=${GMP_ARCH_PATH##*/}
+        else
+            echo "ERROR: bad path for GMP_ARCH_PATH"
+            echo "stopping build"
+            exit 1
+        fi
+    else
+        GMP_ARCH_PATH=system
+    fi
+
+    if [ -d "$MPFR_ARCH_PATH" ]
+    then
+        if MPFR_ARCH_PATH=$(cd $MPFR_ARCH_PATH 2>/dev/null && pwd -P)
+        then
+            mpfrPACKAGE=${MPFR_ARCH_PATH##*/}
+        else
+            echo "ERROR: bad path for MPFR_ARCH_PATH"
+            echo "stopping build"
+            exit 1
+        fi
+    else
+        MPFR_ARCH_PATH=system
+    fi
+else
+    GMP_ARCH_PATH=$mpfrBASE/$gmpPACKAGE
+    MPFR_ARCH_PATH=$mpfrBASE/$mpfrPACKAGE
 fi
 
+#------------------------------------------------------------------------------
+
+cat<<SUMMARY
+CGAL configuration
+------------------
+    CGAL    = $cgalPACKAGE
+    BOOST   = $boostPACKAGE
+    GMP     = $gmpPACKAGE
+    MPFR    = $mpfrPACKAGE
+------------------
+SUMMARY
 
 #
 # build information recorded for later use
@@ -314,7 +365,7 @@ BUILD_INFO
 }
 
 
-# compare expected vs what is extracted as KEY=... in text
+# Compare expected vs what is extracted as KEY=... in text
 # $1 = key
 # $2 = expected
 # $3 = text to extract from
@@ -330,10 +381,11 @@ infoValueEq()
     fi
 }
 
-# needs build
+# Needs build
 cgalIsCurrent()
 {
-    local info=$(cat $buildInfoFile 2>/dev/null)
+    # Only need VAR=... (also avoids embedded '#' that bothers some shells)
+    local info=$(sed -n -e '/^[A-Z]/p' $buildInfoFile 2>/dev/null)
     [ -n "$info" ] || return 1
 
     local libDirName="lib$WM_COMPILER_LIB_ARCH"
@@ -384,24 +436,27 @@ fi
     # See http://doc.cgal.org/latest/Manual/installation.html
     if _foamIsSystem $boostPACKAGE
     then
-        echo "    system         : boost"
         # Tagged as 'system' but could actually point to a central location
         if [ -d "$BOOST_ARCH_PATH/include" ]
         then
+            echo "    boost          : ${BOOST_ARCH_PATH##*/}"
             configBoost="-DBOOST_ROOT=$BOOST_ARCH_PATH"
+        else
+            echo "    boost          : system"
         fi
+
         ## For system - possible that /usr/lib64 not being found?
         ## configBoost="-DBoost_LIBRARY_DIRS=$boostLib"
     elif [ -d "$BOOST_ARCH_PATH" ]
     then
-        echo "    ThirdParty     : boost"
+        echo "    boost          : $boostPACKAGE"
         configBoost=$(cat <<CMAKE_OPTIONS
  -DBoost_INCLUDE_DIR=$boostInc
  -DBoost_LIBRARY_DIRS=$boostLib
- -DBoost_THREAD_LIBRARY=$boostLib/libboost_thread.so
- -DBoost_THREAD_LIBRARY_RELEASE=$boostLib/libboost_thread.so
- -DBoost_SYSTEM_LIBRARY=$boostLib/libboost_system.so
- -DBoost_SYSTEM_LIBRARY_RELEASE=$boostLib/libboost_system.so
+ -DBoost_THREAD_LIBRARY=$boostLib/libboost_thread.$SO
+ -DBoost_THREAD_LIBRARY_RELEASE=$boostLib/libboost_thread.$SO
+ -DBoost_SYSTEM_LIBRARY=$boostLib/libboost_system.$SO
+ -DBoost_SYSTEM_LIBRARY_RELEASE=$boostLib/libboost_system.$SO
  -DBoost_VERSION=$BOOST_VERSION
 CMAKE_OPTIONS
 )
@@ -409,44 +464,64 @@ CMAKE_OPTIONS
 
     if _foamIsSystem $GMP_ARCH_PATH
     then
-        echo "    system         : gmp"
+        echo "    gmp            : system"
     elif _foamIsNone $GMP_ARCH_PATH
     then
-        echo "    disabled       : gmp"
+        echo "    gmp            : disabled"
         configGmp="-DCGAL_DISABLE_GMP=TRUE"  # Also used for mpfr
     elif [ -d "$GMP_ARCH_PATH" ]
     then
-        echo "    ThirdParty     : gmp"
-        configGmp=$(cat <<CMAKE_OPTIONS
+        echo "    gmp            : $gmpPACKAGE"
+
+        for libdir in \
+            $GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
+            $GMP_ARCH_PATH/lib \
+        ;
+        do
+            if [ -f "$libdir/libgmp.$SO" ]
+            then
+                configGmp=$(cat <<CMAKE_OPTIONS
  -DGMP_INCLUDE_DIR=$GMP_ARCH_PATH/include
- -DGMP_LIBRARIES_DIR=$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
- -DGMP_LIBRARIES=$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libgmp.so
- -DGMPXX_INCLUDE_DIR=$GMP_ARCH_PATH/include
- -DGMPXX_LIBRARIES=$GMP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libgmpxx.so
+ -DGMP_LIBRARIES_DIR=$libdir
+ -DGMP_LIBRARIES=$libdir/libgmp.$SO
 CMAKE_OPTIONS
 )
+                break
+            fi
+        done
     else
         echo "    system         : gmp (did not find $GMP_ARCH_PATH)"
     fi
 
     if _foamIsSystem $MPFR_ARCH_PATH
     then
-        echo "    system         : mpfr"
+        echo "    mpfr           : system"
     elif _foamIsNone $MPFR_ARCH_PATH
     then
-        echo "    disabled       : mpfr"
+        echo "    mpfr           : disabled"
         configGmp="-DCGAL_DISABLE_GMP=TRUE"  # Also used for mpfr
     elif [ -d "$MPFR_ARCH_PATH" ]
     then
-        echo "    ThirdParty     : mpfr"
-        configMpfr=$(cat <<CMAKE_OPTIONS
+        echo "    mpfr           : $mpfrPACKAGE"
+
+        for libdir in \
+            $MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
+            $MPFR_ARCH_PATH/lib \
+        ;
+        do
+            if [ -f "$libdir/libmpfr.$SO" ]
+            then
+                configMpfr=$(cat <<CMAKE_OPTIONS
  -DMPFR_INCLUDE_DIR=$MPFR_ARCH_PATH/include
- -DMPFR_LIBRARIES_DIR=$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
- -DMPFR_LIBRARIES=$MPFR_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libmpfr.so
+ -DMPFR_LIBRARIES_DIR=$libdir
+ -DMPFR_LIBRARIES=$libdir/libmpfr.$SO
 CMAKE_OPTIONS
 )
+                break
+            fi
+        done
     else
-        echo "    system         : mpfr (did not find $MPFR_ARCH_PATH)"
+        echo "    mpfr           : system (did not find $MPFR_ARCH_PATH)"
     fi
 
     cmake=$(findCMake)
@@ -484,7 +559,7 @@ CMAKE_OPTIONS
         fi
     done
 
-    # record our build-status
+    # Record our build-status
     recordCGALinfo
 
     echo "Done CGAL"

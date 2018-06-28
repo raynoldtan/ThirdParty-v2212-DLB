@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2017-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -19,12 +19,15 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
+# Dynamic library endings (default is .so)
+[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+
 # Short-circuit test for an installation
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
     dir="$2" # <- MPI_ARCH_PATH
-    if [ -r "$dir/lib$WM_COMPILER_LIB_ARCH/libmpich.so" ]
+    if [ -r "$dir/lib$WM_COMPILER_LIB_ARCH/libmpich.$SO" ]
     then
         echo "Have mpich shared library (${dir##*/})"
         exit 0
@@ -55,7 +58,7 @@ _foamAddPath() { true; }
 WM_MPLIB=MPICH                                  # Ensure we get the correct MPI
 
 # mpich version from OpenFOAM etc/config.sh file:
-_foamEtc config.sh/mpi
+_foamConfig mpi
 
 mpiPACKAGE=${FOAM_MPI:-mpich-system}
 
@@ -77,9 +80,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-# Compiler settings for CMake/configure
-[ -n "$WM_CC" ]  && export CC="$WM_CC"
-[ -n "$WM_CXX" ] && export CXX="$WM_CXX"
+exportCompiler          # Compiler info for CMake/configure
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -124,7 +125,7 @@ fi
 MPI_SOURCE_DIR=$sourceBASE/$mpiPACKAGE
 MPI_ARCH_PATH=$installBASE/$mpiPACKAGE
 
-if [ -r "$MPI_ARCH_PATH/lib_ARCH/libmpi.so" ]
+if [ -r "$MPI_ARCH_PATH/lib_ARCH/libmpi.$SO" ]
 then
     echo "Already has shared library"
 elif [ -r "$MPI_ARCH_PATH/lib/libmpi.a" ]
