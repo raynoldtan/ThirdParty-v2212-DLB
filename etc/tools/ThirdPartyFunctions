@@ -143,6 +143,9 @@ fi
 # Source an etc/config.sh file
 _foamConfig() { eval "$($WM_PROJECT_DIR/bin/foamEtcFile -sh -config $@)"; }
 
+# Source an etc file (as per OpenFOAM functions). Eg, for mpi setup.
+_foamEtc() { eval "$($WM_PROJECT_DIR/bin/foamEtcFile -sh $@)"; }
+
 #------------------------------------------------------------------------------
 
 #
