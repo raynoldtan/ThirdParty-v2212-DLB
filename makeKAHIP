@@ -75,7 +75,7 @@ usage()
 
 Usage: ${0##*/} [OPTION] [lib|libso] [kahip-VERSION]
 options:
-  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
   -help
 
 * Compile KaHIP

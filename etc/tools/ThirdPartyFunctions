@@ -64,7 +64,7 @@ exportLinker()
 # Force use of gcc/g++
 useGcc()
 {
-    export CC=gcc    # Use gcc/g++
+    export CC=gcc
     export CXX=g++
 }
 

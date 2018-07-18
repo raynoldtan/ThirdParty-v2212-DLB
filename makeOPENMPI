@@ -70,7 +70,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [openmpi-VERSION] [-- configure-options]
 options:
-  -gcc          Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
   -memcheck     Configure with --enable-memcheck (requires valgrind.h)
   -threaded     Configure with --enable-mpi-thread-multiple
   -no-threaded  Configure with --disable-mpi-thread-multiple

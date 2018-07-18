@@ -60,6 +60,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [gcc-VERSION] [gmp-VERSION] [mpfr-VERSION] [mpc-VERSION]
 options:
+  -clang            Force clang/clang++ for building
   -multilib         for 64-bit systems with 32-bit support required
   -no-multilib      for 64-bit systems without 32-bit support (DEFAULT)
   -no-threadsafe    disable mpfr thread-safe (default is auto-detect)
@@ -86,6 +87,10 @@ do
     case "$1" in
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
+    -clang)     # Force use of clang/clang++ for building
+        export CC=clang
+        export CXX=clang++
+        ;;
 
     -multi*)
         optMultilib=enable
@@ -133,6 +138,8 @@ GCC configuration
     MPFR    = $mpfrPACKAGE
     MPC     = $mpcPACKAGE
 ------------------
+Using CC    = $CC $CFLAGS
+Using CXX   = $CXX $CXXFLAGS
 SUMMARY
 
 # Set 32 or 64 bit ABI
