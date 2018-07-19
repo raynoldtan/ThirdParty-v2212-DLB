@@ -412,7 +412,7 @@ you may have additional hurdles to using the newest versions of clang.
 |-----------------------|------------------------
 | [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
-| [scotch, ptscotch][page scotch] | [download][link scotch]
+| [scotch, ptscotch][page scotch] | [download][link scotch] or older: [6.0.3][link scotch603]
 | [kahip][page kahip] | [download][link kahip]
 | [metis][page metis] | [download][link metis]
 
@@ -490,8 +490,9 @@ that clang compiler for building the newer llvm/clang version.
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
-[link scotch]:    https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
-[link scotch]:    https://gforge.inria.fr/frs/download.php/file/37398/scotch_6.0.5a.tar.gz
+[link scotch603]: https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
+[link scotch605]: https://gforge.inria.fr/frs/download.php/file/37398/scotch_6.0.5a.tar.gz
+[link scotch]:    https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
 [link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
