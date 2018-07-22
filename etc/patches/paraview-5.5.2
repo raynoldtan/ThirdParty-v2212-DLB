@@ -1,3 +1,16 @@
+--- ParaView-git/CMake/ParaViewMacros.cmake.orig	2018-07-22 17:38:33.933614131 +0200
++++ ParaView-git/CMake/ParaViewMacros.cmake	2018-07-22 17:42:12.457612519 +0200
+@@ -353,8 +353,9 @@
+     set(qt_binary_dir_hints "${Qt5_DIR}/../../../bin")
+   endif()
+ 
++  # The qhelpgenerator program may be installed as qhelpgenerator-qt5
+   find_program(QT_HELP_GENERATOR
+-    qhelpgenerator
++    NAMES qhelpgenerator qhelpgenerator-qt5
+     HINTS "${qt_binary_dir_hints}"
+     DOC "qhelpgenerator used to compile Qt help project files")
+   mark_as_advanced(QT_HELP_GENERATOR)
 --- ParaView-v5.5.2/VTK/ThirdParty/hdf5/vtkhdf5/src/H5detect.c.orig	2018-06-15 21:09:45.000000000 +0200
 +++ ParaView-v5.5.2/VTK/ThirdParty/hdf5/vtkhdf5/src/H5detect.c	2018-07-07 13:20:40.641815285 +0200
 @@ -1360,8 +1360,8 @@
