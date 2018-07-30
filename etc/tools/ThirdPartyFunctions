@@ -89,13 +89,31 @@ whichMpicc()
     local mpicc=$(command -v mpicc)
     case "$WM_MPLIB" in
     (INTELMPI)
-        mpicc=$(command -v mpiicc)  # Intel <mpiicc> available?
+        mpicc=$(command -v mpiicc)      # Intel <mpiicc> available?
         ;;
     (CRAY-MPI*)
-        : ${mpicc:=cc}              # Cray <cc> if there is no <mpicc>
+        : ${mpicc:=cc}                  # Cray <cc> if there is no <mpicc>
         ;;
     esac
     echo "${mpicc:-mpicc}"
+}
+
+
+# Return <mpicc> by default or <mpiicc> if possible for INTELMPI.
+# Cray doesn't have <mpicc>, but its <cc> manages mpi paths directly.
+# NOTE: could further refine based on $CC or $WM_CC, but not yet needed
+whichMpicxx()
+{
+    local mpicxx=$(command -v mpicxx)
+    case "$WM_MPLIB" in
+    (INTELMPI)
+        mpicxx=$(command -v mpiicpc)    # Intel <mpiicpc> available?
+        ;;
+    (CRAY-MPI*)
+        : ${mpicxx:=CC}                 # Cray <CC> if there is no <mpicc>
+        ;;
+    esac
+    echo "${mpicxx:-mpicxx}"
 }
 
 # The presence of wmkdep etc required for building with wmake
