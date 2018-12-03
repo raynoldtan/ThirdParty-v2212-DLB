@@ -243,17 +243,17 @@ and save some disk space.
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
 
-      ln -s ParaView-v5.5.2/VTK VTK-9.0.0
+      ln -s ParaView-v5.6.0/VTK VTK-8.2.0
 
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
 
-      $ cat ParaView-v5.5.2/VTK/CMake/vtkVersion.cmake
+      $ cat ParaView-v5.6.0/VTK/CMake/vtkVersion.cmake
 
       # VTK version number components.
-      set(VTK_MAJOR_VERSION 9)
-      set(VTK_MINOR_VERSION 0)
+      set(VTK_MAJOR_VERSION 8)
+      set(VTK_MINOR_VERSION 2)
       set(VTK_BUILD_VERSION 0)
 
 ### ParaView
@@ -273,7 +273,7 @@ source pack. This, however, has never been tested in combination with
 the OpenFOAM Catalyst insitu visualization.
 
 
-#### 5.5.x binary package
+#### 5.6.x, 5.5.x binary packages
 
 For general functionality, the paraview version distributed with
 the operating system or a [binary package][download ParaView]])
@@ -322,7 +322,7 @@ may not be important for you):
 
 3. Build ParaView using this third-party QT. For example,
 
-       ./makeParaView -qt-5.9.3  5.5.2
+       ./makeParaView -qt-5.9.3  5.6.0
 
 - ParaView versions prior to 5.3.0 do not properly support QT5.
 
@@ -422,7 +422,7 @@ you may have additional hurdles to using the newest versions of clang.
 | Name                  | Location
 |-----------------------|------------------------
 | [MESA][page mesa]     | [download][link mesa] or [older 13][link mesa13], [older 11][link mesa11]
-| [ParaView][page ParaView] | [download][link ParaView] or [older paraview-54][link ParaView54] or [binaries][download ParaView]
+| [ParaView][page ParaView] | [download][link ParaView] or [older paraview-55][link ParaView55], [older paraview-54][link ParaView54] or [binaries][download ParaView]
 | [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older qt-56][link Qt56] for older systems.
 
 
@@ -436,7 +436,7 @@ The minimum CMake requirements for building various components.
     2.8.12.2    llvm-3.7.0
     2.8.12.2    llvm-3.8.0
     2.8.4       cmake-3.6.0
-    3.3         ParaView-5.5.2
+    3.3         ParaView-5.6.0
     3.4.3       llvm-3.9.1
     3.4.3       llvm-4.0.0 - llvm-6.0.0
     3.6         ADIOS2
@@ -463,8 +463,8 @@ that clang compiler for building the newer llvm/clang version.
 [page mpc]:       http://www.multiprecision.org/
 
 [link gcc]:       http://gcc.gnu.org/releases.html
-[link gmp]:       ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.0.tar.bz2
-[link mpfr]:      ftp://ftp.gnu.org/gnu/mpfr/mpfr-3.1.4.tar.bz2
+[link gmp]:       ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz
+[link mpfr]:      ftp://ftp.gnu.org/gnu/mpfr/mpfr-4.0.1.tar.xz
 [link mpc]:       ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz
 
 
@@ -531,7 +531,8 @@ that clang compiler for building the newer llvm/clang version.
 [page ParaView]:  http://www.paraview.org/
 [download ParaView]: https://www.paraview.org/download/
 [link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
-[link ParaView]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
+[link ParaView55]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
+[link ParaView]: http://www.paraview.org/files/v5.6/ParaView-v5.6.0.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
