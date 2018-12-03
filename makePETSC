@@ -130,7 +130,7 @@ fi
 #   PETSC_SOURCE_DIR : location of the original sources
 
 PETSC_SOURCE_DIR=$sourceBASE/$petscPACKAGE
-: ${PETSC_ARCH_PATH:=$installBASE$WM_PRECISION_OPTION$WM_LABEL_OPTION/$petscPACKAGE}
+: ${PETSC_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$petscPACKAGE}
 
 [ -d "$PETSC_SOURCE_DIR" ] || {
     echo "Missing sources: '$petscPACKAGE'"
@@ -141,8 +141,8 @@ PETSC_SOURCE_DIR=$sourceBASE/$petscPACKAGE
 echo "Starting build: $petscPACKAGE ($targetType)"
 echo
 (
-    # PETSC arch
-    archOpt="${WM_PRECISION_OPTION}Int$WM_LABEL_SIZE"
+    # PETSC arch - same root as WM_OPTIONS (eg, DPInt32)
+    archOpt="$WM_SIZE_OPTIONS"
 
     # Configuration options:
     configOpt="--with-cc=$(whichMpicc) --with-cxx=$(whichMpicxx)"
@@ -181,9 +181,9 @@ echo
        --download-f2cblaslapack=1 \
        $configOpt \
      && echo "Configured: petsc" \
-     && make PETSC_DIR=$PETSC_SOURCE_DIR PETSC_ARCH=$archOpt all \
+     && make PETSC_DIR=$PETSC_SOURCE_DIR PETSC_ARCH="$archOpt" all \
      && echo "Built: petsc" \
-     && make PETSC_DIR=$PETSC_SOURCE_DIR PETSC_ARCH=$archOpt install
+     && make PETSC_DIR=$PETSC_SOURCE_DIR PETSC_ARCH="$archOpt" install
      && echo "Installed: petsc"
 ) || {
     echo "Error building: petsc"

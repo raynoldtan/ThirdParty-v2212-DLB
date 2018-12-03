@@ -130,7 +130,7 @@ fi
 #   METIS_SOURCE_DIR : location of the original sources
 
 METIS_SOURCE_DIR=$sourceBASE/$metisPACKAGE
-: ${METIS_ARCH_PATH:=$installBASE$WM_PRECISION_OPTION$WM_LABEL_OPTION/$metisPACKAGE}
+: ${METIS_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$metisPACKAGE}
 
 [ -d "$METIS_SOURCE_DIR" ] || {
     echo "Missing sources: '$metisPACKAGE'"

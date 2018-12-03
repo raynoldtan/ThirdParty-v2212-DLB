@@ -130,7 +130,7 @@ fi
 #   HYPRE_SOURCE_DIR : location of the original sources
 
 HYPRE_SOURCE_DIR=$sourceBASE/$hyprePACKAGE
-: ${HYPRE_ARCH_PATH:=$installBASE$WM_PRECISION_OPTION$WM_LABEL_OPTION/$hyprePACKAGE}
+: ${HYPRE_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$hyprePACKAGE}
 
 [ -d "$HYPRE_SOURCE_DIR" ] || {
     echo "Missing sources: '$hyprePACKAGE'"
