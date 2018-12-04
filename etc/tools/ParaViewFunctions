@@ -467,6 +467,8 @@ You may need to update the OpenFOAM environment by running:
 INFO
 
     # Non-system installation of QT?
+    case "$qtLib" in (/usr/lib | /usr/lib64) unset qtLib ;; esac
+
     if [ "$qmake" != /usr/bin/qmake -a -d "$qtLib" ]
     then
         /bin/cat<<INFO
