@@ -71,7 +71,7 @@ options:
   -mesa-include DIR location of mesa headers (current: ${MESA_INCLUDE:-none})
   -mesa-lib PATH    path to mesa library     (current: ${MESA_LIBRARY:-none})
   -osmesa           with off-screen mesa only
-  -mpi              with mpi
+  -mpi              with mpi (VTK_Group_MPI=ON)
   -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
   -cmake PATH       with cmake from the path given
   -verbose          verbose output in Makefiles

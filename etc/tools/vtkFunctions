@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -145,6 +145,28 @@ configVTK()
         -DCMAKE_INSTALL_PREFIX=$VTK_DIR \
         $CMAKE_VARIABLES \
         $VTK_SOURCE_DIR
+}
+
+
+#
+# MPI support for VTK
+#
+unset -f addMpiSupport 2>/dev/null
+addMpiSupport()
+{
+    if [ "${withMPI:=false}" != true ]
+    then
+        return
+    fi
+
+    addCMakeVariable "VTK_Group_MPI=ON"
+    addCMakeVariable "Module_vtkRenderingParallel=ON"
+    addCMakeVariable "Module_vtkParallelMPI=ON"
+
+    if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
+    then
+        addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
+    fi
 }
 
 

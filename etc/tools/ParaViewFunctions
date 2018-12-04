@@ -137,7 +137,7 @@ addVerbosity()
 
 
 #
-# Define options for mpi support
+# MPI support for PARAVIEW
 #
 addMpiSupport()
 {
@@ -146,7 +146,7 @@ addMpiSupport()
         return
     fi
 
-    addCMakeVariable "PARAVIEW_USE_MPI=ON" "VTK_USE_MPI=ON"
+    addCMakeVariable "PARAVIEW_USE_MPI=ON"
     if [ "${MPI_MAX_PROCS:=0}" -gt 1 ]
     then
         addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
@@ -469,11 +469,11 @@ INFO
     # Non-system installation of QT?
     case "$qtLib" in (/usr/lib | /usr/lib64) unset qtLib ;; esac
 
-    if [ "$qmake" != /usr/bin/qmake -a -d "$qtLib" ]
+    if [ "${qmake%/*}" != /usr/bin -a -d "$qtLib" ]
     then
         /bin/cat<<INFO
 
-And adjust your LD_LIBRARY_PATH to include the following:
+Your LD_LIBRARY_PATH may require adjustment to include the following:
     $qtLib
 INFO
     fi
