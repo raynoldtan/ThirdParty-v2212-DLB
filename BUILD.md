@@ -465,7 +465,7 @@ that clang compiler for building the newer llvm/clang version.
 [link gcc]:       http://gcc.gnu.org/releases.html
 [link gmp]:       ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz
 [link mpfr]:      ftp://ftp.gnu.org/gnu/mpfr/mpfr-4.0.1.tar.xz
-[link mpc]:       ftp://ftp.gnu.org/gnu/mpc/mpc-1.0.3.tar.gz
+[link mpc]:       ftp://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz
 
 
 <!-- clang-related -->
