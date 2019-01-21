@@ -97,6 +97,18 @@ fi
 ADIOS2_SOURCE_DIR=$sourceBASE/$adios2PACKAGE
 ADIOS2_ARCH_PATH=$installBASE/$adios2PACKAGE
 
+# Some hacked in value, for binding in ADIOS1 as well (for the reader)
+# Don't know if this is still needed
+if [ -n "$ADIOS1_ARCH_PATH" ]
+then
+    ADIOS1_ARCH_PATH=$installBASE/ADIOS-1.13.0
+fi
+if [ -d "$ADIOS1_ARCH_PATH" ]
+then
+    export ADIOS1_ROOT="$ADIOS1_ARCH_PATH"
+fi
+
+
 : ${FOAM_MPI:=dummy}
 
 echo
@@ -139,16 +151,13 @@ else
             CXX=mpicxx
         fi
 
-# HACK
-export ADIOS1_ROOT=/local/home/mark/openfoam/ThirdParty-plus/platforms/linux64Gcc/ADIOS-1.12.0
-
         cmake=$(findCMake)
 
         # Install into lib64/
         cd $buildDIR && $cmake \
             -DCMAKE_INSTALL_PREFIX=$ADIOS2_ARCH_PATH \
             -DCMAKE_BUILD_TYPE=Release \
-            -DBUILD_FORTRAN=FALSE \
+            -DADIOS2_USE_Fortran=FALSE \
             -DADIOS1_USE_STATIC_LIBS=TRUE \
             ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
             $ADIOS2_SOURCE_DIR \

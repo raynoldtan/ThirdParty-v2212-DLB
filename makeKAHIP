@@ -98,7 +98,7 @@ do
         targetType="$1"
         ;;
 
-    kahip-[1-9]* | kahip-git)
+    kahip-[1-9]* | kahip-git | KaHIP_* |  KaHIP-[1-9]*)
         kahipPACKAGE="${1%%/}"
         unset KAHIP_ARCH_PATH  # Avoid inconsistency
         ;;

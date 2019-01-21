@@ -485,8 +485,8 @@ that clang compiler for building the newer llvm/clang version.
 <!-- parallel -->
 [page adios]:     https://www.olcf.ornl.gov/center-projects/adios/
 [repo adios]:     https://github.com/ornladios/ADIOS
-[link adios]:     https://github.com/ornladios/ADIOS/archive/v1.13.0.tar.gz
-[altlink adios]:  http://users.nccs.gov/%7Epnorbert/adios-1.13.0.tar.gz
+[link adios]:     https://github.com/ornladios/ADIOS/archive/v1.13.1.tar.gz
+[altlink adios]:  http://users.nccs.gov/~pnorbert/adios-1.13.1.tar.gz
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
@@ -495,7 +495,7 @@ that clang compiler for building the newer llvm/clang version.
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
-[link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
+[link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.10.tar.gz
 
 [page metis]:     http://glaros.dtc.umn.edu/gkhome/metis/metis/overview
 [link metis]:     http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz
