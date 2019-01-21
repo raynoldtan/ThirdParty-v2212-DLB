@@ -501,7 +501,7 @@ that clang compiler for building the newer llvm/clang version.
 [link metis]:     http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz
 
 [page openmpi]:   http://www.open-mpi.org/
-[link openmpi]:   https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.4.tar.bz2
+[link openmpi]:   https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.7.tar.bz2
 [newer openmpi]:  https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.bz2
 
 

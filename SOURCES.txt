@@ -1,5 +1,11 @@
 Short summary of third-party software versions for recent OpenFOAM versions.
 
+OpenFOAM-1906
+---------------
+
+openmpi-1.10.7
+kahip-2.10a
+
 OpenFOAM-1812
 ---------------
 
