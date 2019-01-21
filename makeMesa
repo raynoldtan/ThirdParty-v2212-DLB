@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -34,7 +34,7 @@ cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 
-unset vtk_version mesa_version                           # Purge current values
+unset vtk_version mesa_version mesa_llvm              # Purge current values
 
 # mesa version from OpenFOAM etc/config.sh file:
 _foamConfig vtk
@@ -50,6 +50,7 @@ usage() {
 usage: ${0##*/} [OPTION] mesa-VERSION [-- configure-options]
 options:
   -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
+  -llvm VER     llvm version (in ThirdParty) or 'system' to use system
   -help
 
 * build Mesa with
@@ -60,14 +61,26 @@ USAGE
 }
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
+unset withLLVM
 
 # Non-standard location for clang?
 case "$WM_COMPILER_TYPE-$WM_COMPILER" in
-ThirdParty-Clang*)
-    thirdPartyClang=true
+(ThirdParty-Clang*)
+    withLLVM=true       # 'true' means find on path
     ;;
-*)
-    unset thirdPartyClang
+(system-Clang*)
+    withLLVM=system     # 'system' means find on path
+    ;;
+(*)
+    if _foamIsNone "$mesa_llvm"
+    then
+        withLLVM=false
+    elif _foamIsSystem "$mesa_llvm"
+    then
+        withLLVM=system     # 'system' means find on path
+    else
+        withLLVM="$mesa_llvm"  # Take value from mesa config
+    fi
     ;;
 esac
 
@@ -80,12 +93,19 @@ do
     -h | -help) usage   ;;
     -gcc)
         useGcc
-        unset thirdPartyClang
+        unset withLLVM
+        ;;
+    -llvm)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withLLVM="$2"
+        shift
+        ;;
+    llvm-*)
+        withLLVM="$1"
         ;;
     mesa-*)
         mesaPACKAGE="${1%%/}"
         ;;
-
     *)
         die "unknown option/argument: '$1'"
         ;;
@@ -108,27 +128,43 @@ fi
 
 #------------------------------------------------------------------------------
 # Locate third-party clang as required
-if [ "$thirdPartyClang" = true ]
-then
-    thirdPartyClang=$(command -v clang) || {
-        echo "Error: could not properly locate clang"
+case "$withLLVM" in
+(true | system)
+    LLVM_ARCH_PATH="$(command -v clang)" || {
+        echo "Error: could not properly locate llvm/clang"
         exit 2
     }
 
     # Root installation directory
-    thirdPartyClang=${thirdPartyClang%/bin/clang}
+    LLVM_ARCH_PATH="${LLVM_ARCH_PATH%/bin/clang}"
 
-    [ -d "$thirdPartyClang" ] || {
-        echo "Error: could not properly locate clang"
+    [ -d "$LLVM_ARCH_PATH" ] || {
+        echo "Error: could not properly locate llvm/clang"
         exit 2
     }
-fi
+    ;;
+
+('' | none | false)
+    withLLVM=none
+    echo "No llvm"
+    ;;
+
+(llvm-*)
+    echo "check llvm = $withLLVM"
+    LLVM_ARCH_PATH="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH/$withLLVM"
+
+    [ -d "$LLVM_ARCH_PATH" ] || {
+        echo "Error: could not properly locate llvm/clang"
+        exit 2
+    }
+    ;;
+esac
 
 #------------------------------------------------------------------------------
 #
 # Build MESA
 # For 64-bit
-# - MESA itself will normally build into 'lib64'.
+# - MESA itself will normally build into 'lib64' (depends on autoconfig).
 #
 #   MESA_SOURCE_DIR : location of the original sources
 #   MESA_ARCH_DIR   : installation directory
@@ -151,9 +187,9 @@ adjustMESA()
     # Configuration options:
     unset configOpt
 
-    if [ -d "$thirdPartyClang" ]
+    if [ -d "$LLVM_ARCH_PATH" ]
     then
-        configOpt="$configOpt --with-llvm-prefix=$thirdPartyClang"
+        configOpt="$configOpt --with-llvm-prefix=$LLVM_ARCH_PATH"
     fi
 
     # Additional configure options
@@ -178,11 +214,11 @@ adjustMESA()
 
     echo "----"
     echo "Building $mesaPACKAGE"
-    echo "    Source         : $MESA_SOURCE_DIR"
-    echo "    Target         : $MESA_ARCH_PATH"
-    if [ -d "$thirdPartyClang" ]
+    echo "    Source  : $MESA_SOURCE_DIR"
+    echo "    Target  : $MESA_ARCH_PATH"
+    if [ -d "$LLVM_ARCH_PATH" ]
     then
-        echo "    Clang          : $thirdPartyClang"
+        echo "    llvm    : $LLVM_ARCH_PATH"
     fi
     echo "----"
 
