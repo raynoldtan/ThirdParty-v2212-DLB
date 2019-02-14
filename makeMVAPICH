@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2017-2019 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -11,10 +11,10 @@
 #     <http://www.gnu.org/licenses/>.
 #
 # Script
-#     makeMPICH
+#     makeMVAPICH2
 #
 # Description
-#     Build script for mpich [unmaintained]
+#     Build script for mvapich2 [unmaintained]
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
@@ -55,12 +55,12 @@ _foamAddMan()  { true; }
 _foamAddPath() { true; }
 #------------------------------------------------------------------------------
 
-WM_MPLIB=MPICH                                  # Ensure we get the correct MPI
+WM_MPLIB=MV2MPI                                 # Ensure we get the correct MPI
 
-# mpich version from OpenFOAM etc/config.sh file:
+# mvapich2 version from OpenFOAM etc/config.sh file:
 _foamConfig mpi
 
-mpiPACKAGE=${FOAM_MPI:-mpich-system}
+mpiPACKAGE=${FOAM_MPI:-mvapich2-system}
 
 #------------------------------------------------------------------------------
 usage() {
@@ -68,13 +68,17 @@ usage() {
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [mpich-VERSION] [-- configure-options]
+usage: ${0##*/} [OPTION] [mvapich2-VERSION] [-- configure-options]
 options:
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc              Force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
   -help
 
-* build mpich with
+* build mvapich2 with
       ${mpiPACKAGE:-'unspecified mpich version'}
+
+The additional configure-options could include, for example,
+
+    ${0##*/} -- --disable-mcast
 
 USAGE
     exit 1
@@ -91,7 +95,7 @@ do
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
 
-    mpich*)
+    mvapich*)
         mpiPACKAGE="${1%%/}"
         ;;
 
@@ -102,22 +106,22 @@ do
     shift
 done
 
-[ -n "$mpiPACKAGE" ] || die "The mpich-VERSION was not specified"
+[ -n "$mpiPACKAGE" ] || die "The mvapich-VERSION was not specified"
 
 # Nothing to build
 if _foamIsNone "$mpiPACKAGE"
 then
-    echo "Using mpich-none (skip ThirdParty build of mpich)"
+    echo "Using mvapich-none (skip ThirdParty build of mvapich)"
     exit 0
 elif _foamIsSystem "$mpiPACKAGE"
 then
-    echo "Using mpich-system (skip ThirdParty build of mpich)"
+    echo "Using mvapich-system (skip ThirdParty build of mvapich)"
     exit 0
 fi
 
 #------------------------------------------------------------------------------
 #
-# Build mpich
+# Build mvapich
 #
 #   MPI_SOURCE_DIR : location of the original sources
 #   MPI_ARCH_PATH  : installation directory

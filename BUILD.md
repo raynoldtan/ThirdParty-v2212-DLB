@@ -3,7 +3,7 @@
    | =========                 |                                              |
    | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
    |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.         |
+   |   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.         |
    |    \\/     M anipulation  |                                              |
    |--------------------------------------------------------------------------|
   -->
@@ -503,6 +503,12 @@ that clang compiler for building the newer llvm/clang version.
 [page openmpi]:   http://www.open-mpi.org/
 [link openmpi]:   https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.7.tar.bz2
 [newer openmpi]:  https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.bz2
+
+[page mpich]:     http://www.mpich.org/
+[link mpich]:     http://www.mpich.org/static/downloads/3.3/mpich-3.3.tar.gz
+
+[page mvpapich]:   http://mvapich.cse.ohio-state.edu/
+[link mvpapich]:   http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.tar.gz
 
 
 <!-- general -->
