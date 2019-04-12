@@ -531,6 +531,9 @@ that clang compiler for building the newer llvm/clang version.
 [repo gperftools]: https://github.com/gperftools/gperftools
 [link gperftools]: https://github.com/gperftools/gperftools/releases/download/gperftools-2.5/gperftools-2.5.tar.gz
 
+[page zlib]:      https://www.zlib.net/
+[link zlib]:      https://sourceforge.net/projects/libpng/files/zlib/1.2.11/zlib-1.2.11.tar.xz
+
 
 <!-- Visualization -->
 

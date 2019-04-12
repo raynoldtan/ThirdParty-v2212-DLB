@@ -74,7 +74,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [lib|libso] [METIS-VERSION]
 options:
-  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
   -help
 
 * build METIS with

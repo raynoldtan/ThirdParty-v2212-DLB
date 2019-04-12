@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2018-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -74,7 +74,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [lib|libso] [HYPRE-VERSION]
 options:
-  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
   -help
 
 * build HYPRE with

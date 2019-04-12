@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #                           | Copyright (C) 2011-2016 OpenFOAM Foundation
@@ -21,9 +21,6 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Dynamic library endings (default is .so)
-[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
-
 # Run from third-party directory only
 cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
@@ -62,6 +59,8 @@ echo
 echo ========================================
 echo Start ThirdParty Allwmake
 echo ========================================
+echo "using:  $CC $CFLAGS"
+echo "using:  $CXX $CXXFLAGS"
 echo
 echo ========================================
 echo Build MPI libraries if required
@@ -94,14 +93,20 @@ echo "    $SCOTCH_ARCH_PATH"
 SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
 
 # Needs generalizing, but works fairly well
-scotchMakefile=etc/makeFiles/scotch/Makefile.inc.OpenFOAM-"$(uname -s)".shlib
+for scotchMakefile in \
+    "OpenFOAM-$(uname -s)-${WM_COMPILER}.shlib" \
+    "OpenFOAM-$(uname -s).shlib" \
+    OpenFOAM-Linux.shlib \
+;
+do
+    scotchMakefile="etc/makeFiles/scotch/Makefile.inc.$scotchMakefile"
+    [ -f "$scotchMakefile" ] && break
+done
 
-[ -f $scotchMakefile ] || \
-    scotchMakefile=${scotchMakefile%/*}/Makefile.inc.OpenFOAM-Linux.shlib
 
-if [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
-  -a -r $FOAM_EXT_LIBBIN/libscotch.$SO \
-  -a -r $FOAM_EXT_LIBBIN/libscotcherrexit.$SO ]
+if [ -f "$SCOTCH_ARCH_PATH/include/scotch.h" ] \
+&& [ -r "$FOAM_EXT_LIBBIN/libscotch.$SO" ] \
+&& [ -r "$FOAM_EXT_LIBBIN/libscotcherrexit.$SO" ]
 then
     echo "    scotch include: $SCOTCH_ARCH_PATH/include"
     echo "    scotch library: $FOAM_EXT_LIBBIN"
@@ -113,6 +118,11 @@ then
     export WM_NCOMPPROCS=1
     echo "*** building scotch in serial ***"
     echo
+
+    [ -f "$scotchMakefile" ] || {
+        echo " Error: no such makefile: $scotchMakefile"
+        exit 1
+    }
 
     cd $SCOTCH_SOURCE_DIR/src || exit 1
     export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
@@ -141,11 +151,11 @@ then
         exit 1
     }
 
-    export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
-    export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
+    export CCS="$(whichCC)"         # CCS (serial compiler)
+    export CCP="$(whichMpicc)"      # CCP (parallel compiler) default=mpicc
 
     # Consistency for Intel-MPI and non-icc compilers
-    [ -n "$I_MPI_CC" ] || export I_MPI_CC="${CC:-$WM_CC}"
+    [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
 
     make realclean 2>/dev/null  # Extra safety
     make -j $WM_NCOMPPROCS scotch \
@@ -191,6 +201,11 @@ then
         export WM_NCOMPPROCS=1
         echo "*** building pt-scotch in serial ***"
 
+        [ -f "$scotchMakefile" ] || {
+            echo " Error: no such makefile: $scotchMakefile"
+            exit 1
+        }
+
         cd $SCOTCH_SOURCE_DIR/src || exit 1
         export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
         echo
@@ -213,11 +228,11 @@ then
             exit 1
         }
 
-        export CCS="${CC:-$WM_CC}"  # CCS (serial compiler)   default=$(CC)
+        export CCS="$(whichCC)"     # CCS (serial compiler)
         export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
 
         # Consistency for Intel-MPI and non-icc compilers
-        [ -n "$I_MPI_CC" ] || export I_MPI_CC="${CC:-$WM_CC}"
+        [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
 
         make realclean 2>/dev/null  # Extra safety
         make -j $WM_NCOMPPROCS ptscotch \

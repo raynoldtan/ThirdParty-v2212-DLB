@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #                           | Copyright (C) 2011-2016 OpenFOAM Foundation
@@ -72,7 +72,8 @@ usage() {
 
 usage: ${0##*/} [OPTION] [paraview-VERSION] [CMAKE-OPTION]
 options:
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc              Force use of gcc/g++
+  -cmake PATH       with cmake from the given path
   -rebuild          for repeated builds (-make -install) *use with caution*
   -gl2              with new rendering backend (default: auto)
   -mesa             with mesa
@@ -85,10 +86,9 @@ options:
   -python-include DIR
                     location of python headers (current: ${PYTHON_INCLUDE:-none})
   -python-lib PATH  path to python library (current: ${PYTHON_LIBRARY:-none})
-  -cmake PATH       with cmake from the path given
-  -qmake PATH       with the Qt version corresponding to the qmake path given
+  -qmake PATH       with QT version corresponding to the qmake in given path
   -qt               with extra Qt gui support (if not already enabled)
-  -qt-VER           with Qt version corresponding to
+  -qt-VER           with QT version corresponding to
                         \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/qt-VER/bin/qmake
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current: $ParaView_VERSION)

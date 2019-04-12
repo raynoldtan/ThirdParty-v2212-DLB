@@ -70,7 +70,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [mpich-VERSION] [-- configure-options]
 options:
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
   -help
 
 * build mpich with

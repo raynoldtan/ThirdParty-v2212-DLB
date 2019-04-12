@@ -1,12 +1,23 @@
 #-------------------------------*- makefile -*---------------------------------
-# OpenFOAM notes:
 #
-# WM_CFLAGS, WM_LDFLAGS contain "-m32 -fPIC" etc
-# WM_LABEL_SIZE == 64 for 'long' instead of 'int' for OpenFOAM labels
+# Prior to OpenFOAM-v1906, these were always part of the environment
 #
+# - WM_CFLAGS   : with -m32 / -m64 and -fPIC
+# - WM_LDFLAGS  : with -m32 / -m64
+#
+# With OpenFOAM-v1906 and later
+#
+# - wmake -show-cflags        : with -m32 / -m64
+# - wmake -show-cflags-arch   : with -m32 / -m64
+#
+# Pass these in via the enviroment since using '$(shell ...)' here does not
+# always work well.
+#
+# Notes:
 # - compiled without pthread
 #
 # Normally set CCS, CCP by caller
+#------------------------------------------------------------------------------
 
 EXE         =
 LIB         = .dylib
@@ -17,7 +28,7 @@ ARFLAGS     = $(WM_CFLAGS) -dynamiclib -undefined dynamic_lookup -o
 CCS        ?= $(CC)
 CCP        ?= mpicc
 CCD         = $(CCP)
-CFLAGS      = $(WM_CFLAGS) -O3 \
+CFLAGS      = $(WM_CFLAGS) -fPIC -O3 \
     -DCOMMON_FILE_COMPRESS_GZ \
     -DCOMMON_RANDOM_FIXED_SEED \
     -DSCOTCH_DETERMINISTIC \

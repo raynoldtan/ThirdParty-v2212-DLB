@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #                           | Copyright (C) 2011-2016 OpenFOAM Foundation
@@ -64,8 +64,8 @@ usage() {
 
 usage: ${0##*/} [OPTION] [llvm-VERSION]
 options:
-  -cmake PATH       with cmake from the path given
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
+  -cmake PATH   with cmake from the given path
   -help
 
 * build llvm/clang

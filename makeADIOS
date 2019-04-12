@@ -41,8 +41,8 @@ usage() {
 
 usage: ${0##*/} [OPTION] [adios-VERSION] [-- configure-options]
 options:
-  -cmake PATH   With cmake from the path given
-  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
+  -cmake PATH   With cmake from the given path
   -help
 
 * Build ADIOS

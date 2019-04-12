@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2017-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2017-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -42,7 +42,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [mgridgen-VERSION]
 options:
-  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
   -help
 
 * Build MGridGen
@@ -59,12 +59,10 @@ exportCompiler          # Compiler info for CMake/configure
 while [ "$#" -gt 0 ]
 do
     case "$1" in
-    -h | -help)
-        usage
-        ;;
-    -gcc)
-        useGcc  # Use gcc/g++
-        ;;
+    '') ;;      # Ignore empty
+    -h | -help) usage   ;;
+    -gcc)       useGcc  ;;
+
     mgridgen-[1-9]* | MGridGen-[1-9]* | parmgridgen-[1-9]* | ParMGridGen-[1-9]*)
         mgridgenPACKAGE="${1%%/}"
         ;;
@@ -147,8 +145,8 @@ else
     # Remove any existing build folder and recreate
     rm -rf $MGRIDGEN_ARCH_PATH
 
-    serial="${CC:-$WM_CC}"   # CC (serial compiler)   default=cc
-    # parallel=$(whichMpicc)   # PARCC (parallel compiler) default=mpicc
+    serial="$(whichCC)"             # CC (serial compiler) default=gcc
+    # parallel=$(whichMpicc)        # PARCC (parallel compiler) default=mpicc
     # PARCC=$parallel
     # PARLD=$parallel
     # PARLIBS="-L../.. -lparmgrid -lmgrid -lm"
@@ -156,8 +154,8 @@ else
     make \
         COPTIONS="-fPIC"  \
         LDOPTIONS="-fPIC" \
-        CC=$serial \
-        LD=$serial \
+        CC="$serial" \
+        LD="$serial" \
         LIBDIR="-L../.." \
         LIBS="-L../.. -lmgrid -lm" \
         make=make \

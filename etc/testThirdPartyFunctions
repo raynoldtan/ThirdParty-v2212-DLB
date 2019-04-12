@@ -1,0 +1,45 @@
+#!/bin/sh
+#------------------------------------------------------------------------------
+# =========                 |
+# \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
+#  \\    /   O peration     |
+#   \\  /    A nd           | Copyright (C) 2019 OpenCFD Ltd.
+#    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+# License
+#     This file is part of OpenFOAM, licensed under GNU General Public License
+#     <http://www.gnu.org/licenses/>.
+#
+# Script
+#     testThirdPartyFunctions
+#
+# Description
+#     Simple ad hoc tests of etc/tools/ThirdPartyFunctions
+#
+#------------------------------------------------------------------------------
+
+echo ========================================
+echo "Calling environment"
+echo "CC=$CC"
+echo "CXX=$CXX"
+echo
+echo ========================================
+
+. "$WM_THIRD_PARTY_DIR/etc/tools/ThirdPartyFunctions"
+
+#------------------------------------------------------------------------------
+
+echo "CC=$(whichCC)"
+echo "CXX=$(whichCXX)"
+echo "mpicc=$(whichMpicc)"
+echo "mpicxx=$(whichMpicxx)"
+
+exportCompiler
+
+echo ========================================
+echo "using:  $CC $CFLAGS"
+echo "using:  $CXX $CXXFLAGS"
+echo
+echo ========================================
+
+#------------------------------------------------------------------------------

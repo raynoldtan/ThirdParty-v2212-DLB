@@ -20,19 +20,22 @@
 #------------------------------------------------------------------------------
 
 EXE         =
-LIB         = .so
+LIB         = .dll
 OBJ         = .o
 
 AR          = $(CC)
-ARFLAGS     = $(WM_CFLAGS) -shared -o
-CCS        ?= $(CC)
-CCP        ?= mpicc
-CCD         = $(CCP)
+ARFLAGS     = $(CFLAGS) -shared -Wl,--output-def,libscotch.def,--out-implib,libscotch.a,--enable-auto-import,--strip-all -o
+CC          = x86_64-w64-mingw32-gcc
+CCS         = x86_64-w64-mingw32-gcc
+CCP         = x86_64-w64-mingw32-gcc
+CCD         = gcc
 CFLAGS      = $(WM_CFLAGS) -fPIC -O3 \
-    -DCOMMON_FILE_COMPRESS_GZ \
+    -DCOMMON_WINDOWS -DCOMMON_STUB_FORK -DCOMMON_PTHREAD_FILE \
+    -UCOMMON_FILE_COMPRESS \
     -DCOMMON_RANDOM_FIXED_SEED \
     -DSCOTCH_DETERMINISTIC \
     -DSCOTCH_RENAME \
+    -DSCOTCH_PTHREAD \
     -Drestrict=__restrict
 
 # 32-bit vs. 64-bit labels
@@ -41,7 +44,7 @@ CFLAGS     += -DINTSIZE64
 endif
 
 CLIBFLAGS   = -shared
-LDFLAGS     = -Xlinker --no-as-needed $(WM_LDFLAGS) -lz -lm -lrt
+LDFLAGS     =
 
 MAKE        = make
 CP          = cp

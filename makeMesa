@@ -49,7 +49,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] mesa-VERSION [-- configure-options]
 options:
-  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
   -llvm VER     llvm version (in ThirdParty) or 'system' to use system
   -help
 

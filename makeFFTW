@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 # License
@@ -59,7 +59,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [fftw-VERSION] [-- configure-options]
 options:
-  -gcc          Force gcc/g++ instead of using \$WM_CC, \$WM_CXX
+  -gcc          Force use of gcc/g++
   -help
 
 * build FFTW with

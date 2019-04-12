@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #                           | Copyright (C) 2011-2016 OpenFOAM Foundation
@@ -19,6 +19,10 @@
 #
 #     Define the standard buildBASE and installBASE for the platform
 #     Define WM_NCOMPPROCS always.
+#
+#     Compiler and flags are managed via the 'wmake -show-c, -show-cflags, ..'
+#     but also with WM_CC, WM_CFLAGS,... env variables
+#
 #------------------------------------------------------------------------------
 
 # The normal locations for source, build and installation (prefix-dir)
@@ -30,43 +34,86 @@ installBASE="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
 WM_SIZE_OPTIONS="${WM_PRECISION_OPTION}Int${WM_LABEL_SIZE}"
 
 # Dynamic library endings (default is .so)
-[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+SO="$(wmake -show-ext-so 2>/dev/null)"; SO="${SO#.}"
+if [ -z "$SO" ] && [ "$(uname -s)" = Darwin ]
+then
+    SO=dylib
+fi
+: "${SO:=so}"
+
+
+# Fallback values, needed for our scotch Makefile which uses
+# WM_CFLAGS and WM_LDFLAGS for arch information
+if [ -z "$WM_CFLAGS" ]
+then
+    export WM_CFLAGS="$(wmake -show-cflags 2>/dev/null)"
+fi
+
+if [ -z "$WM_LDFLAGS" ]
+then
+    export WM_LDFLAGS="$(wmake -show-cflags-arch 2>/dev/null)"
+fi
 
 unset BUILD_SUFFIX
 #------------------------------------------------------------------------------
-# Export WM compiler settings (and flags) for CMake/configure
-# $1 = true: export compiler flags too
+# Export compiler settings (and flags) for CMake/configure
+# based on the values from wmake -show-compile-*
+#
+# Since "wmake -show-XX" is only available after 1904, continue to support
+# the previous env variables method (WM_CC, WM_CFLAGS, WM_CXX, WM_CXXFLAGS)
 exportCompiler()
 {
-    if test -n "$WM_CC" && command -v "$WM_CC" >/dev/null
+    local comp flag
+
+    # C compiler and flags
+    comp="$(wmake -show-c 2>/dev/null)" && \
+    flag="$(wmake -show-cflags 2>/dev/null)" || {
+        comp="$WM_CC"
+        flag="$WM_CFLAGS"
+    }
+
+    if test -n "$comp" && command -v "$comp" >/dev/null
     then
-        export CC="$WM_CC"
-        if [ "$1" = true -a -n "$WM_CFLAGS" ]
+        export CC="$comp"
+        if [ -n "$flag" ]
         then
-            export CFLAGS="$WM_CFLAGS"
+            export CFLAGS="$flag"
         fi
     fi
 
-    if test -n "$WM_CXX" && command -v "$WM_CXX" >/dev/null
+    # C++ compiler and flags
+    comp="$(wmake -show-cxx 2>/dev/null)" && \
+    flag="$(wmake -show-cxxflags 2>/dev/null)" || {
+        comp="$WM_CXX"
+        flag="$WM_CXXFLAGS"
+    }
+
+    if test -n "$comp" && command -v "$comp" >/dev/null
     then
-        export CXX="$WM_CXX"
-        if [ "$1" = true -a -n "$WM_CXXFLAGS" ]
+        export CXX="$comp"
+        if [ -n "$flag" ]
         then
-            export CXXFLAGS="$WM_CXXFLAGS"
+            export CXXFLAGS="$flag"
         fi
     fi
 }
 
-# Export WM linker settings for CMake/configure
+# Export linker settings for CMake/configure
 exportLinker()
 {
-    if [ -n "$WM_LDFLAGS" ]
+    local flag
+
+    # Linker flags, actually just the machine arch
+    flag="$(wmake -show-cflags-arch 2>/dev/null)" || flag="$WM_LDFLAGS"
+
+    if test -n "$flag"
     then
-        export LDFLAGS="$WM_LDFLAGS"
+        export LDFLAGS="$flag"
     fi
 }
 
-# Force use of gcc/g++
+
+# Force use of gcc/g++, but the values of CFLAGS, CXXFLAGS may be incorrect
 useGcc()
 {
     export CC=gcc
@@ -86,39 +133,73 @@ useGccFlag()
     done
 }
 
-# Return <mpicc> by default or <mpiicc> if possible for INTELMPI.
-# Cray doesn't have <mpicc>, but its <cc> manages mpi paths directly.
-# NOTE: could further refine based on $CC or $WM_CC, but not yet needed
-whichMpicc()
+# Return current value of $CC if set or obtain from 'wmake -show-c',
+# using $WM_CC (older env variable) as the first level fallback.
+# Final fallback is <gcc>
+whichCC()
 {
-    local mpicc=$(command -v mpicc)
-    case "$WM_MPLIB" in
-    (INTELMPI)
-        mpicc=$(command -v mpiicc)      # Intel <mpiicc> available?
-        ;;
-    (CRAY-MPI*)
-        : ${mpicc:=cc}                  # Cray <cc> if there is no <mpicc>
-        ;;
-    esac
-    echo "${mpicc:-mpicc}"
+    local comp="$CC"
+
+    if [ -z "$comp" ]
+    then
+        comp="$(wmake -show-c 2>/dev/null)" || comp="$WM_CC"
+        test -n "$comp" && command -v "$comp" >/dev/null || unset comp
+    fi
+
+    echo "${comp:-gcc}"
+}
+
+
+# Return current value of $CXX if set or obtain from 'wmake -show-cxx',
+# using $WM_CXX (older env variable) as the first level fallback.
+# Final fallback is <g++>
+whichCXX()
+{
+    local comp="$CXX"
+
+    if [ -z "$comp" ]
+    then
+        comp="$(wmake -show-cxx 2>/dev/null)" || comp="$WM_CXX"
+        test -n "$comp" && command -v "$comp" >/dev/null || unset comp
+    fi
+
+    echo "${comp:-g++}"
 }
 
 
 # Return <mpicc> by default or <mpiicc> if possible for INTELMPI.
 # Cray doesn't have <mpicc>, but its <cc> manages mpi paths directly.
-# NOTE: could further refine based on $CC or $WM_CC, but not yet needed
-whichMpicxx()
+# NOTE: could further refine based on "wmake -show-c", but not yet needed
+whichMpicc()
 {
-    local mpicxx=$(command -v mpicxx)
+    local comp="$(command -v mpicc)"
     case "$WM_MPLIB" in
     (INTELMPI)
-        mpicxx=$(command -v mpiicpc)    # Intel <mpiicpc> available?
+        comp="$(command -v mpiicc)"     # Intel <mpiicc> available?
         ;;
     (CRAY-MPI*)
-        : ${mpicxx:=CC}                 # Cray <CC> if there is no <mpicc>
+        : "${comp:=cc}"                 # Cray <cc> if there is no <mpicc>
         ;;
     esac
-    echo "${mpicxx:-mpicxx}"
+    echo "${comp:-mpicc}"
+}
+
+
+# Return <mpicxx> by default or <mpiicpc> if possible for INTELMPI.
+# Cray doesn't have <mpicxx>, but its <CC> manages mpi paths directly.
+# NOTE: could further refine based on "wmake -show-cxx", but not yet needed
+whichMpicxx()
+{
+    local comp="$(command -v mpicxx)"
+    case "$WM_MPLIB" in
+    (INTELMPI)
+        comp="$(command -v mpiicpc)"    # Intel <mpiicpc> available?
+        ;;
+    (CRAY-MPI*)
+        : "${comp:=CC}"                 # Cray <CC> if there is no <mpicc>
+        ;;
+    esac
+    echo "${comp:-mpicxx}"
 }
 
 # Require wmkdepend etc when building with wmake

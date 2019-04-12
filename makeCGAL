@@ -3,7 +3,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #                           | Copyright (C) 2012-2016 OpenFOAM Foundation
@@ -85,10 +85,11 @@ usage() {
 
 usage: ${0##*/} [OPTION] [CGAL-VERSION] [boost-VERSION] [gmp-VERSION] [mpfr-VERSION]
 options:
-  -cmake PATH       with cmake from the path given
-  -gcc              force gcc/g++ instead of the values from \$WM_CC, \$WM_CXX
-  -no-lib           compile CGAL for use in headers only mode (since CGAL 4.9)
-  -system           use system versions for boost/gmp/mpfr
+  -gcc          Force use of gcc/g++
+  -cmake PATH   Use cmake from the given path
+  -no-lib       Compile CGAL for use in headers only mode (since CGAL 4.9)
+  -toolset=NAME Use named toolset in bootstrap
+  -system       Use system versions for boost/gmp/mpfr
   -help
 
 * build CGAL with
@@ -110,7 +111,7 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 
-unset optHeadersOnly
+unset optHeadersOnly optToolset
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -123,6 +124,9 @@ do
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         CMAKE_PATH="${2%%/}"
         shift
+        ;;
+    -toolset=*)
+        optToolset="${1*=}"
         ;;
     -sys*)
         gmpPACKAGE="gmp-system"
@@ -234,12 +238,16 @@ else
 
         rm -rf $BOOST_ARCH_PATH
 
+        # Toolset to use
+        [ -n "$optToolset" ] || optToolset="$(whichCC)"
+
         ./bootstrap.sh \
             --prefix=$BOOST_ARCH_PATH \
             --libdir=$boostLib \
             --with-libraries=thread \
             --with-libraries=system \
-        && ./bjam toolset=$WM_CC -j $WM_NCOMPPROCS install \
+            --with-toolset="$optToolset" \
+        && ./b2 toolset="$optToolset" -j $WM_NCOMPPROCS install \
         && echo "Built: boost"
     ) || {
         echo "Error building: boost"
