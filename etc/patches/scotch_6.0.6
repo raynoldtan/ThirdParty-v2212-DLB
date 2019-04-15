@@ -1,0 +1,32 @@
+--- scotch_6.0.6/src/libscotch/Makefile.orig	2019-04-14 19:54:54.819485613 +0200
++++ scotch_6.0.6/src/libscotch/Makefile	2019-04-14 19:52:10.623889351 +0200
+@@ -51,6 +51,8 @@
+ 
+ .PHONY				:	ptscotch	scotch	ptinstall	install	clean	realclean
+ 
++libscotch			:	libscotch$(LIB)		scotch.h
++
+ scotch				:
+ 					$(MAKE) CC="$(CCS)" CCD="$(CCS)"	\
+ 					scotch.h				\
+@@ -436,7 +438,8 @@
+ 			wgraph_part_rb$(OBJ)  			\
+ 			wgraph_part_st$(OBJ)  			\
+ 			wgraph_part_zr$(OBJ)  			\
+-			wgraph_store$(OBJ)
++			wgraph_store$(OBJ)			\
++			library_error_exit$(OBJ)
+ 
+ ##
+ ##  Todo list.
+--- scotch_6.0.6/src/Makefile.orig	2018-07-14 17:24:49.000000000 +0200
++++ scotch_6.0.6/src/Makefile	2019-04-14 19:56:43.207219102 +0200
+@@ -90,7 +90,7 @@
+ 					-$(MKDIR) $(mandir)/man1
+ 
+ libscotch			:	required
+-					(cd libscotch ;      $(MAKE) VERSION=$(VERSION) RELEASE=$(RELEASE) PATCHLEVEL=$(PATCHLEVEL) scotch && $(MAKE) install)
++					(cd libscotch ;      $(MAKE) VERSION=$(VERSION) RELEASE=$(RELEASE) PATCHLEVEL=$(PATCHLEVEL) libscotch && $(MAKE) install)
+ 
+ scotch				:	libscotch
+ 					(cd scotch ;         $(MAKE) VERSION=$(VERSION) RELEASE=$(RELEASE) PATCHLEVEL=$(PATCHLEVEL) scotch && $(MAKE) install)
