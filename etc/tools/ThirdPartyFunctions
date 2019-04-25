@@ -33,13 +33,12 @@ installBASE="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
 # Synthetic value combining precision and label size (Eg, DPInt32)
 WM_SIZE_OPTIONS="${WM_PRECISION_OPTION}Int${WM_LABEL_SIZE}"
 
-# Dynamic library endings (default is .so)
-SO="$(wmake -show-ext-so 2>/dev/null)"; SO="${SO#.}"
-if [ -z "$SO" ] && [ "$(uname -s)" = Darwin ]
+# Dynamic library ending (default is .so)
+EXT_SO="$(wmake -show-ext-so 2>/dev/null)"
+if [ -z "$EXT_SO" ]
 then
-    SO=dylib
+    [ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
 fi
-: "${SO:=so}"
 
 
 # Fallback values, needed for our scotch Makefile which uses

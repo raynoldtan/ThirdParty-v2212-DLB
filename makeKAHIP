@@ -19,8 +19,8 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Dynamic library endings (default is .so)
-[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+# Dynamic library ending (default is .so)
+[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
 
 # Short-circuit test for an installation
 if [ "$1" = "-test" ]
@@ -30,11 +30,11 @@ then
     if [ -d "$dir/include" ]
     then
         for lib in \
-            $FOAM_EXT_LIBBIN/libkahip.$SO \
+            $FOAM_EXT_LIBBIN/libkahip$EXT_SO \
             $dir/lib/libkahip.a \
-            $dir/lib/libkahip.$SO \
+            $dir/lib/libkahip$EXT_SO \
             $dir/lib$WM_COMPILER_LIB_ARCH/libkahip.a \
-            $dir/lib$WM_COMPILER_LIB_ARCH/libkahip.$SO \
+            $dir/lib$WM_COMPILER_LIB_ARCH/libkahip$EXT_SO \
             ;
         do
             if [ -r "$lib" ]
@@ -165,7 +165,7 @@ echo
     export GIT_DIR=$KAHIP_SOURCE_DIR/.git # Mask seeing our own git-repo
 
     rm -rf $KAHIP_ARCH_PATH
-    rm -f $FOAM_EXT_LIBBIN/libkahip.$SO
+    rm -f $FOAM_EXT_LIBBIN/libkahip$EXT_SO
 
     libdir=$KAHIP_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH
 

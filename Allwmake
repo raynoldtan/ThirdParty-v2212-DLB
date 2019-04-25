@@ -105,8 +105,8 @@ done
 
 
 if [ -f "$SCOTCH_ARCH_PATH/include/scotch.h" ] \
-&& [ -r "$FOAM_EXT_LIBBIN/libscotch.$SO" ] \
-&& [ -r "$FOAM_EXT_LIBBIN/libscotcherrexit.$SO" ]
+&& [ -r "$FOAM_EXT_LIBBIN/libscotch$EXT_SO" ] \
+&& [ -r "$FOAM_EXT_LIBBIN/libscotcherrexit$EXT_SO" ]
 then
     echo "    scotch include: $SCOTCH_ARCH_PATH/include"
     echo "    scotch library: $FOAM_EXT_LIBBIN"
@@ -175,7 +175,7 @@ fi
 # and normal scotch was built (has include and library)
 if [ "${FOAM_MPI:-dummy}" != dummy ] && \
    [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
-  -a -r $FOAM_EXT_LIBBIN/libscotch.$SO ] || \
+  -a -r $FOAM_EXT_LIBBIN/libscotch$EXT_SO ] || \
 {
     # Report that the above tests failed and pass-through the failure
     echo
@@ -189,8 +189,8 @@ then
     echo "    $SCOTCH_ARCH_PATH"
 
     if [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h \
-      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch.$SO \
-      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotcherrexit.$SO ]
+      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch$EXT_SO \
+      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotcherrexit$EXT_SO ]
     then
         echo "    ptscotch include: $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
         echo "    ptscotch library: $FOAM_EXT_LIBBIN/$FOAM_MPI"

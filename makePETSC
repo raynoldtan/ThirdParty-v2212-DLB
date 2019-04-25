@@ -19,8 +19,8 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Dynamic library endings (default is .so)
-[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+# Dynamic library ending (default is .so)
+[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
 
 # Short-circuit test for an installation
 if [ "$1" = "-test" ]
@@ -30,11 +30,11 @@ then
     if [ -d "$dir/include" ]
     then
         for lib in \
-            $FOAM_EXT_LIBBIN/libpetsc.$SO \
+            $FOAM_EXT_LIBBIN/libpetsc$EXT_SO \
             $dir/lib/libpetsc.a \
-            $dir/lib/libpetsc.$SO \
+            $dir/lib/libpetsc$EXT_SO \
             $dir/lib$WM_COMPILER_LIB_ARCH/libpetsc.a \
-            $dir/lib$WM_COMPILER_LIB_ARCH/libpetsc.$SO \
+            $dir/lib$WM_COMPILER_LIB_ARCH/libpetsc$EXT_SO \
             ;
         do
             if [ -r "$lib" ]

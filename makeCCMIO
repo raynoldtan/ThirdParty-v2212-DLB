@@ -21,8 +21,8 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Dynamic library endings (default is .so)
-[ "$(uname -s)" = Darwin ] && SO=dylib || SO=so
+# Dynamic library ending (default is .so)
+[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
 
 # Run from third-party directory only
 cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
@@ -129,7 +129,7 @@ echo
     export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
     rm -rf $CCMIO_ARCH_PATH
-    rm -f $FOAM_EXT_LIBBIN/libccmio.$SO
+    rm -f $FOAM_EXT_LIBBIN/libccmio$EXT_SO
 
     libdir=$CCMIO_ARCH_PATH/lib
 
