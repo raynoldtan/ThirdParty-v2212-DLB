@@ -34,13 +34,13 @@
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 3 ] || { echo "${0##*/} -test : needs 2 argument"; exit 1; }
-    dir="$2" # <- CGAL_ARCH_PATH
+    dir="${2%/}" # <- CGAL_ARCH_PATH
     if [ -d "$dir/include" -a -r "$dir/lib$WM_COMPILER_LIB_ARCH/libCGAL$EXT_SO" ]
     then
         echo "    CGAL  include: $dir/include"
         echo "    CGAL  library: $dir/lib$WM_COMPILER_LIB_ARCH"
         # Additional information about boost
-        dir="$3" # <- BOOST_ARCH_PATH
+        dir="${3%/}" # <- BOOST_ARCH_PATH
         for root in "$dir" /usr
         do
             if [ -d "$root/include/boost" \

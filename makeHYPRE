@@ -26,7 +26,7 @@
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
-    dir="$2" # <- HYPRE_ARCH_PATH
+    dir="${2%/}" # <- HYPRE_ARCH_PATH
     if [ -d "$dir/include" ]
     then
         for lib in \
