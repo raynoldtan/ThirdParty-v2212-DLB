@@ -1,3 +1,7 @@
 /* NOTE: make any changes to this file in etc/makeFiles/ */
 
-/* EXE_INC = */
+EXE_INC =
+
+LIB_LIBS =
+
+PROJECT_LIBS =

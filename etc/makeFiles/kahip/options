@@ -13,3 +13,5 @@ EXE_INC = \
     -I$(KAHIP_LIB_SRC)/partition/uncoarsening/refinement/quotient_graph_refinement/flow_refinement
 
 LIB_LIBS =
+
+PROJECT_LIBS =
