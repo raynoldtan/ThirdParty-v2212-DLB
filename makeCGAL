@@ -233,13 +233,43 @@ else
     # Absolute path for --libdir
 
     (
+        # Configuration options:
+        unset buildOpt
+
         cd $BOOST_SOURCE_DIR || exit 1
         export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
 
         rm -rf $BOOST_ARCH_PATH
 
-        # Toolset to use
-        [ -n "$optToolset" ] || optToolset="$(whichCC)"
+        case "$WM_COMPILER" in
+        (Arm*)
+            # Toolset for bootstrap
+            optToolset="gcc"
+
+            echo "using clang : arm : $(whichCC) ;" > user-config.jam
+            echo "using mpi ;" >> user-config.jam
+
+            # Toolset for build
+            buildOpt="--user-config=user-config.jam toolset=clang"
+            ;;
+
+        (Mingw*)
+            # Toolset for bootstrap
+            optToolset="gcc"
+
+            echo "using gcc : mingw : $(whichCC) ;" > user-config.jam
+
+            # Toolset for build
+            buildOpt="--user-config=user-config.jam toolset=gcc"
+            buildOpt="$buildOpt target-os=windows release"
+            ;;
+
+        (*)
+            # Toolset for bootstrap and build
+            [ -n "$optToolset" ] || optToolset="$(whichCC)"
+            buildOpt="toolset=$optToolset"
+            ;;
+        esac
 
         ./bootstrap.sh \
             --prefix=$BOOST_ARCH_PATH \
@@ -247,7 +277,7 @@ else
             --with-libraries=thread \
             --with-libraries=system \
             --with-toolset="$optToolset" \
-        && ./b2 toolset="$optToolset" -j $WM_NCOMPPROCS install \
+        && ./b2 $buildOpt -j $WM_NCOMPPROCS install \
         && echo "Built: boost"
     ) || {
         echo "Error building: boost"
@@ -536,6 +566,16 @@ CMAKE_OPTIONS
 
     cmake=$(findCMake)
 
+    unset cmakeDefs
+
+    case "$WM_COMPILER" in
+    (Mingw*)
+        cmakeDefs="$cmakeDefs -DCMAKE_SYSTEM_NAME=Windows"
+        cmakeDefs="$cmakeDefs -DCMAKE_C_COMPILER=$(wmake -show-c)"
+        cmakeDefs="$cmakeDefs -DCMAKE_CXX_COMPILER=$(wmake -show-cxx)"
+        ;;
+    esac
+
     # For CGAL < 4.9, for installation into lib64/, not lib/
     # Name only (not path) for CGAL_INSTALL_LIB_DIR
     echo "----"
@@ -547,6 +587,7 @@ CMAKE_OPTIONS
         -DWITH_CGAL_Core=OFF \
         -DWITH_CGAL_ImageIO=OFF \
         -DWITH_CGAL_Qt5=OFF \
+        $cmakeDefs \
         ${optHeadersOnly:+-DCGAL_HEADER_ONLY=TRUE} \
         $configBoost $configGmp $configMpfr \
         ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
