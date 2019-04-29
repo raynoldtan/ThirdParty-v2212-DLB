@@ -38,21 +38,6 @@ exportCompiler true     # Compiler info + flags for CMake/configure
 exportLinker            # Linker flags for CMake/configure
 useGccFlag $@           # Scan arguments for a '-gcc' option
 
-warnBuildIssues()
-{
-    echo
-    echo "    ---------------------------------------------------"
-    echo "    Optional component ($1) had build issues"
-    echo "    OpenFOAM will nonetheless remain largely functional"
-    echo "    ---------------------------------------------------"
-    echo
-}
-
-warnNotFound()
-{
-    echo "Optional component ($1) was not found"
-}
-
 #------------------------------------------------------------------------------
 
 echo
@@ -73,191 +58,10 @@ esac
 
 
 #------------------------------------------------------------------------------
-# Building scotch on different platforms is still a bit of a pain
 
-# Get SCOTCH_VERSION, SCOTCH_ARCH_PATH
-if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/scotch)
-then
-    . $settings
-else
-    echo
-    echo "Error: no config.sh/scotch settings"
-    echo
-fi
-
-echo
-echo ========================================
-echo "Scotch decomposition ($SCOTCH_VERSION)"
-echo "    $SCOTCH_ARCH_PATH"
-
-SCOTCH_SOURCE_DIR=$sourceBASE/$SCOTCH_VERSION
-
-# Needs generalizing, but works fairly well
-for scotchMakefile in \
-    "OpenFOAM-$(uname -s)-${WM_COMPILER}.shlib" \
-    "OpenFOAM-$(uname -s).shlib" \
-    OpenFOAM-Linux.shlib \
-;
-do
-    scotchMakefile="etc/makeFiles/scotch/Makefile.inc.$scotchMakefile"
-    [ -f "$scotchMakefile" ] && break
-done
-
-
-if [ -f "$SCOTCH_ARCH_PATH/include/scotch.h" ] \
-&& [ -r "$FOAM_EXT_LIBBIN/libscotch$EXT_SO" ] \
-&& [ -r "$FOAM_EXT_LIBBIN/libscotcherrexit$EXT_SO" ]
-then
-    echo "    scotch include: $SCOTCH_ARCH_PATH/include"
-    echo "    scotch library: $FOAM_EXT_LIBBIN"
-elif [ -d "$SCOTCH_SOURCE_DIR" ]
-then
-(
-    # Older versions ok, but scotch-6.0.5a cannot build in parallel.
-    # Force serial build
-    export WM_NCOMPPROCS=1
-    echo "*** building scotch in serial ***"
-    echo
-
-    [ -f "$scotchMakefile" ] || {
-        echo " Error: no such makefile: $scotchMakefile"
-        exit 1
-    }
-
-    cd $SCOTCH_SOURCE_DIR/src || exit 1
-    export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
-    rm -rf $SCOTCH_ARCH_PATH
-
-    applyPatch $SCOTCH_VERSION ..       # patch at parent-level
-
-    prefixDIR=$SCOTCH_ARCH_PATH
-    incDIR=$SCOTCH_ARCH_PATH/include
-    libDIR=$FOAM_EXT_LIBBIN
-
-    mkdir -p $prefixDIR 2>/dev/null
-    mkdir -p $incDIR    2>/dev/null
-    mkdir -p $libDIR    2>/dev/null
-
-    # Makefile relative to this directory
-    scotchMakefile=../../$scotchMakefile
-
-    if [ -f $scotchMakefile ]
-    then
-        rm -f Makefile.inc
-        ln -s $scotchMakefile Makefile.inc
-    fi
-    [ -f Makefile.inc ] || {
-        echo " Error: scotch needs an appropriate Makefile.inc"
-        exit 1
-    }
-
-    export CCS="$(whichCC)"         # CCS (serial compiler)
-    export CCP="$(whichMpicc)"      # CCP (parallel compiler) default=mpicc
-
-    # Consistency for Intel-MPI and non-icc compilers
-    [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
-
-    make realclean 2>/dev/null  # Extra safety
-    make -j $WM_NCOMPPROCS libscotch \
-     && make \
-        prefix=$prefixDIR \
-        includedir=$incDIR \
-        libdir=$libDIR \
-        install
-
-    make realclean 2>/dev/null || true      # Failed cleanup is uncritical
-) || warnBuildIssues SCOTCH
-else
-    warnNotFound SCOTCH
-fi
-
-# Build ptscotch if MPI (ThirdParty or system) is available
-# and normal scotch was built (has include and library)
-if [ "${FOAM_MPI:-dummy}" != dummy ] && \
-   [ -f $SCOTCH_ARCH_PATH/include/scotch.h \
-  -a -r $FOAM_EXT_LIBBIN/libscotch$EXT_SO ] || \
-{
-    # Report that the above tests failed and pass-through the failure
-    echo
-    echo "    WARNING: skipping pt-scotch - no mpi or <scotch.h> not found"
-    false
-}
-then
-    echo
-    echo ========================================
-    echo "pt-scotch decomposition ($SCOTCH_VERSION with $FOAM_MPI)"
-    echo "    $SCOTCH_ARCH_PATH"
-
-    if [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h \
-      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch$EXT_SO \
-      -a -r $FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotcherrexit$EXT_SO ]
-    then
-        echo "    ptscotch include: $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
-        echo "    ptscotch library: $FOAM_EXT_LIBBIN/$FOAM_MPI"
-    else
-    (
-        # Older versions ok, but scotch-6.0.5a cannot build in parallel.
-        # Force serial build
-        export WM_NCOMPPROCS=1
-        echo "*** building pt-scotch in serial ***"
-
-        [ -f "$scotchMakefile" ] || {
-            echo " Error: no such makefile: $scotchMakefile"
-            exit 1
-        }
-
-        cd $SCOTCH_SOURCE_DIR/src || exit 1
-        export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
-        echo
-
-        prefixDIR=$SCOTCH_ARCH_PATH
-        incDIR=$SCOTCH_ARCH_PATH/include/$FOAM_MPI
-        libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
-
-        mkdir -p $prefixDIR 2>/dev/null
-        mkdir -p $incDIR    2>/dev/null
-        mkdir -p $libDIR    2>/dev/null
-
-        if [ -f $scotchMakefile ]
-        then
-            rm -f Makefile.inc
-            ln -s $scotchMakefile Makefile.inc
-        fi
-        [ -f Makefile.inc ] || {
-            echo " Error: ptscotch needs an appropriate Makefile.inc"
-            exit 1
-        }
-
-        export CCS="$(whichCC)"     # CCS (serial compiler)
-        export CCP=$(whichMpicc)    # CCP (parallel compiler) default=mpicc
-
-        # Consistency for Intel-MPI and non-icc compilers
-        [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
-
-        make realclean 2>/dev/null  # Extra safety
-        make -j $WM_NCOMPPROCS libptscotch \
-         && make \
-            prefix=$prefixDIR \
-            includedir=$incDIR \
-            libdir=$libDIR \
-            install
-
-        make realclean 2>/dev/null || true  # Failed cleanup is uncritical
-    ) || warnBuildIssues PTSCOTCH
-    fi
-
-    # Verify existence of ptscotch include
-    [ -f $SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h ] || {
-        echo
-        echo "    WARNING: required include file 'ptscotch.h' not found!"
-    }
-fi
-
-# Could now remove $SCOTCH_SOURCE_DIR/src/Makefile.inc
-
+./makeSCOTCH
 
 #------------------------------------------------------------------------------
-
 echo
 echo ========================================
 # Get KAHIP_ARCH_PATH
@@ -271,13 +75,12 @@ then
     ./makeKAHIP -test "$KAHIP_ARCH_PATH" || \
     ./makeKAHIP || warnBuildIssues KAHIP
 else
-    warnNotFound KAHIP   # METIS is optional
+    warnNotFound KAHIP   # is optional
 fi
 
 #------------------------------------------------------------------------------
 echo
 echo ========================================
-
 # Get METIS_ARCH_PATH
 if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/metis)
 then
@@ -289,7 +92,7 @@ then
     ./makeMETIS -test "$METIS_ARCH_PATH" || \
     ./makeMETIS || warnBuildIssues METIS
 else
-    warnNotFound METIS   # METIS is optional
+    warnNotFound METIS   # is optional
 fi
 
 #------------------------------------------------------------------------------
@@ -301,7 +104,7 @@ then
     ./makeCGAL -test "$CGAL_ARCH_PATH" "$BOOST_ARCH_PATH" || \
     ./makeCGAL || warnBuildIssues CGAL
 else
-    warnNotFound CGAL   # CGAL is optional
+    warnNotFound CGAL   # is optional
 fi
 
 echo
@@ -312,7 +115,7 @@ then
     ./makeFFTW -test "$FFTW_ARCH_PATH" || \
     ./makeFFTW || warnBuildIssues FFTW
 else
-    warnNotFound FFTW   # FFTW is optional
+    warnNotFound FFTW   # is optional
 fi
 
 echo

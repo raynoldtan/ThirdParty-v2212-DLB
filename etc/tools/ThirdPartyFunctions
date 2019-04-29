@@ -302,6 +302,24 @@ die()
     exit 1
 }
 
+# Warn
+warnBuildIssues()
+{
+    echo
+    echo "    ---------------------------------------------------"
+    echo "    Optional component ($1) had build issues"
+    echo "    OpenFOAM will nonetheless remain largely functional"
+    echo "    ---------------------------------------------------"
+    echo
+}
+
+# Warn
+warnNotFound()
+{
+    echo "Optional component ($1) was not found"
+}
+
+
 # Test if it matches "*-none"
 _foamIsNone()
 {

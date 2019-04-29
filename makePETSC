@@ -130,7 +130,7 @@ fi
 #   PETSC_SOURCE_DIR : location of the original sources
 
 PETSC_SOURCE_DIR=$sourceBASE/$petscPACKAGE
-: ${PETSC_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$petscPACKAGE}
+: "${PETSC_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$petscPACKAGE}"
 
 [ -d "$PETSC_SOURCE_DIR" ] || {
     echo "Missing sources: '$petscPACKAGE'"
