@@ -41,7 +41,8 @@ version specified on the command-line.
    * ParaView type/version.
    * CMake type/version, ...
 1. Adjust the OpenFOAM `etc/bashrc`, `etc/config.sh/...` or equivalent
-   `prefs.sh` files to reflect your preferred configuration.
+   `prefs.sh` files to reflect your preferred
+   [configuration](https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/etc/README.md).
 2. Source the updated OpenFOAM environment
 
 ---
@@ -65,7 +66,13 @@ ThirdParty components prior to building OpenFOAM itself.
 
 ### Build Details
 
-More details can be found the ThirdParty BUILD.md information.
+More details can be found the ThirdParty
+[BUILD.md](https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/BUILD.md)
+information.
+
+Some configuration details can be found the OpenFOAM
+[etc/README.md](https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/etc/README.md)
+information.
 
 <!-- OpenFOAM -->
 

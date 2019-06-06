@@ -185,7 +185,13 @@ adjustMESA()
 
 (
     # Configuration options:
-    unset configOpt
+    unset configOpt compFlags
+
+    # Sometimes for LLVM issues
+    # compFlags="-D_GLIBCXX_USE_CXX11_ABI=0"
+
+    # Possibly for older mesa versions (see paraview wiki)
+    # compFlags="-O2 -DDEFAULT_SOFTWARE_DEPTH_BITS=31"
 
     if [ -d "$LLVM_ARCH_PATH" ]
     then
@@ -222,9 +228,11 @@ adjustMESA()
     fi
     echo "----"
 
-    # Possibly for older mesa versions (see paraview wiki)
-    # CXXFLAGS="-O2 -DDEFAULT_SOFTWARE_DEPTH_BITS=31" \
-    # CFLAGS="-O2 -DDEFAULT_SOFTWARE_DEPTH_BITS=31" \
+    if [ -n "$compFlags" ]
+    then
+        CFLAGS="$CFLAGS $compFlags"
+        CXXFLAGS="$CXXFLAGS $compFlags"
+    fi
 
     ## autoreconf -fi
     set -x

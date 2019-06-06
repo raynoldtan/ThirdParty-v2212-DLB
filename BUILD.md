@@ -223,10 +223,10 @@ and save some disk space.
 ## Build Notes
 
 ### CGAL
-- The zlib library and zlib development headers are required.
+- The [zlib][page zlib] library and development headers are required.
 
 ### Scotch
-- The zlib library and zlib development headers are required.
+- The [zlib][page zlib] library and development headers are required.
 
 
 ### Mesa
@@ -342,7 +342,7 @@ slightly older QT (eg, [qt-5.6.3][link Qt56]) instead.
 
 ### Gcc Compiler <a name="gcc-compiler"></a>
 
-The minimum version of gcc required is 4.8.0.
+The minimum version of gcc required is **4.8.5**
 
 | Name              | Location
 |-------------------|--------------------------------------------
@@ -376,7 +376,7 @@ install the 32-bit development libraries by default.
 
 ### Clang Compiler <a name="clang-compiler"></a>
 
-The minimum version of clang required is 3.5.
+The minimum version of clang required is **3.7**
 
 *Attention*: If you are building a newer version of clang, you may need to
 update your CMake beforehand since GNU *configure* can only be used prior
@@ -412,8 +412,8 @@ you may have additional hurdles to using the newest versions of clang.
 |-----------------------|------------------------
 | [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
-| [scotch, ptscotch][page scotch] | [download][link scotch] or older: [6.0.3][link scotch603]
-| [kahip][page kahip] | [download][link kahip]
+| [scotch, ptscotch][page scotch] | [download][link scotch] or [newer][newer scotch]
+| [kahip][page kahip] | [download][link kahip] or [newer][newer kahip]
 | [metis][page metis] | [download][link metis]
 
 
@@ -490,12 +490,12 @@ that clang compiler for building the newer llvm/clang version.
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
-[link scotch603]: https://gforge.inria.fr/frs/download.php/file/34099/scotch_6.0.3.tar.gz
-[link scotch605]: https://gforge.inria.fr/frs/download.php/file/37398/scotch_6.0.5a.tar.gz
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
+[newer scotch]:   https://gforge.inria.fr/frs/download.php/file/38040/scotch_6.0.7.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
-[link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.10.tar.gz
+[link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
+[newer kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.10.tar.gz
 
 [page metis]:     http://glaros.dtc.umn.edu/gkhome/metis/metis/overview
 [link metis]:     http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz
@@ -573,4 +573,4 @@ that clang compiler for building the newer llvm/clang version.
 
 ---
 
-Copyright 2016-2018 OpenCFD Ltd
+Copyright 2016-2019 OpenCFD Ltd
