@@ -1,15 +1,3 @@
-<!--
-   |--------------------------------------------------------------------------|
-   | =========                 |                                              |
-   | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
-   |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.         |
-   |    \\/     M anipulation  |                                              |
-   |--------------------------------------------------------------------------|
-  -->
-
----
-
 # OpenFOAM&reg; ThirdParty
 
 OpenFOAM depends to a certain extent on third-party libraries
@@ -34,15 +22,14 @@ version specified on the command-line.
 
 ## Before Starting
 
-0. Review the [system requirements](http://www.openfoam.com/documentation/system-requirements.php)
+0. Review the [system requirements][link openfoam-require]
    and decide on the following:
    * compiler type/version (you may need a third-party compiler installation).
    * MPI type/version.
    * ParaView type/version.
    * CMake type/version, ...
 1. Adjust the OpenFOAM `etc/bashrc`, `etc/config.sh/...` or equivalent
-   `prefs.sh` files to reflect your preferred
-   [configuration](https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/etc/README.md).
+   `prefs.sh` files to reflect your preferred [configuration][link openfoam-config].
 2. Source the updated OpenFOAM environment
 
 ---
@@ -54,30 +41,83 @@ automatically as part of the top-level OpenFOAM `Allwmake`.
 Nonetheless it may be necessary or useful to build particular
 ThirdParty components prior to building OpenFOAM itself.
 
-### Build Sequence
+### Sequence
 
 1. `makeGcc` _or_ `makeLLVM` *(optional)*
 2. `makeCmake`  *(optional)*
 3. `Allwmake`
    - This will be automatically invoked by the top-level OpenFOAM `Allwmake`.
-4. `makeParaView`  *(optional but highly recommended)*
+4. `makeParaView`  *(optional)*
 5. Any other additional optional components
 
+If the `Allwmake` is being invoked directly (not from the OpenFOAM `Allwmake`),
+it may be necessary to bootstrap the binary parts of the `wmake` toolchain
+manually before proceeding. This is done with the following command:
+```
+$WM_PROJECT_DIR/wmake/src/Allmake
+```
 
-### Build Details
+**It normally advisable to skip the ParaView compilation initially**.
 
-More details can be found the ThirdParty
-[BUILD.md](https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/BUILD.md)
-information.
+Building ParaView from source tends to be the most difficult part of
+any third-party compilation.
 
-Some configuration details can be found the OpenFOAM
-[etc/README.md](https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/etc/README.md)
-information.
+For general functionality, the paraview version distributed with
+the operating system or a [binary package][download ParaView]
+may be sufficient for your needs.
+
+
+### Details
+
+- More details can be found the [ThirdParty BUILD.md][link third-build] information.
+- Some configuration details can be found in the
+  [OpenFOAM etc/README.md][link openfoam-config] information.
+
+
+### Other
+
+When building other libraries directly, with autoconfig or cmake, it
+will be useful or necessary to use the same compiler and compiler
+settings as are used by OpenFOAM itself. These are obtained from the
+`wmake` show options and can be used to set corresponding environment
+variables. For example,
+```
+CC="$(wmake -show-c)" CFLAGS="$(wmake -show-cflags)" ./configure
+```
+
+Here is the correspondence to commonly used environment variables
+
+| Env variable      | Obtaining from wmake      | Meaning               |
+|-------------------|---------------------------|-----------------------|
+| CC                | `wmake -show-c`           | C compiler            |
+| CFLAGS            | `wmake -show-cflags`      | C compiler flags      |
+| CXX               | `wmake -show-cxx`         | C++ compiler          |
+| CXXFLAGS          | `wmake -show-cxxflags`    | C++ compiler flags    |
+| | `wmake -show-cflags-arch`   | Architecture information when linking |
+| | `wmake -show-cxxflags-arch` | Architecture information when linking |
+
+
+In some situations it can also be useful to have the compiler and flags
+together (similar to `mpicc -show` and `mpicxx -show`):
+```
+wmake -show-compile-c
+wmake -show-compile-cxx
+```
+
+<!-- Quick links -->
+
+[download ParaView]: https://www.paraview.org/download/
+
 
 <!-- OpenFOAM -->
 
 [link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
-[link community-projects]: http://www.openfoam.com/community/projects.php
+[link openfoam-build]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/BUILD.md
+[link openfoam-config]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/etc/README.md
+[link openfoam-require]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Requirements.md
+[link third-build]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/BUILD.md
+[link third-require]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/Requirements.md
+[link third-readme]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/README.md
 
 ---
 
@@ -85,7 +125,6 @@ information.
 ## Additional OpenFOAM Links
 
 - [Community AddOns][link AddOns] repository
-- [Collaborative and Community-based Developments][link community-projects]
 - [Download](http://www.openfoam.com/download) and
   [installation instructions](http://www.openfoam.com/code/build-guide.php)
 - [Documentation](http://www.openfoam.com/documentation)
@@ -94,4 +133,4 @@ information.
 
 ---
 
-Copyright 2016-2017 OpenCFD Ltd
+Copyright 2016-2019 OpenCFD Ltd

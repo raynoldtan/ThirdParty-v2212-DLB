@@ -1,21 +1,9 @@
-<!--
-   |--------------------------------------------------------------------------|
-   | =========                 |                                              |
-   | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox        |
-   |  \\    /   O peration     |                                              |
-   |   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.         |
-   |    \\/     M anipulation  |                                              |
-   |--------------------------------------------------------------------------|
-  -->
-
----
-
 # OpenFOAM&reg; ThirdParty Build
 
 OpenFOAM depends to a certain extent on third-party libraries
 (*opensource only*). It also provides some interfaces to *opensource* or
-*proprietary* libraries. This third-party package contains configurations and
-scripts for building third-party packages. It should normally only be used in
+*proprietary* libraries. This third-party collection contains configurations and
+scripts for building third-party packages. It will normally only be used in
 conjunction with the corresponding OpenFOAM version.
 
 ## Organization
@@ -41,15 +29,16 @@ and its corresponding third-party installation.
 Nonethess, the distributed make scripts can generally be used for a
 variety of versions of the third-party libraries, with the software
 version specified on the command-line. For example,
-
-    $ ./makeFFTW -help
-    usage: makeFFTW [OPTION] [fftw-VERSION]
+```
+$ ./makeFFTW -help
+usage: makeFFTW [OPTION] [fftw-VERSION]
+```
 
 ---
 
 ## Before Starting
 
-0. Review the [system requirements](http://www.openfoam.com/documentation/system-requirements.php)
+0. Review the [system requirements][link openfoam-require]
    and decide on the following:
    * compiler type/version - if the system compiler is not relatively recent,
      you will need a [third-party compiler](#makeGcc) installation.
@@ -61,9 +50,9 @@ version specified on the command-line. For example,
    Often (but not always) a `mpi-selector` command is available for this purpose.
    You may need to open a new shell afterwards for the change to take effect.
    Using the following command may help diagnosing things:
-
-       which mpicc
-
+```
+which mpicc
+```
 2. Adjust the OpenFOAM `etc/bashrc`, `etc/config.sh/...` or equivalent
    `prefs.sh` files to reflect your preferred configuration.
    For many config files, there are several configuration possibilities:
@@ -117,18 +106,18 @@ Additionally, if you are using clang but with ThirdParty locations for
 gmp/mpfr you will need some extra work. Here is an example:
 
 * Compile a new ThirdParty clang version:
-
-      ./makeLLVM llvm-4.0.1
-
+```
+./makeLLVM llvm-4.0.1
+```
 * Now adjust the OpenFOAM `prefs.sh` to use the new compiler settings,
   and update the OpenFOAM environment (eg, `wmRefresh`)
 
 * Next use (abuse) the `makeGcc` script to compile gmp/mpfr libraries.
   It is best to pass the desired versions explicitly, and necessary
   to set the CC/CXX variables so that the correct compiler is used:
-
-      CC=clang CXX=clang++  ./makeGcc gmp-6.1.2 mpfr-4.0.0 gcc-system
-
+```
+CC=clang CXX=clang++  ./makeGcc gmp-6.1.2 mpfr-4.0.0 gcc-system
+```
   specifying `gcc-system` effectively disables building of gcc,
   but will build the gmp/mpfr components.
 
@@ -138,13 +127,12 @@ gmp/mpfr you will need some extra work. Here is an example:
   The location to make these changes is in the `etc/config.sh/CGAL`,
   since this is the component that uses the mpfr library.
   For example,
-
-      gmp_version=gmp-6.1.2
-      mpfr_version=mpfr-4.0.0
-
-      export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$gmp_version
-      export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mpfr_version
-
+```
+gmp_version=gmp-6.1.2
+mpfr_version=mpfr-4.0.0
+export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$gmp_version
+export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mpfr_version
+```
 * Update update the OpenFOAM environment (eg, `wmRefresh`) again.
 
 
@@ -155,7 +143,7 @@ gmp/mpfr you will need some extra work. Here is an example:
      can also be invoked directly to find possible build errors.
    - Builds an mpi library (openmpi or mpich), scotch decomposition, boost, CGAL, FFTW.
    - If the optional kahip or metis  directories are found, they will also be compiled.
-2. `makeParaView`  *(optional but highly recommended)*
+2. `makeParaView`  *(optional)*
    - This is optional, but extremely useful for visualization and for
      run-time post-processing function objects.
      You can build this at a later point in time, but then you should
@@ -242,19 +230,22 @@ and save some disk space.
 - Rather than downloading VTK separately, it is easy to reuse the VTK
   sources that are bundled with ParaView.
   For example, by using a symbolic link:
-
-      ln -s ParaView-v5.6.0/VTK VTK-8.2.0
-
+```
+ln -s ParaView-v5.6.0/VTK VTK-8.2.0
+```
   The appropriate VTK version number can be found from the contents of
   the `vtkVersion.cmake` file.
   For example,
-
-      $ cat ParaView-v5.6.0/VTK/CMake/vtkVersion.cmake
-
-      # VTK version number components.
-      set(VTK_MAJOR_VERSION 8)
-      set(VTK_MINOR_VERSION 2)
-      set(VTK_BUILD_VERSION 0)
+```
+$ cat ParaView-v5.6.0/VTK/CMake/vtkVersion.cmake
+```
+  contains this type of information
+```
+# VTK version number components.
+set(VTK_MAJOR_VERSION 8)
+set(VTK_MINOR_VERSION 2)
+set(VTK_BUILD_VERSION 0)
+```
 
 ### ParaView
 - Building ParaView requires CMake, qmake and a `qt` development files.
@@ -276,7 +267,7 @@ the OpenFOAM Catalyst insitu visualization.
 #### 5.6.x, 5.5.x binary packages
 
 For general functionality, the paraview version distributed with
-the operating system or a [binary package][download ParaView]])
+the operating system or a [binary package][download ParaView]
 may be sufficient for your needs.
 - No known issues with the native OpenFOAM reader.
 
@@ -317,13 +308,13 @@ may not be important for you):
 1. Download a [*qt-everywhere-opensource-src*][link Qt5] package and
    unpack in the third-party directory.
 2. Use the `makeQt` script with the QT version number. For example,
-
-       ./makeQt 5.9.3
-
+```
+./makeQt 5.9.3
+```
 3. Build ParaView using this third-party QT. For example,
-
-       ./makeParaView -qt-5.9.3  5.6.0
-
+```
+./makeParaView -qt-5.9.3  5.6.0
+```
 - ParaView versions prior to 5.3.0 do not properly support QT5.
 
 - If you relocate the third-party directory to another location
@@ -429,27 +420,28 @@ you may have additional hurdles to using the newest versions of clang.
 ### CMake Minimum Requirements <a name="min-cmake"></a>
 
 The minimum CMake requirements for building various components.
-
-    2.8         llvm-3.4.2
-    2.8.11      CGAL-4.9
-    2.8.11      CGAL-4.11
-    2.8.12.2    llvm-3.7.0
-    2.8.12.2    llvm-3.8.0
-    2.8.4       cmake-3.6.0
-    3.3         ParaView-5.6.0
-    3.4.3       llvm-3.9.1
-    3.4.3       llvm-4.0.0 - llvm-6.0.0
-    3.6         ADIOS2
-
+```
+2.8         llvm-3.4.2
+2.8.11      CGAL-4.9
+2.8.11      CGAL-4.11
+2.8.12.2    llvm-3.7.0
+2.8.12.2    llvm-3.8.0
+2.8.4       cmake-3.6.0
+3.3         ParaView-5.6.0
+3.4.3       llvm-3.9.1
+3.4.3       llvm-4.0.0 - llvm-6.0.0
+3.6         ADIOS2
+```
 
 ### GCC Minimum Requirements <a name="min-gcc"></a>
 
 The minimum gcc/g++ requirements for building various components.
-
-    4.7         llvm-3.7.0
-    4.7         llvm-3.6.2
-    4.7         llvm-3.5.2
-    4.4         llvm-3.4.2
+```
+4.7         llvm-3.7.0
+4.7         llvm-3.6.2
+4.7         llvm-3.5.2
+4.4         llvm-3.4.2
+```
 
 If your system gcc/g++ is too old to build the desired llvm/clang
 version, you may need to build a lower llvm/clang version and then use
@@ -556,7 +548,13 @@ that clang compiler for building the newer llvm/clang version.
 <!-- OpenFOAM -->
 
 [link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
-[link community-projects]: http://www.openfoam.com/community/projects.php
+[link openfoam-build]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/BUILD.md
+[link openfoam-config]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/etc/README.md
+[link openfoam-require]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Requirements.md
+[link third-build]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/BUILD.md
+[link third-require]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/Requirements.md
+[link third-readme]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/README.md
+
 
 ---
 
@@ -564,7 +562,6 @@ that clang compiler for building the newer llvm/clang version.
 ## Additional OpenFOAM Links
 
 - [Community AddOns][link AddOns] repository
-- [Collaborative and Community-based Developments][link community-projects]
 - [Download](http://www.openfoam.com/download) and
   [installation instructions](http://www.openfoam.com/code/build-guide.php)
 - [Documentation](http://www.openfoam.com/documentation)
