@@ -108,10 +108,8 @@ wmake -show-compile-cxx
 
 [download ParaView]: https://www.paraview.org/download/
 
-
 <!-- OpenFOAM -->
 
-[link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
 [link openfoam-readme]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/README.md
 [link openfoam-config]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Config.md
 [link openfoam-build]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Build.md
@@ -121,17 +119,4 @@ wmake -show-compile-cxx
 [link third-require]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/Requirements.md
 
 ---
-
-<!-- Standard Footer -->
-## Additional OpenFOAM Links
-
-- [Community AddOns][link AddOns] repository
-- [Download](http://www.openfoam.com/download) and
-  [installation instructions](http://www.openfoam.com/code/build-guide.php)
-- [Documentation](http://www.openfoam.com/documentation)
-- [Reporting bugs/issues](http://www.openfoam.com/code/bug-reporting.php) (including bugs/suggestions/feature requests) in OpenFOAM
-- [Contacting OpenCFD](http://www.openfoam.com/contact)
-
----
-
 Copyright 2016-2019 OpenCFD Ltd

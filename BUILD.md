@@ -6,7 +6,7 @@ OpenFOAM depends to a certain extent on third-party libraries
 scripts for building third-party packages. It will normally only be used in
 conjunction with the corresponding OpenFOAM version.
 
-## Organization
+## Directory Organization
 
 The ThirdParty directory contains a number of build scripts as well as
 some directories:
@@ -177,6 +177,12 @@ export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mp
 - Builds [METIS](#parallel) decomposition library.
   Automatically invoked from the ThirdParty `Allwmake`,
   but can be invoked directly to resolve possible build errors.
+
+`makeSCOTCH`
+- Builds [scotch, ptscotch](#parallel) decomposition libraries.
+  Automatically invoked from the ThirdParty `Allwmake`,
+  but can be invoked directly for special configurations
+  or to resolve possible build errors.
 
 `makeMGridGen`
 - Optional agglomeration routines.
@@ -447,6 +453,25 @@ If your system gcc/g++ is too old to build the desired llvm/clang
 version, you may need to build a lower llvm/clang version and then use
 that clang compiler for building the newer llvm/clang version.
 
+<!-- OpenFOAM, Internal links -->
+
+[link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
+[link openfoam-readme]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/README.md
+[link openfoam-config]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Config.md
+[link openfoam-build]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Build.md
+[link openfoam-require]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Requirements.md
+[link third-readme]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/README.md
+[link third-build]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/BUILD.md
+[link third-require]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/Requirements.md
+
+
+## Software Links
+
+If you have access to this information file in its raw form, you will
+note that most of the software pages and download links are listed as
+a collection at the end of the file. This is designed to make it
+easier to use `grep` and find the relevant pages and links.
+
 
 <!-- gcc-related -->
 [page gcc]:       http://gcc.gnu.org/releases.html
@@ -544,30 +569,6 @@ that clang compiler for building the newer llvm/clang version.
 [repo Qt]: http://code.qt.io/cgit/qt-creator/qt-creator.git
 [link Qt56]: http://download.qt.io/official_releases/qt/5.6/5.6.3/single/qt-everywhere-opensource-src-5.6.3.tar.xz
 [link Qt5]: http://download.qt.io/official_releases/qt/5.9/5.9.3/single/qt-everywhere-opensource-src-5.9.3.tar.xz
-
-<!-- OpenFOAM -->
-
-[link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
-[link openfoam-readme]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/README.md
-[link openfoam-config]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Config.md
-[link openfoam-build]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Build.md
-[link openfoam-require]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Requirements.md
-[link third-readme]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/README.md
-[link third-build]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/BUILD.md
-[link third-require]: https://develop.openfoam.com/Development/ThirdParty-plus/blob/develop/Requirements.md
-
-
----
-
-<!-- Standard Footer -->
-## Additional OpenFOAM Links
-
-- [Community AddOns][link AddOns] repository
-- [Download](http://www.openfoam.com/download) and
-  [installation instructions](http://www.openfoam.com/code/build-guide.php)
-- [Documentation](http://www.openfoam.com/documentation)
-- [Reporting bugs/issues](http://www.openfoam.com/code/bug-reporting.php) (including bugs/suggestions/feature requests) in OpenFOAM
-- [Contacting OpenCFD](http://www.openfoam.com/contact)
 
 ---
 
