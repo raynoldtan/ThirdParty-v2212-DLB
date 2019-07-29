@@ -103,7 +103,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-exportCompiler          # Compiler info for CMake/configure
+exportCompiler minimal  # Minimal compiler info for CMake/configure
 
 # Various building stages
 unset runPATCH runCONFIG runMAKE runINSTALL
@@ -292,6 +292,10 @@ Build stages selected
 Features selected
     mesa      ${withMESA:-false}
     mpi       ${withMPI:-false}
+---------------------
+Compiler
+    cxx       ${CXX:-unknown}
+    cxxflags  ${CXXFLAGS:-none}
 ---------------------
 Version information
     vtk       ${VTK_VERSION:-unknown}

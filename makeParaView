@@ -127,7 +127,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
-exportCompiler          # Compiler info for CMake/configure
+exportCompiler minimal  # Minimal compiler info for CMake/configure
 
 # Various building stages
 unset runPATCH runCONFIG runMAKE runINSTALL
@@ -366,6 +366,10 @@ Features selected
     mpi       ${withMPI:-false}
     python    ${withPYTHON:-false}
     qt        ${withQT:-false}
+---------------------
+Compiler
+    cxx       ${CXX:-unknown}
+    flags     ${CXXFLAGS:-none}
 ---------------------
 Version information
     paraview  ${ParaView_VERSION:-unknown}

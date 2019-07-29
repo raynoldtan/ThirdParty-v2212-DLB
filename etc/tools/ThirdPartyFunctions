@@ -55,13 +55,51 @@ fi
 
 unset BUILD_SUFFIX
 #------------------------------------------------------------------------------
+# Service routine to strip out OpenFOAM-specific portions from the compiler
+# flags (ie, everything after "-DOPENFOAM=...") while retaining '-fPIC'
+#
+stripCompilerFlags()
+{
+    local input="$@"
+    local flags="${input%-DOPENFOAM=*}"  # Strip out OpenFOAM-specific
+    flags="${flags## }"                  # Trim leading space
+    flags="${flags%% }"                  # Trim trailing space
+
+    # Retain -fPIC though
+    case "$flags" in
+    (*-fPIC*)
+        # -fPIC already included
+        ;;
+
+    (*)
+        case "$input" in
+        (*-fPIC*)
+            # Add -fPIC back in (was after the -DOPENFOAM=... content)
+            flags="$flags${flags+ }-fPIC"
+            ;;
+        esac
+        ;;
+    esac
+
+    echo "$flags"
+}
+
+
 # Export compiler settings (and flags) for CMake/configure
 # based on the values from wmake -show-compile-*
 #
 # Since "wmake -show-XX" is only available after 1904, continue to support
 # the previous env variables method (WM_CC, WM_CFLAGS, WM_CXX, WM_CXXFLAGS)
+#
+# $1 = "basic|minimal|strip" (optional)
+#
+# If the option 'basic' is provided, the OpenFOAM-specific portions of
+# the flags are stripped out. Ie, everything after "-DOPENFOAM=..."
+# but retaining '-fPIC'
+#
 exportCompiler()
 {
+    local option="$1"
     local comp flag
 
     # C compiler and flags
@@ -76,6 +114,11 @@ exportCompiler()
         export CC="$comp"
         if [ -n "$flag" ]
         then
+            case "$option" in
+                (basic | minimal | strip)
+                    flag="$(stripCompilerFlags $flag)"
+                    ;;
+            esac
             export CFLAGS="$flag"
         fi
     fi
@@ -92,10 +135,16 @@ exportCompiler()
         export CXX="$comp"
         if [ -n "$flag" ]
         then
+            case "$option" in
+                (basic | minimal | strip)
+                    flag="$(stripCompilerFlags $flag)"
+                    ;;
+            esac
             export CXXFLAGS="$flag"
         fi
     fi
 }
+
 
 # Export linker settings for CMake/configure
 exportLinker()
