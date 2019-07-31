@@ -154,7 +154,7 @@ export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mp
 
 #### Optional Components
 
-`makeADIOS`
+`makeAdios1` `makeAdios2`
 - Only required for [ADIOS](#parallel) support,
   which is currently staged in the [add-ons repository][link AddOns].
 
