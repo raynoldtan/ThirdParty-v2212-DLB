@@ -276,6 +276,25 @@ requireWMakeToolchain()
 }
 
 
+# grep for package http or ftp entries in BUILD.md
+# Should be of the form "[link xx]:  http://..."
+showDownloadHint()
+{
+    local package="$1"
+
+    if [ -n "$package" ]
+    then
+        echo "Possible download locations for $package :"
+
+        if [ -f "$WM_THIRD_PARTY_DIR/BUILD.md" ]
+        then
+            grep -i "$package" "$WM_THIRD_PARTY_DIR/BUILD.md" | \
+            grep -E '(http|ftp)' | sed -ne 's/^ *\[.*\]: */    /p'
+        fi
+    fi
+}
+
+
 #------------------------------------------------------------------------------
 # Some functions as per OpenFOAM etc/config.sh/functions
 

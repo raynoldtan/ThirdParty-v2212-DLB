@@ -134,7 +134,8 @@ METIS_SOURCE_DIR=$sourceBASE/$metisPACKAGE
 
 [ -d "$METIS_SOURCE_DIR" ] || {
     echo "Missing sources: '$metisPACKAGE'"
-    exit 1
+    showDownloadHint METIS
+    exit 2
 }
 
 #

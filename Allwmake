@@ -59,7 +59,8 @@ esac
 
 #------------------------------------------------------------------------------
 
-./makeSCOTCH
+# Treat as optional, but really isn't if anyone wants parallel calculations
+./makeSCOTCH || warnBuildIssues SCOTCH
 
 #------------------------------------------------------------------------------
 echo
@@ -71,7 +72,7 @@ then
 fi
 if [ -n "$KAHIP_ARCH_PATH" ]
 then
-    echo KaHIP decomposition
+    echo KAHIP decomposition
     ./makeKAHIP -test "$KAHIP_ARCH_PATH" || \
     ./makeKAHIP || warnBuildIssues KAHIP
 else
@@ -88,7 +89,7 @@ then
 fi
 if [ -n "$METIS_ARCH_PATH" ]
 then
-    echo Metis decomposition
+    echo METIS decomposition
     ./makeMETIS -test "$METIS_ARCH_PATH" || \
     ./makeMETIS || warnBuildIssues METIS
 else
@@ -107,6 +108,7 @@ else
     warnNotFound CGAL   # is optional
 fi
 
+#------------------------------------------------------------------------------
 echo
 echo ========================================
 if [ -n "$FFTW_ARCH_PATH" ]
@@ -117,6 +119,26 @@ then
 else
     warnNotFound FFTW   # is optional
 fi
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
+# Get ADIOS2_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/adios2)
+then
+    . $settings
+fi
+if [ -n "$ADIOS2_ARCH_PATH" ]
+then
+    echo ADIOS2
+    ./makeAdios2 -test "$ADIOS2_ARCH_PATH" || \
+    ./makeAdios2 || warnBuildIssues ADIOS2
+else
+    warnNotFound ADIOS2   # is optional
+fi
+
+
+#------------------------------------------------------------------------------
 
 echo
 echo ========================================

@@ -134,7 +134,8 @@ PETSC_SOURCE_DIR=$sourceBASE/$petscPACKAGE
 
 [ -d "$PETSC_SOURCE_DIR" ] || {
     echo "Missing sources: '$petscPACKAGE'"
-    exit 1
+    showDownloadHint PETSC
+    exit 2
 }
 
 

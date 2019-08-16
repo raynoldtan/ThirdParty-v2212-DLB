@@ -134,6 +134,7 @@ HYPRE_SOURCE_DIR=$sourceBASE/$hyprePACKAGE
 
 [ -d "$HYPRE_SOURCE_DIR" ] || {
     echo "Missing sources: '$hyprePACKAGE'"
+    showDownloadHint HYPER
     exit 1
 }
 

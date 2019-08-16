@@ -123,9 +123,10 @@ makefileInc="../../$scotchMakefile"
 SCOTCH_SOURCE_DIR=$sourceBASE/$scotchPACKAGE
 : "${SCOTCH_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$scotchPACKAGE}"
 
-[ -d "$SCOTCH_SOURCE_DIR" ] || {
+[ -d "$SCOTCH_SOURCE_DIR/src" ] || {
     echo "Missing sources: '$scotchPACKAGE'"
-    exit 1
+    showDownloadHint SCOTCH
+    exit 2
 }
 
 echo
@@ -218,7 +219,7 @@ echo "pt-scotch decomposition ($scotchPACKAGE with $FOAM_MPI)"
     # Report that the above tests failed and pass-through the failure
     echo
     echo "    skipping - no <scotch.h> found"
-    exit 1
+    exit 2
 }
 
 if [ -f "$SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h" ] && \

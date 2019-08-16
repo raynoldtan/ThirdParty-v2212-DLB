@@ -136,7 +136,8 @@ KAHIP_ARCH_PATH=$installBASE/$kahipPACKAGE
 
 [ -d "$KAHIP_SOURCE_DIR" ] || {
     echo "Missing sources: '$kahipPACKAGE'"
-    exit 1
+    showDownloadHint KAHIP
+    exit 2
 }
 
 #
