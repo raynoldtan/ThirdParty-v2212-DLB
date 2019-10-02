@@ -2,7 +2,7 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #                           | Copyright (C) 2011-2016 OpenFOAM Foundation
@@ -18,8 +18,7 @@
 #     ParaView make/install helper functions
 #
 # Note
-#     Obtaining paths via 'python-config' is possible, but may not always
-#     resolve properly:
+#     Obtaining paths via 'python-config' may not always resolve properly:
 #
 #         python-config --includes
 #         >>
@@ -38,6 +37,7 @@ unset withMPI     MPI_MAX_PROCS
 unset withQT      QT_VERSION      QMAKE_PATH
 unset withMESA    MESA_INCLUDE    MESA_LIBRARY    withOSMESA
 unset withPYTHON  PYTHON_INCLUDE  PYTHON_LIBRARY
+unset withPYTHON3
 unset withGL2
 BUILD_TYPE=Release  # The cmake build type
 
@@ -166,9 +166,17 @@ addPythonSupport()
         return
     fi
 
-    local pythonBin pythonConfig pythonMajor
+    local pythonBin="python"
+    local pythonConfig="python-config"
+    local pythonMajor
 
-    pythonBin=$(which python 2>/dev/null) || {
+    if [ "$withPYTHON3" = true ]
+    then
+        pythonBin="python3"
+        pythonConfig="python3-config"
+    fi
+
+    pythonBin=$(which "$pythonBin" 2>/dev/null) || {
         echo "*** Error: python not found"
         echo "***        Deactivate python support by not using the -python "
         echo "***        option"
@@ -187,7 +195,7 @@ addPythonSupport()
 
         # Fallback: get PYTHON_LIBRARY from dynamically linked binary
 
-        PYTHON_LIBRARY=$(ldd $pythonBin | \
+        PYTHON_LIBRARY=$(ldd "$pythonBin" | \
             sed -ne '/libpython/s/^.* => \(.*\) (.*/\1/p')
 
         [ -e "$PYTHON_LIBRARY" ] || {
@@ -205,7 +213,7 @@ addPythonSupport()
     }
 
     # Guess major from library
-    pythonMajor=$(echo $PYTHON_LIBRARY | sed 's/.*libpython\(.*\)\.so.*/\1/')
+    pythonMajor=$(echo "$PYTHON_LIBRARY" | sed 's/.*libpython\(.*\)\.so.*/\1/')
 
     if [ -n "$PYTHON_INCLUDE" ]
     then
@@ -215,12 +223,12 @@ addPythonSupport()
             echo "*** Error: Python.h not found at location specified " \
                  "by -python-include : PYTHON_INCLUDE=$PYTHON_INCLUDE"
 
-    elif pythonConfig=$(which python-config 2>/dev/null)
+    elif pythonConfig=$(which "$pythonConfig" 2>/dev/null)
     then
         # Guess from python-config
         # parse '-I/usr/include/python2.7 -I/usr/include/python2.7'
         # -> '/usr/include/python2.7'
-        PYTHON_INCLUDE=$(python-config --includes | sed -ne 's/^-I\([^ ][^ ]*\).*$/\1/p')
+        PYTHON_INCLUDE=$("$pythonConfig" --includes | sed -ne 's/^-I\([^ ][^ ]*\).*$/\1/p')
 
     else
 

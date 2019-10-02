@@ -82,7 +82,8 @@ options:
   -mesa-lib PATH    path to mesa library     (current: ${MESA_LIBRARY:-none})
   -mpi              with mpi
   -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
-  -python           with python
+  -python | -python2 | -python3
+                    with python
   -python-include DIR
                     location of python headers (current: ${PYTHON_INCLUDE:-none})
   -python-lib PATH  path to python library (current: ${PYTHON_LIBRARY:-none})
@@ -234,8 +235,14 @@ do
     -python)
         withPYTHON=true
         ;;
+    -python2)
+        withPYTHON=true; withPYTHON3=false
+        ;;
+    -python3)
+        withPYTHON=true; withPYTHON3=true
+        ;;
     -no-python)
-        withPYTHON=false
+        withPYTHON=false; unset withPYTHON3
         ;;
     -python-include)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
@@ -317,6 +324,16 @@ then
     else
         withGL2=true
     fi
+fi
+
+# ParaView-5.7.0 default is python3
+if [ "$withPYTHON" = true ] && [ -z "$withPYTHON3" ]
+then
+    case "${ParaView_VERSION}" in
+    (5.[7-9]* | [6-9]* | [1-9][0-9].*)
+        withPYTHON3=true
+        ;;
+    esac
 fi
 
 if [ "$runDEFAULT" = true ]

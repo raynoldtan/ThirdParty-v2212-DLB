@@ -154,9 +154,8 @@ export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mp
 
 #### Optional Components
 
-`makeAdios1` `makeAdios2`
-- Only required for [ADIOS](#parallel) support,
-  which is currently staged in the [add-ons repository][link AddOns].
+`makeAdios2`
+- Only required for [ADIOS](#parallel) support.
 
 `makeCGAL`
 - Builds [boost](#general-packages) and [CGAL](#general-packages).
@@ -298,15 +297,6 @@ may not be important for you):
 #### 5.3.0 and older are neither recommended nor supported
 - Various compilation issues and known bugs.
 
-### ADIOS
-- The github release currently requires GNU autoconf tools (eg,
-  autoconf, autoheader, automake) for its configuration.
-- Some inconsistency in directory names (ADIOS vs. adios) between releases.
-- Optionally uses bzip2, zlib development headers (eg, libbz2-devel, zlib-devel)
-  for the corresponding compression tranforms.
-- The [zfp floating point compression][page zfp] library is now included as
-  part of ADIOS.
-
 ### Making Qt <a name="makeQt"></a>
 - Building a third-party Qt installation (prior to building ParaView) requires
   some additional effort, but should nonetheless work smoothly.
@@ -409,7 +399,7 @@ you may have additional hurdles to using the newest versions of clang.
 |-----------------------|------------------------
 | [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
-| [scotch, ptscotch][page scotch] | [download][link scotch] or [newer][newer scotch]
+| [scotch, ptscotch][page scotch] | [download][link scotch] or [older][older scotch]
 | [kahip][page kahip] | [download][link kahip] or [newer][newer kahip]
 | [metis][page metis] | [download][link metis]
 
@@ -502,13 +492,14 @@ easier to use `grep` and find the relevant pages and links.
 <!-- parallel -->
 [page adios]:     https://www.olcf.ornl.gov/center-projects/adios/
 [repo adios]:     https://github.com/ornladios/ADIOS
-[link adios]:     https://github.com/ornladios/ADIOS/archive/v1.13.1.tar.gz
+[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.5.0.tar.gz
 [altlink adios]:  http://users.nccs.gov/~pnorbert/adios-1.13.1.tar.gz
+
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
-[link scotch]:    https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
-[newer scotch]:   https://gforge.inria.fr/frs/download.php/file/38040/scotch_6.0.7.tar.gz
+[older scotch]:   https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
+[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38040/scotch_6.0.7.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
 [link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
@@ -558,7 +549,8 @@ easier to use `grep` and find the relevant pages and links.
 [download ParaView]: https://www.paraview.org/download/
 [link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
 [link ParaView55]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
-[link ParaView]: http://www.paraview.org/files/v5.6/ParaView-v5.6.0.tar.gz
+[link ParaView56]: http://www.paraview.org/files/v5.6/ParaView-v5.6.0.tar.gz
+[link ParaView]: http://www.paraview.org/files/v5.6/ParaView-v5.7.0.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
