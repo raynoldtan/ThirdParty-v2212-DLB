@@ -149,10 +149,8 @@ else
         mkdir -p $buildDIR
 
         # May not work properly with FOAM_MPI = dummy
-        if [ "$FOAM_MPI" = dummy ]
+        if [ "$FOAM_MPI" != dummy ]
         then
-            configOpt="$configOpt --without-mpi"
-        else
             CC=mpicc
             CXX=mpicxx
         fi
