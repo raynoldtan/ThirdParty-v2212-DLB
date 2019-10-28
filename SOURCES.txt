@@ -1,5 +1,12 @@
 Short summary of third-party software versions for recent OpenFOAM versions.
 
+OpenFOAM-1912
+---------------
+
+scotch_6.0.8        *minor*
+kahip-2.12          *update*
+
+
 OpenFOAM-1906
 ---------------
 

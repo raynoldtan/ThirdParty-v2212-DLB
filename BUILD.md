@@ -400,7 +400,7 @@ you may have additional hurdles to using the newest versions of clang.
 | [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
 | [scotch, ptscotch][page scotch] | [download][link scotch] or [older][older scotch]
-| [kahip][page kahip] | [download][link kahip] or [newer][newer kahip]
+| [kahip][page kahip] | [download][link kahip] or [older][older kahip]
 | [metis][page metis] | [download][link metis]
 
 
@@ -499,11 +499,11 @@ easier to use `grep` and find the relevant pages and links.
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [older scotch]:   https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
-[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38040/scotch_6.0.7.tar.gz
+[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
-[link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
-[newer kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.10.tar.gz
+[older kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
+[link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.12.tar.gz
 
 [page metis]:     http://glaros.dtc.umn.edu/gkhome/metis/metis/overview
 [link metis]:     http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz

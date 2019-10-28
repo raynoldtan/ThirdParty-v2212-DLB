@@ -76,6 +76,7 @@ usage()
 Usage: ${0##*/} [OPTION] [lib|libso] [kahip-VERSION]
 options:
   -gcc          Force use of gcc/g++
+  -cmake PATH   With cmake from the given path
   -help
 
 * Compile KaHIP
@@ -85,6 +86,7 @@ USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
+exportCompiler minimal  # Minimal compiler info for CMake/configure
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -93,6 +95,12 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+
+    -cmake)
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        CMAKE_PATH="${2%%/}"
+        shift
+        ;;
 
     lib|libso)
         targetType="$1"
@@ -159,9 +167,20 @@ install()
         $incdir
 }
 
-echo "Starting build: $kahipPACKAGE ($targetType)"
-echo
+
+# Newer KAHIP (>= 2.11) uses CMake,
+# but unfortunately does not install include/
+# nor pass through flags for 64bit indices in the header.
+withCmake=true
+version=$(echo "$kahipPACKAGE" | sed -e 's/^kahip[-_]*//i')
+case "$version" in 2.0*) unset withCmake;; esac
+
+if true
+then
 (
+    echo "Starting build: $kahipPACKAGE ($targetType) using wmake"
+    echo
+
     cd $KAHIP_SOURCE_DIR/lib || exit 1
     export GIT_DIR=$KAHIP_SOURCE_DIR/.git # Mask seeing our own git-repo
 
@@ -172,7 +191,7 @@ echo
 
     cpMakeFiles kahip 2>/dev/null
 
-    if [ -e ../interface -a ! -e interface ]
+    if [ -e ../interface ] && [ ! -e interface ]
     then
         ln -s ../interface interface
     fi
@@ -194,6 +213,6 @@ echo
     echo "Error building: kahip"
     exit 1
 }
-
+fi
 
 #------------------------------------------------------------------------------
