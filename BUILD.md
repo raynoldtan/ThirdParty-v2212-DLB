@@ -268,6 +268,29 @@ use the ParaView-5.4 sources that were included in the ThirdParty-v1712
 source pack. This, however, has never been tested in combination with
 the OpenFOAM Catalyst insitu visualization.
 
+If you encounter problems starting paraview (eg, segmentation fault)
+it could be related to the graphics libraries not being properly found.
+The `LIBGL_DEBUG` environment variable can be used to obtain more
+detailed information:
+```
+$ export LIBGL_DEBUG=verbose
+```
+
+The call to paraview now emits this information:
+```
+libGL: screen 0 does not appear to be DRI2 capable
+libGL: OpenDriver: trying /usr/lib64/dri/tls/swrast_dri.so
+libGL: OpenDriver: trying /usr/lib64/dri/swrast_dri.so
+...
+libGL error: No matching fbConfigs or visuals found
+libGL error: failed to load driver: swrast
+```
+Indicating that the drivers are probably not correctly installed.
+The `/var/log/Xorg.0.log` file or the `dmesg` command may yield more
+information to the cause.
+In this particular case, the Nvidia drivers had a client/server
+version mismatch.
+
 
 #### 5.6.x, 5.5.x binary packages
 
