@@ -169,6 +169,7 @@ else
         && echo "Built: $adiosPACKAGE"
     ) || {
         echo "Error building: $adiosPACKAGE"
+        exit 1
     }
 fi
 
