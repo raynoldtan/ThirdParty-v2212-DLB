@@ -2,10 +2,11 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2019 OpenCFD Ltd.
+#   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#                           | Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2011-2016 OpenFOAM Foundation
+#     Copyright (C) 2016-2019 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -85,7 +86,7 @@ setParaViewDirs()
     echo "ParaView_BUILD_DIR=$ParaView_BUILD_DIR"
     echo "ParaView_DIR=$ParaView_DIR"
 
-    export GIT_DIR=$ParaView_SOURCE_DIR/.git # Mask seeing our own git-repo
+    export GIT_DIR="$ParaView_SOURCE_DIR/.git" # Mask seeing our own git-repo
 }
 
 
@@ -396,7 +397,7 @@ configParaView()
 
     addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
+    cd "$ParaView_BUILD_DIR" || exit  # Change to build folder
 
     echo "----"
     echo "Configuring paraview-$ParaView_VERSION (major version: $ParaView_MAJOR)"
@@ -434,7 +435,7 @@ configParaView()
 #
 makeParaView()
 {
-    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
+    cd "$ParaView_BUILD_DIR" || exit  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
     echo "    Done make"
@@ -453,7 +454,7 @@ makeParaView()
 #
 installParaView()
 {
-    cd $ParaView_BUILD_DIR || exit 1  # Change to build folder
+    cd "$ParaView_BUILD_DIR" || exit  # Change to build folder
     echo "    Installing ParaView to $ParaView_DIR"
 
     make install

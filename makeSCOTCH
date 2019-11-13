@@ -3,8 +3,10 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2019 OpenCFD Ltd.
+#   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2019 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -22,7 +24,8 @@
 
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd "${0%/*}" || exit
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -154,9 +157,9 @@ then
         exit 1
     }
 
-    cd $SCOTCH_SOURCE_DIR/src || exit 1
-    export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
-    rm -rf $SCOTCH_ARCH_PATH
+    cd "$SCOTCH_SOURCE_DIR/src" || exit
+    export GIT_DIR="$SCOTCH_SOURCE_DIR/.git" # Mask seeing our own git-repo
+    rm -rf "$SCOTCH_ARCH_PATH"
 
     applyPatch "$scotchPACKAGE" ..      # patch at parent-level
 
@@ -239,8 +242,8 @@ else
         exit 1
     }
 
-    cd $SCOTCH_SOURCE_DIR/src || exit 1
-    export GIT_DIR=$SCOTCH_SOURCE_DIR/.git # Mask seeing our own git-repo
+    cd "$SCOTCH_SOURCE_DIR/src" || exit
+    export GIT_DIR="$SCOTCH_SOURCE_DIR/.git" # Mask seeing our own git-repo
     echo
 
     prefixDIR=$SCOTCH_ARCH_PATH

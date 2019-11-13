@@ -3,8 +3,10 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2018-2019 OpenCFD Ltd.
+#   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2018-2019 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -49,7 +51,8 @@ then
 fi
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd "${0%/*}" || exit
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -167,8 +170,8 @@ echo
         configOpt="$configOpt --with-precision=double"
     fi
 
-    cd $PETSC_SOURCE_DIR || exit 1
-    export GIT_DIR=$PWD/.git # Mask seeing our own git-repo
+    cd "$PETSC_SOURCE_DIR" || exit
+    export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
 
     rm -rf $PETSC_ARCH_PATH
 

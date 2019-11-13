@@ -3,8 +3,10 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2017-2019 OpenCFD Ltd.
+#   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2017-2019 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -20,6 +22,7 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from ThirdParty directory only
+cd "${0%/*}" || exit
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" || {
     echo "Error: Current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    The environment variables are inconsistent with the installation."
@@ -139,7 +142,7 @@ then
     echo
 else
 (
-    cd $MGRIDGEN_SOURCE_DIR || exit 1
+    cd "$MGRIDGEN_SOURCE_DIR" || exit
     [ -e Makefile ] && make realclean 2>/dev/null
 
     # Remove any existing build folder and recreate
@@ -164,6 +167,7 @@ else
     && echo "Built: $mgridgenPACKAGE"
 ) || {
     echo "Error building: $mgridgenPACKAGE"
+    exit 1
 }
 fi
 

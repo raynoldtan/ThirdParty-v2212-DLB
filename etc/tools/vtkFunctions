@@ -2,8 +2,10 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2018 OpenCFD Ltd.
+#   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
+#------------------------------------------------------------------------------
+#     Copyright (C) 2016-2018 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -65,7 +67,7 @@ setVtkDirs()
     echo "VTK_BUILD_DIR=$VTK_BUILD_DIR"
     echo "VTK_DIR=$VTK_DIR"
 
-    export GIT_DIR=$VTK_SOURCE_DIR/.git # Mask seeing our own git-repo
+    export GIT_DIR="$VTK_SOURCE_DIR/.git" # Mask seeing our own git-repo
 }
 
 
@@ -120,7 +122,7 @@ configVTK()
 
     addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-    cd $VTK_BUILD_DIR || exit 1  # change to build folder
+    cd "$VTK_BUILD_DIR" || exit  # change to build folder
 
     echo "----"
     echo "Configuring VTK-$VTK_VERSION"
@@ -176,7 +178,7 @@ addMpiSupport()
 #
 makeVTK()
 {
-    cd $VTK_BUILD_DIR || exit 1  # Change to build folder
+    cd "$VTK_BUILD_DIR" || exit  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
 
@@ -193,7 +195,7 @@ makeVTK()
 #
 installVTK()
 {
-    cd $VTK_BUILD_DIR || exit 1  # Change to build folder
+    cd "$VTK_BUILD_DIR" || exit  # Change to build folder
     echo "    Installing VTK to $VTK_DIR"
 
     make install

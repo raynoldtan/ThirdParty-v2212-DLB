@@ -3,10 +3,11 @@
 # =========                 |
 # \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox
 #  \\    /   O peration     |
-#   \\  /    A nd           | Copyright (C) 2016-2017 OpenCFD Ltd.
+#   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#                           | Copyright (C) 2011 OpenFOAM Foundation
+#     Copyright (C) 2011 OpenFOAM Foundation
+#     Copyright (C) 2016-2019 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, licensed under GNU General Public License
@@ -22,7 +23,8 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd ${0%/*} && wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+cd "${0%/*}" || exit
+wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
@@ -61,39 +63,48 @@ for i in \
     gmp-* mpfr-* mpc-* gcc-* llvm-* \
 ;
 do
-    [ -d "$i" ] && (
+    if [ -d "$i" ]
+    then
+    (
         echo
         echo "${i%/*}"
         echo "    make distclean"
         echo
         cd $i && make distclean
     )
+    fi
 done
 
 
 # Clean various packages via 'realclean'
 for i in scotch*/src
 do
-    [ -d "$i" ] && (
+    if [ -d "$i" ]
+    then
+    (
         echo
         echo "${i%/*}"
         echo "    make realclean"
         echo
         cd $i && make realclean
     )
+    fi
 done
 
 
 # Clean various packages via 'wclean'
 for i in libccmio*/Make kahip*/lib/Make
 do
-    [ -d "$i" ] && (
+    if [ -d "$i" ]
+    then
+    (
         echo
         echo "${i%/Make}"
         echo "    wclean"
         echo
         cd ${i%/Make} && wclean
     )
+    fi
 done
 
 
@@ -117,7 +128,7 @@ removePlatform()
     then
         echo
         echo "Cleaning platform '$platform'"
-        \rm -rf "platforms/$platform"
+        rm -rf "platforms/$platform"
     else
         echo
         echo "Platform '$platform' not built"
@@ -138,7 +149,7 @@ do
         echo
         echo "Removing all platforms/sub-directories"
         echo
-        \rm -rf platforms/*
+        rm -rf platforms/*
         break
         ;;
 
