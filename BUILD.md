@@ -26,7 +26,7 @@ This approach avoids duplicate entries for the default versions and
 ensures the best overall consistency between the OpenFOAM installation
 and its corresponding third-party installation.
 
-Nonethess, the distributed make scripts can generally be used for a
+Nonetheless, the distributed make scripts can generally be used for a
 variety of versions of the third-party libraries, with the software
 version specified on the command-line. For example,
 ```
@@ -54,13 +54,17 @@ usage: makeFFTW [OPTION] [fftw-VERSION]
 which mpicc
 ```
 2. Adjust the OpenFOAM `etc/bashrc`, `etc/config.sh/...` or equivalent
-   `prefs.sh` files to reflect your preferred configuration.
+   the `etc/prefs.{csh,sh}` files to reflect your preferred configuration.
    For many config files, there are several configuration possibilities:
    - Define a particular third-party version.
    - Use a system installation.
    - Disable use of an optional component.
    - Define an alternative site-wide central location.
-   - After making the desired changes, use `wmRefresh` or equivalent to use the configurations.
+
+See the [OpenFOAM configuration information][link openfoam-config]
+for more details.
+After making the desired changes, use the `wmRefresh` alias
+or equivalent to enable the configuration.
 
 
 ---
@@ -209,8 +213,8 @@ export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mp
   Report in sorted order.
 
 `Allclean`
-- After building, this script may be used to remove intermediate build information
-and save some disk space.
+- After building, this script may be used to remove intermediate build
+  information and save some disk space.
 
 
 ## Build Notes
@@ -421,8 +425,8 @@ you may have additional hurdles to using the newest versions of clang.
 | Name                  | Location
 |-----------------------|------------------------
 | [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
-| [adios][page adios]   | [repo][repo adios] or [github download][link adios] or [alt download][altlink adios]
-| [scotch, ptscotch][page scotch] | [download][link scotch] or [older][older scotch]
+| [adios][page adios]   | [repo][repo adios] or [github download][link adios]
+| [scotch, ptscotch][page scotch] | [download][link scotch] or [older][older scotch] or [even older][oldest scotch]
 | [kahip][page kahip] | [download][link kahip] or [older][older kahip]
 | [metis][page metis] | [download][link metis]
 
@@ -432,7 +436,7 @@ you may have additional hurdles to using the newest versions of clang.
 | Name                  | Location
 |-----------------------|------------------------
 | [MESA][page mesa]     | [download][link mesa] or [older 13][link mesa13], [older 11][link mesa11]
-| [ParaView][page ParaView] | [download][link ParaView] or [older paraview-55][link ParaView55], [older paraview-54][link ParaView54] or [binaries][download ParaView]
+| [ParaView][page ParaView] | [download][link ParaView] or older [paraview-56][link ParaView56], [paraview-55][link ParaView55] or [binaries][download ParaView]
 | [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older qt-56][link Qt56] for older systems.
 
 
@@ -468,7 +472,6 @@ that clang compiler for building the newer llvm/clang version.
 
 <!-- OpenFOAM, Internal links -->
 
-[link AddOns]: https://develop.openfoam.com/Community/OpenFOAM-addOns
 [link openfoam-readme]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/README.md
 [link openfoam-config]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Config.md
 [link openfoam-build]: https://develop.openfoam.com/Development/OpenFOAM-plus/blob/develop/doc/Build.md
@@ -513,16 +516,16 @@ easier to use `grep` and find the relevant pages and links.
 
 
 <!-- parallel -->
-[page adios]:     https://www.olcf.ornl.gov/center-projects/adios/
-[repo adios]:     https://github.com/ornladios/ADIOS
-[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.5.0.tar.gz
-[altlink adios]:  http://users.nccs.gov/~pnorbert/adios-1.13.1.tar.gz
+[page adios]:     https://csmd.ornl.gov/adios2
+[repo adios]:     https://github.com/ornladios/ADIOS2
+[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.4.0.tar.gz
 
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
-[older scotch]:   https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
-[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
+[oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
+[older scotch]:   https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
+[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
 [older kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
@@ -572,8 +575,8 @@ easier to use `grep` and find the relevant pages and links.
 [download ParaView]: https://www.paraview.org/download/
 [link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
 [link ParaView55]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
-[link ParaView56]: http://www.paraview.org/files/v5.6/ParaView-v5.6.0.tar.gz
-[link ParaView]: http://www.paraview.org/files/v5.6/ParaView-v5.7.0.tar.gz
+[link ParaView56]: http://www.paraview.org/files/v5.6/ParaView-v5.6.3.tar.gz
+[link ParaView]: http://www.paraview.org/files/v5.7/ParaView-v5.7.0.tar.gz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
