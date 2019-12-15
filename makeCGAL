@@ -128,7 +128,7 @@ do
         shift
         ;;
     -toolset=*)
-        optToolset="${1*=}"
+        optToolset="${1#*=}"
         ;;
     -sys*)
         gmpPACKAGE="gmp-system"
@@ -268,7 +268,15 @@ else
 
         (*)
             # Toolset for bootstrap and build
-            [ -n "$optToolset" ] || optToolset="$(whichCC)"
+            if [ -z "$optToolset" ]
+            then
+                optToolset="$(whichCC)"
+                # Base names for gcc-8, clang-9 etc.
+                case "$optToolset" in
+                (clang*)  optToolset=clang;;
+                (gcc*)    optToolset=gcc;;
+                esac
+            fi
             buildOpt="toolset=$optToolset"
             ;;
         esac
