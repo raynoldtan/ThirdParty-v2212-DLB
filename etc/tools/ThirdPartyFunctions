@@ -6,11 +6,10 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011-2016 OpenFOAM Foundation
-#     Copyright (C) 2016-2019 OpenCFD Ltd.
+#     Copyright (C) 2016-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # File
 #     etc/tools/ThirdPartyFunctions
@@ -57,12 +56,14 @@ fi
 unset BUILD_SUFFIX
 #------------------------------------------------------------------------------
 # Service routine to strip out OpenFOAM-specific portions from the compiler
-# flags (ie, everything after "-DOPENFOAM=...") while retaining '-fPIC'
+# flags (ie, everything after and including "-DOPENFOAM=...")
+# while retaining '-fPIC'
+#
+# $1 = all flags concatenated as a single string
 #
 stripCompilerFlags()
 {
-    local input="$@"
-    local flags="${input%-DOPENFOAM=*}"  # Strip out OpenFOAM-specific
+    local flags="${1%-DOPENFOAM=*}"      # Strip out OpenFOAM-specific
     flags="${flags## }"                  # Trim leading space
     flags="${flags%% }"                  # Trim trailing space
 
@@ -73,9 +74,9 @@ stripCompilerFlags()
         ;;
 
     (*)
-        case "$input" in
+        case "$1" in
         (*-fPIC*)
-            # Add -fPIC back in (was after the -DOPENFOAM=... content)
+            # Add -fPIC back in (was after -DOPENFOAM=... content)
             flags="$flags${flags+ }-fPIC"
             ;;
         esac
@@ -104,11 +105,12 @@ exportCompiler()
     local comp flag
 
     # C compiler and flags
-    comp="$(wmake -show-c 2>/dev/null)" && \
-    flag="$(wmake -show-cflags 2>/dev/null)" || {
+    if ! comp="$(wmake -show-c 2>/dev/null)" \
+    || ! flag="$(wmake -show-cflags 2>/dev/null)"
+    then
         comp="$WM_CC"
         flag="$WM_CFLAGS"
-    }
+    fi
 
     if test -n "$comp" && command -v "$comp" >/dev/null
     then
@@ -117,7 +119,7 @@ exportCompiler()
         then
             case "$option" in
                 (basic | minimal | strip)
-                    flag="$(stripCompilerFlags $flag)"
+                    flag="$(stripCompilerFlags "$flag")"
                     ;;
             esac
             export CFLAGS="$flag"
@@ -125,11 +127,12 @@ exportCompiler()
     fi
 
     # C++ compiler and flags
-    comp="$(wmake -show-cxx 2>/dev/null)" && \
-    flag="$(wmake -show-cxxflags 2>/dev/null)" || {
+    if ! comp="$(wmake -show-cxx 2>/dev/null)" \
+    || ! flag="$(wmake -show-cxxflags 2>/dev/null)"
+    then
         comp="$WM_CXX"
         flag="$WM_CXXFLAGS"
-    }
+    fi
 
     if test -n "$comp" && command -v "$comp" >/dev/null
     then
@@ -138,7 +141,7 @@ exportCompiler()
         then
             case "$option" in
                 (basic | minimal | strip)
-                    flag="$(stripCompilerFlags $flag)"
+                    flag="$(stripCompilerFlags "$flag")"
                     ;;
             esac
             export CXXFLAGS="$flag"
