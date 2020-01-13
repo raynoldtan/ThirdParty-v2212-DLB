@@ -516,7 +516,7 @@ easier to use `grep` and find the relevant pages and links.
 
 
 <!-- parallel -->
-[page adios]:     https://csmd.ornl.gov/adios2
+[page adios]:     https://csmd.ornl.gov/software/adios2
 [repo adios]:     https://github.com/ornladios/ADIOS2
 [link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.4.0.tar.gz
 

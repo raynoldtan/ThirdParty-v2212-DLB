@@ -5,11 +5,10 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2018-2019 OpenCFD Ltd.
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     makeAdios2
@@ -165,6 +164,7 @@ else
             -DCMAKE_INSTALL_PREFIX=$ADIOS2_ARCH_PATH \
             -DCMAKE_BUILD_TYPE=Release \
             -DADIOS2_USE_Fortran=FALSE \
+            -DADIOS2_BUILD_EXAMPLES=FALSE \
             ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
             $ADIOS2_SOURCE_DIR \
         && make -j $WM_NCOMPPROCS all \
