@@ -30,6 +30,9 @@ sourceBASE="$WM_THIRD_PARTY_DIR"
 buildBASE="$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER"
 installBASE="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
 
+# Commonly used names
+unset sourceDIR buildDIR prefixDIR binDIR incDIR libDIR
+
 # Synthetic value combining precision and label size (Eg, DPInt32)
 WM_SIZE_OPTIONS="${WM_PRECISION_OPTION}Int${WM_LABEL_SIZE}"
 
@@ -37,7 +40,15 @@ WM_SIZE_OPTIONS="${WM_PRECISION_OPTION}Int${WM_LABEL_SIZE}"
 EXT_SO="$(wmake -show-ext-so 2>/dev/null)"
 if [ -z "$EXT_SO" ]
 then
-    [ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
+    EXT_SO=.so
+    case "$WM_OSTYPE" in
+    *windows)
+        EXT_SO=.dll
+        ;;
+    *)
+        [ Darwin = "$(uname -s 2>/dev/null)" ] && EXT_SO=.dylib
+        ;;
+    esac
 fi
 
 
@@ -54,6 +65,30 @@ then
 fi
 
 unset BUILD_SUFFIX
+
+#------------------------------------------------------------------------------
+# Check for existence of shared library (without .so extension)
+#
+# $1 = The path and library stem
+#
+haveLibso()
+{
+    if [ -z "$1" ]
+    then
+        return 1
+    elif [ -r "$1$EXT_SO" ]
+    then
+        return 0
+    elif [ "$EXT_SO" = .dll ] && [ -r "$1.dll.a" ]
+    then
+        # Including cross-compiling
+        return 0
+    fi
+
+    return 2
+}
+
+
 #------------------------------------------------------------------------------
 # Service routine to strip out OpenFOAM-specific portions from the compiler
 # flags (ie, everything after and including "-DOPENFOAM=...")
@@ -255,24 +290,31 @@ whichMpicxx()
 }
 
 # Require wmkdepend etc when building with wmake
+# before 2020-04-03: wmake/platforms/linux64Gcc
+# after  2020-04-03: platforms/tools/linux64Gcc
 requireWMakeToolchain()
 {
+    local archName="$WM_ARCH$WM_COMPILER"
     local wmDir="${WM_DIR:-$WM_PROJECT_DIR/wmake}"
-    local archDir="$wmDir/platforms/$WM_ARCH$WM_COMPILER"
+    local archDir1="$wmDir/platforms/$archName"
+    local archDir2="$WM_PROJECT_DIR/platforms/tools/$archName"
 
-    if [ -x "$archDir/wmkdepend" ] || [ -x "$archDir/wmkdep" ]
+    if [ -x "$archDir1/wmkdepend" ] || [ -x "$archDir1/wmkdep" ] || \
+       [ -x "$archDir2/wmkdepend" ] || [ -x "$archDir2/wmkdep" ]
     then
         echo "Appear to have {wmkdepend,wmkdep} binary" 1>&2
     else
         echo "Warning: appear to be missing {wmkdepend,wmkdep} binary ... building" 1>&2
         ( cd "$wmDir/src" && make -s )
 
-        [ -x "$archDir/wmkdepend" ] || [ -x "$archDir/wmkdep" ] || {
+        [ -x "$archDir1/wmkdepend" ] || [ -x "$archDir1/wmkdep" ] || \
+        [ -x "$archDir2/wmkdepend" ] || [ -x "$archDir2/wmkdep" ] || {
             exec 1>&2
             echo
             echo "Error: cannot use wmake build for '${0##*/}"
             echo "    Missing {wmkdepend,wmkdep} binary"
-            echo "    Please try run the top-level OpenFOAM Allwmake first"
+            echo "    Please run the top-level OpenFOAM Allwmake first"
+            echo "    or top-level wmake/src/Allmake"
             echo
             exit 1
         }
