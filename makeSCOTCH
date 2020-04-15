@@ -6,17 +6,16 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2019 OpenCFD Ltd.
+#     Copyright (C) 2019-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     makeSCOTCH
 #
 # Description
-#     Build the SCOTCH and PTSCOTCH libraries
+#     Build the SCOTCH and PTSCOTCH libraries, optionally build binaries
 #
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
@@ -53,18 +52,22 @@ usage()
 
 Usage: ${0##*/} [OPTION] [libso] [scotch-VERSION]
 options:
+  -force        Force compilation, even if include/library already exists
   -gcc          Force use of gcc/g++
+  -bin          Create scotch binaries as well (experimental)
+  -no-bin       Suppress creation of scotch binaries (default)
   -no-mpi       Suppress build of pt-scotch
   -help
 
 * Compile SCOTCH
-      $kahipPACKAGE
+      $scotchPACKAGE
 
 USAGE
     exit 1
 }
 #------------------------------------------------------------------------------
 
+unset optBinaries optForce
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -73,9 +76,11 @@ do
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
 
-    -no-mpi)
-        unset withMPI
-        ;;
+    -force)   optForce=true ;;
+    -bin)     optBinaries=true ;;
+    -no-bin)  unset optBinaries ;;
+    -no-mpi)  unset withMPI ;;
+
     scotch-[1-9]* | scotch-git | scotch_* |  scotch-[1-9]*)
         scotchPACKAGE="${1%%/}"
         unset SCOTCH_ARCH_PATH  # Avoid inconsistency
@@ -90,11 +95,11 @@ done
 [ -n "$scotchPACKAGE" ] || die "The scotch-VERSION was not specified"
 
 # Nothing to build
-if _foamIsNone $scotchPACKAGE
+if _foamIsNone "$scotchPACKAGE"
 then
     echo "Using scotch-none (skip ThirdParty build of SCOTCH)"
     exit 0
-elif _foamIsSystem $scotchPACKAGE
+elif _foamIsSystem "$scotchPACKAGE"
 then
     echo "Using scotch-system"
     exit 0
@@ -123,7 +128,7 @@ makefileInc="../../$scotchMakefile"
 #   SCOTCH_ARCH_PATH  : installation directory
 #   SCOTCH_SOURCE_DIR : location of the original sources
 
-SCOTCH_SOURCE_DIR=$sourceBASE/$scotchPACKAGE
+SCOTCH_SOURCE_DIR="$sourceBASE/$scotchPACKAGE"
 : "${SCOTCH_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$scotchPACKAGE}"
 
 [ -d "$SCOTCH_SOURCE_DIR/src" ] || {
@@ -137,12 +142,19 @@ echo ========================================
 echo "scotch decomposition ($scotchPACKAGE)"
 echo "    Makefile.inc  : ${makefileInc##*/}"
 
+# (serial) scotch
+prefixDIR="$SCOTCH_ARCH_PATH"
+binDIR="$prefixDIR"/bin
+incDIR="$prefixDIR"/include
+libDIR="$FOAM_EXT_LIBBIN"
+
 # Test installation. May or may not have libscotcherrexit.so
-if [ -f "$SCOTCH_ARCH_PATH/include/scotch.h" ] \
-&& [ -r "$FOAM_EXT_LIBBIN/libscotch$EXT_SO" ]
+if [ -z "$optForce" ] \
+&& [ -f "$incDIR"/scotch.h ] \
+&& haveLibso "$libDIR"/libscotch
 then
-    echo "    scotch include: $SCOTCH_ARCH_PATH/include"
-    echo "    scotch library: $FOAM_EXT_LIBBIN"
+    echo "    scotch include: $incDIR"
+    echo "    scotch library: $libDIR"
 elif [ -d "$SCOTCH_SOURCE_DIR" ]
 then
 (
@@ -163,18 +175,14 @@ then
 
     applyPatch "$scotchPACKAGE" ..      # patch at parent-level
 
-    prefixDIR=$SCOTCH_ARCH_PATH
-    incDIR=$SCOTCH_ARCH_PATH/include
-    libDIR=$FOAM_EXT_LIBBIN
-
-    mkdir -p $prefixDIR 2>/dev/null
-    mkdir -p $incDIR    2>/dev/null
-    mkdir -p $libDIR    2>/dev/null
+    mkdir -p "$binDIR" 2>/dev/null
+    mkdir -p "$incDIR" 2>/dev/null
+    mkdir -p "$libDIR" 2>/dev/null
 
     if [ -f "$makefileInc" ]
     then
         rm -f Makefile.inc
-        ln -s $makefileInc Makefile.inc
+        ln -s "$makefileInc" Makefile.inc
     fi
     [ -f Makefile.inc ] || {
         echo " Error: scotch needs an appropriate Makefile.inc"
@@ -187,15 +195,24 @@ then
     # Consistency for Intel-MPI and non-icc compilers
     [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
 
+    # The make targets
+    make_targets="libscotch"
+    if [ "$optBinaries" = true ]
+    then
+        make_targets="$make_targets scotch"
+    fi
+
     make realclean 2>/dev/null  # Extra safety
-    make -j $WM_NCOMPPROCS libscotch \
+    make -j $WM_NCOMPPROCS $make_targets \
      && make \
-        prefix=$prefixDIR \
-        includedir=$incDIR \
-        libdir=$libDIR \
+        prefix="$prefixDIR" \
+        bindir="$binDIR" \
+        libdir="$libDIR" \
+        includedir="$incDIR" \
         install
 
-    rmdir "$SCOTCH_ARCH_PATH/bin" 2> /dev/null || true  # Superfluous bin?
+    rmdir "$binDIR" 2>/dev/null || true     # Remove empty bin/
+    rmdir "${binDIR%/*}" 2>/dev/null || true    # ... and empty parent
     make realclean 2>/dev/null || true      # Failed cleanup is uncritical
 ) || warnBuildIssues SCOTCH
 else
@@ -211,25 +228,32 @@ fi
     exit 0
 }
 
-echo
-echo ========================================
-echo "pt-scotch decomposition ($scotchPACKAGE with $FOAM_MPI)"
-
 # Build ptscotch if normal scotch was built (has include and library)
-[ -f "$SCOTCH_ARCH_PATH/include/scotch.h" ] && \
-[ -r "$FOAM_EXT_LIBBIN/libscotch$EXT_SO" ] || \
-{
-    # Report that the above tests failed and pass-through the failure
-    echo
-    echo "    skipping - no <scotch.h> found"
-    exit 2
-}
-
-if [ -f "$SCOTCH_ARCH_PATH/include/$FOAM_MPI/ptscotch.h" ] && \
-   [ -r "$FOAM_EXT_LIBBIN/$FOAM_MPI/libptscotch$EXT_SO" ]
+# (reuse prefix/include/lib dirs set above)
+if [ -f "$incDIR"/scotch.h ] \
+&& haveLibso "$libDIR"/libscotch
 then
-    echo "    ptscotch include: $SCOTCH_ARCH_PATH/include/$FOAM_MPI"
-    echo "    ptscotch library: $FOAM_EXT_LIBBIN/$FOAM_MPI"
+    echo
+    echo ========================================
+    echo "pt-scotch decomposition ($scotchPACKAGE with $FOAM_MPI)"
+else
+    # Report that the above tests failed and pass-through the failure
+    echo "Skipping pt-scotch - no <scotch.h> found"
+    exit 2
+fi
+
+# (parallel) pt-scotch
+prefixDIR="$SCOTCH_ARCH_PATH"
+binDIR="$prefixDIR/bin/$FOAM_MPI"
+incDIR="$prefixDIR/include/$FOAM_MPI"
+libDIR="$FOAM_EXT_LIBBIN/$FOAM_MPI"
+
+if [ -z "$optForce" ] \
+&& [ -f "$incDIR"/ptscotch.h ] \
+&& haveLibso "$libDIR"/libptscotch
+then
+    echo "    ptscotch include: $incDIR"
+    echo "    ptscotch library: $libDIR"
 else
 (
     # Older versions ok, but scotch-6.0.5a cannot build in parallel.
@@ -246,18 +270,14 @@ else
     export GIT_DIR="$SCOTCH_SOURCE_DIR/.git" # Mask seeing our own git-repo
     echo
 
-    prefixDIR=$SCOTCH_ARCH_PATH
-    incDIR=$SCOTCH_ARCH_PATH/include/$FOAM_MPI
-    libDIR=$FOAM_EXT_LIBBIN/$FOAM_MPI
-
-    mkdir -p $prefixDIR 2>/dev/null
-    mkdir -p $incDIR    2>/dev/null
-    mkdir -p $libDIR    2>/dev/null
+    mkdir -p "$binDIR" 2>/dev/null
+    mkdir -p "$incDIR" 2>/dev/null
+    mkdir -p "$libDIR" 2>/dev/null
 
     if [ -f "$makefileInc" ]
     then
         rm -f Makefile.inc
-        ln -s $makefileInc Makefile.inc
+        ln -s "$makefileInc" Makefile.inc
     fi
     [ -f Makefile.inc ] || {
         echo " Error: ptscotch needs an appropriate Makefile.inc"
@@ -270,15 +290,24 @@ else
     # Consistency for Intel-MPI and non-icc compilers
     [ -n "$I_MPI_CC" ] || export I_MPI_CC="$(whichCC)"
 
+    # The make targets. No simple means of handling mpi-specific binaries
+    make_targets="libptscotch"
+    if [ "$optBinaries" = true ]
+    then
+        make_targets="$make_targets ptscotch"
+    fi
+
     make realclean 2>/dev/null  # Extra safety
-    make -j $WM_NCOMPPROCS libptscotch \
+    make -j $WM_NCOMPPROCS $make_targets \
      && make \
-        prefix=$prefixDIR \
-        includedir=$incDIR \
-        libdir=$libDIR \
+        prefix="$prefixDIR" \
+        bindir="$binDIR" \
+        libdir="$libDIR" \
+        includedir="$incDIR" \
         install
 
-    rmdir "$SCOTCH_ARCH_PATH/bin" 2> /dev/null || true  # Superfluous bin?
+    rmdir "$binDIR" 2>/dev/null || true     # Remove empty bin/
+    rmdir "${binDIR%/*}" 2>/dev/null || true    # ... and empty parent
     make realclean 2>/dev/null || true      # Failed cleanup is uncritical
 ) || warnBuildIssues PTSCOTCH
 fi
