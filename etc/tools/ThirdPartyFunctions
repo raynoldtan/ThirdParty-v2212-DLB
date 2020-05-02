@@ -23,6 +23,10 @@
 #     Compiler and flags are managed via the 'wmake -show-c, -show-cflags, ..'
 #     but also with WM_CC, WM_CFLAGS,... env variables
 #
+# Files
+#     Uses OpenFOAM/etc/config.sh/cmake (if it exists) for the
+#     CMAKE_ARCH_PATH that may specify a possible cmake/bin directory.
+#
 #------------------------------------------------------------------------------
 
 # The normal locations for source, build and installation (prefix-dir)
@@ -456,6 +460,7 @@ _foamIsSystem()
 unset CMAKE_PATH # clear when first loaded
 findCMake()
 {
+    local config="config.sh/cmake"
     local candidate foundExe
 
     if [ -n "$CMAKE_PATH" ]
@@ -464,13 +469,13 @@ findCMake()
         if [ -d "$CMAKE_PATH" ]
         then
             for candidate in \
-                $CMAKE_PATH/cmake \
-                $CMAKE_PATH/bin/cmake \
+                "$CMAKE_PATH"/cmake \
+                "$CMAKE_PATH"/bin/cmake \
             ;
             do
-                if [ -f "$candidate" -a -x "$candidate" ]
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
                 then
-                    foundExe=$candidate
+                    foundExe="$candidate"
                     break
                 fi
             done
@@ -480,14 +485,14 @@ findCMake()
         if [ -z "$foundExe" ]
         then
             for candidate in \
-                $CMAKE_PATH \
-                $installBASE/$CMAKE_PATH/bin/cmake \
-                $installBASE/cmake-$CMAKE_PATH/bin/cmake \
+                "$CMAKE_PATH" \
+                "$installBASE/$CMAKE_PATH"/bin/cmake \
+                "$installBASE/cmake-$CMAKE_PATH"/bin/cmake \
             ;
             do
-                if [ -f "$candidate" -a -x "$candidate" ]
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
                 then
-                    foundExe=$candidate
+                    foundExe="$candidate"
                     break
                 fi
             done
@@ -501,26 +506,45 @@ findCMake()
                 foundExe="$(cd ${foundExe%/cmake} 2>/dev/null && pwd)/cmake"
             fi
             echo "Using cmake=$foundExe" 1>&2
-            echo $foundExe
+            echo "$foundExe"
             return 0
         else
             cat << NOT_FOUND 1>&2
 'cmake' not found under specified CMAKE_PATH
     CMAKE_PATH=$CMAKE_PATH
-reverting to using command from path
+reverting to using command from $config or from PATH
 NOT_FOUND
         fi
+    fi
+
+    unset cmake_version CMAKE_ARCH_PATH
+    if candidate="$("$WM_PROJECT_DIR"/bin/foamEtcFile "$config" 2>/dev/null)"
+    then
+        . "$candidate"
+
+        for candidate in \
+            "$CMAKE_ARCH_PATH"/bin/cmake \
+            "$installBASE/$cmake_version"/bin/cmake \
+        ;
+        do
+            if [ -f "$candidate" ] && [ -x "$candidate" ]
+            then
+                echo "Using cmake=$candidate" 1>&2
+                echo "$candidate"
+                return 0
+            fi
+        done
     fi
 
     # Default to use the path, try resolving (so we know what we are using).
     for candidate in cmake
     do
-        foundExe=$(command -v $candidate 2>/dev/null) && break
+        foundExe="$(command -v "$candidate" 2>/dev/null)" && break
     done
-    : ${foundExe:=false}
+    : "${foundExe:=false}"
 
     echo "Using cmake=$foundExe" 1>&2
-    echo $foundExe
+    echo "$foundExe"
 }
 
 
@@ -541,13 +565,13 @@ findQMake()
         if [ -d "$QMAKE_PATH" ]
         then
             for candidate in \
-                $QMAKE_PATH/qmake \
-                $QMAKE_PATH/bin/qmake \
+                "$QMAKE_PATH"/qmake \
+                "$QMAKE_PATH"/bin/qmake \
             ;
             do
-                if [ -f "$candidate" -a -x "$candidate" ]
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
                 then
-                    foundExe=$candidate
+                    foundExe="$candidate"
                     break
                 fi
             done
@@ -557,14 +581,14 @@ findQMake()
         if [ -z "$foundExe" ]
         then
             for candidate in \
-                $QMAKE_PATH \
-                $installBASE/$QMAKE_PATH/bin/qmake \
-                $installBASE/qt-$QMAKE_PATH/bin/qmake \
+                "$QMAKE_PATH" \
+                "$installBASE/$QMAKE_PATH"/bin/qmake \
+                "$installBASE/qt-$QMAKE_PATH"/bin/qmake \
             ;
             do
-                if [ -f "$candidate" -a -x "$candidate" ]
+                if [ -f "$candidate" ] && [ -x "$candidate" ]
                 then
-                    foundExe=$candidate
+                    foundExe="$candidate"
                     break
                 fi
             done
@@ -578,13 +602,13 @@ findQMake()
                 foundExe="$(cd ${foundExe%/qmake} 2>/dev/null && pwd)/qmake"
             fi
             echo "Using qmake=$foundExe" 1>&2
-            echo $foundExe
+            echo "$foundExe"
             return 0
         else
             cat << NOT_FOUND 1>&2
 'qmake' not found under specified QMAKE_PATH
     QMAKE_PATH=$QMAKE_PATH
-reverting to using command from path
+reverting to using command from PATH
 NOT_FOUND
         fi
     fi
@@ -593,9 +617,9 @@ NOT_FOUND
     # Some systems have qmake-qt5 as well as qmake
     for candidate in qmake-qt5 qmake
     do
-        foundExe=$(command -v $candidate 2>/dev/null) && break
+        foundExe="$(command -v "$candidate" 2>/dev/null)" && break
     done
-    : ${foundExe:=false}
+    : "${foundExe:=false}"
 
     echo "Using qmake=$foundExe" 1>&2
     echo $foundExe
@@ -609,7 +633,7 @@ pkgconfigNewPrefix()
 {
     local dir="${1%%/}"
 
-    if [ -n "$dir" -a -d "$dir" ]
+    if [ -n "$dir" ] && [ -d "$dir" ]
     then
         # Require absolute path, but use logical (not physical) location
         [ "${dir}" != "${dir#/}" ] || dir=$(cd $dir 2>/dev/null && /bin/pwd -L)
@@ -657,7 +681,7 @@ pkgconfigAdjust()
 {
     local dir="${1%%/}"
 
-    if [ -n "$dir" -a -d "$dir" ]
+    if [ -n "$dir" ] && [ -d "$dir" ]
     then
         # Require absolute path, but use logical (not physical) location
         [ "${dir}" != "${dir#/}" ] || dir=$(cd $dir 2>/dev/null && /bin/pwd -L)
