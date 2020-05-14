@@ -10,7 +10,7 @@
 # - wmake -show-cflags        : with -m32 / -m64
 # - wmake -show-cflags-arch   : with -m32 / -m64
 #
-# Pass these in via the enviroment since using '$(shell ...)' here does not
+# Pass these in via the environment since using '$(shell ...)' here does not
 # always work well.
 #
 # Notes:

@@ -211,9 +211,9 @@ then
         includedir="$incDIR" \
         install
 
-    rmdir "$binDIR" 2>/dev/null || true     # Remove empty bin/
+    rmdir "$binDIR" 2>/dev/null || true         # Remove empty bin/
     rmdir "${binDIR%/*}" 2>/dev/null || true    # ... and empty parent
-    make realclean 2>/dev/null || true      # Failed cleanup is uncritical
+    make realclean 2>/dev/null || true          # Failed cleanup is uncritical
 ) || warnBuildIssues SCOTCH
 else
     warnNotFound SCOTCH
@@ -222,11 +222,13 @@ fi
 
 # Build ptscotch when MPI (ThirdParty or system) is available
 
-[ "${withMPI}" = true ] || {
+if [ "${withMPI}" != true ]
+then
     # Report that the above tests failed and pass-through the failure
     echo "Skipping pt-scotch (no mpi)"
     exit 0
-}
+fi
+
 
 # Build ptscotch if normal scotch was built (has include and library)
 # (reuse prefix/include/lib dirs set above)
@@ -306,9 +308,9 @@ else
         includedir="$incDIR" \
         install
 
-    rmdir "$binDIR" 2>/dev/null || true     # Remove empty bin/
+    rmdir "$binDIR" 2>/dev/null || true         # Remove empty bin/
     rmdir "${binDIR%/*}" 2>/dev/null || true    # ... and empty parent
-    make realclean 2>/dev/null || true      # Failed cleanup is uncritical
+    make realclean 2>/dev/null || true          # Failed cleanup is uncritical
 ) || warnBuildIssues PTSCOTCH
 fi
 
