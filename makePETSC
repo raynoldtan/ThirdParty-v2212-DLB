@@ -6,11 +6,10 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2018-2019 OpenCFD Ltd.
+#     Copyright (C) 2018-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     makePETSC
@@ -28,7 +27,7 @@
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
-    dir="${2%/}" # <- PETSC_ARCH_PATH
+    dir="${2%/}" # <- *_ARCH_PATH
     if [ -d "$dir/include" ]
     then
         for lib in \
@@ -101,7 +100,7 @@ do
         targetType="$1"
         ;;
 
-    petsc-[0-9]*)
+    petsc-[0-9]* | petsc-git)
         petscPACKAGE="${1%%/}"
         unset PETSC_ARCH_PATH  # Avoid inconsistency
         ;;
@@ -115,11 +114,11 @@ done
 [ -n "$petscPACKAGE" ] || die "The petsc-VERSION was not specified"
 
 # Nothing to build
-if _foamIsNone $petscPACKAGE
+if _foamIsNone "$petscPACKAGE"
 then
     echo "Using petsc-none (skip ThirdParty build of PETSC)"
     exit 0
-elif _foamIsSystem $petscPACKAGE
+elif _foamIsSystem "$petscPACKAGE"
 then
     echo "Using petsc-system"
     exit 0
@@ -132,7 +131,7 @@ fi
 #   PETSC_ARCH_PATH  : installation directory
 #   PETSC_SOURCE_DIR : location of the original sources
 
-PETSC_SOURCE_DIR=$sourceBASE/$petscPACKAGE
+PETSC_SOURCE_DIR="$sourceBASE/$petscPACKAGE"
 : "${PETSC_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$petscPACKAGE}"
 
 [ -d "$PETSC_SOURCE_DIR" ] || {
@@ -148,7 +147,7 @@ echo
     # PETSC arch - same root as WM_OPTIONS (eg, DPInt32)
     archOpt="$WM_SIZE_OPTIONS"
 
-    # Configuration options:
+    # Configuration options
     configOpt="--with-cc=$(whichMpicc) --with-cxx=$(whichMpicxx)"
 
     if [ "$targetType" = libso ]
@@ -173,11 +172,11 @@ echo
     cd "$PETSC_SOURCE_DIR" || exit
     export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
 
-    rm -rf $PETSC_ARCH_PATH
+    rm -rf "$PETSC_ARCH_PATH"
 
     ./configure \
-       --prefix=$PETSC_ARCH_PATH \
-       --with-petsc-arch=$archOpt \
+       --prefix="$PETSC_ARCH_PATH" \
+       --with-petsc-arch="$archOpt" \
        --with-clanguage=C \
        --with-scalapack=0 \
        --with-superlu_dist=0 \
@@ -185,9 +184,9 @@ echo
        --download-f2cblaslapack=1 \
        $configOpt \
      && echo "Configured: petsc" \
-     && make PETSC_DIR=$PETSC_SOURCE_DIR PETSC_ARCH="$archOpt" all \
+     && make PETSC_DIR="$PETSC_SOURCE_DIR" PETSC_ARCH="$archOpt" all \
      && echo "Built: petsc" \
-     && make PETSC_DIR=$PETSC_SOURCE_DIR PETSC_ARCH="$archOpt" install
+     && make PETSC_DIR="$PETSC_SOURCE_DIR" PETSC_ARCH="$archOpt" install \
      && echo "Installed: petsc"
 ) || {
     echo "Error building: petsc"
