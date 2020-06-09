@@ -88,7 +88,7 @@ usage: ${0##*/} [OPTION] [CGAL-VERSION] [boost-VERSION] [gmp-VERSION] [mpfr-VERS
 options:
   -gcc          Force use of gcc/g++
   -cmake PATH   Use cmake from the given path
-  -no-lib       Configure CGAL for headers-only mode (since CGAL 4.9)
+  -no-lib       Configure CGAL for headers-only mode (default OpenFOAM >= 2006)
   -with-lib     Configure CGAL with library
   -toolset=NAME Use named toolset in bootstrap
   -system       Use system versions for boost/gmp/mpfr
@@ -143,11 +143,11 @@ do
     -with-lib)
         optHeadersOnly=false
         ;;
-    gmp-[4-9]* | gmp-system | gmp-none)
+    gmp-[0-9]* | gmp-system | gmp-none)
         gmpPACKAGE="${1%%/}"
         unset GMP_ARCH_PATH
         ;;
-    mpfr-[2-9]* | mpfr-system | mpfr-none)
+    mpfr-[0-9]* | mpfr-system | mpfr-none)
         mpfrPACKAGE="${1%%/}"
         unset MPFR_ARCH_PATH
         ;;

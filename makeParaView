@@ -7,11 +7,10 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011-2016 OpenFOAM Foundation
-#     Copyright (C) 2016-2019 OpenCFD Ltd.
+#     Copyright (C) 2016-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     makeParaView
@@ -274,7 +273,7 @@ do
     -no-qt)
         withQT=false
         ;;
-    -qt-[1-9]*)
+    -qt-[0-9]*)
         withQT=true
         QMAKE_PATH="$installBASE/${1##-}"
         ;;

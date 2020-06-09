@@ -7,11 +7,10 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011 OpenFOAM Foundation
-#     Copyright (C) 2016-2017 OpenCFD Ltd.
+#     Copyright (C) 2016-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     etc/relocateQt
@@ -23,7 +22,6 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd "${0%/*}" || exit
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
@@ -58,12 +56,12 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
-    -h | -help) usage   ;;
+    -h | -help*) usage   ;;
 
     -f | -force)
         optForce=true
         ;;
-    -qt-[1-9]* | [1-9]* | qt-*)
+    -qt-[0-9]* | [0-9]* | qt-*)
         # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
         qtVERSION="${1%%/}";
         qtVERSION="${qtVERSION##*-}"
@@ -86,6 +84,6 @@ then
     # Create qt.conf and adjust locations to use '${prefix}' internally
     finalizeQt
 fi
-pkgconfigNewPrefix $QT_ARCH_PATH
+pkgconfigNewPrefix "$QT_ARCH_PATH"
 
 # -----------------------------------------------------------------------------

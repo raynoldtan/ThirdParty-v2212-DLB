@@ -6,11 +6,10 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2017-2019 OpenCFD Ltd.
+#     Copyright (C) 2017-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     makeMGridGen
@@ -66,7 +65,7 @@ do
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
 
-    mgridgen-[1-9]* | MGridGen-[1-9]* | parmgridgen-[1-9]* | ParMGridGen-[1-9]*)
+    mgridgen-[0-9]* | MGridGen-[0-9]* | parmgridgen-[0-9]* | ParMGridGen-[0-9]*)
         mgridgenPACKAGE="${1%%/}"
         ;;
     *)

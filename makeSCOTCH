@@ -81,7 +81,7 @@ do
     -no-bin)  unset optBinaries ;;
     -no-mpi)  unset withMPI ;;
 
-    scotch-[1-9]* | scotch-git | scotch_* |  scotch-[1-9]*)
+    scotch-[0-9]* | scotch-git | scotch_* )
         scotchPACKAGE="${1%%/}"
         unset SCOTCH_ARCH_PATH  # Avoid inconsistency
         ;;

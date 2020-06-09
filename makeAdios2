@@ -85,10 +85,8 @@ do
         CMAKE_PATH="${2%%/}"
         shift
         ;;
-    ADIOS2-[1-9]* | ADIOS2-git* | adios-[1-9]* | ADIOS-git*)
-        adiosPACKAGE="${1%%/}"
-        ;;
-    adios2-[1-9]* | adios2-git* | adios-[1-9]* | adios-git*)
+    ADIOS2-[0-9]* | ADIOS2-git* | ADIOS-[0-9]* | ADIOS-git* | \
+    adios2-[0-9]* | adios2-git* | adios-[0-9]* | adios-git*)
         adiosPACKAGE="${1%%/}"
         ;;
     *)

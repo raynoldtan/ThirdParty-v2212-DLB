@@ -6,11 +6,10 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2017-2019 OpenCFD Ltd.
+#     Copyright (C) 2017-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     etc/pkgconfigAdjust
@@ -36,7 +35,6 @@
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
 # Run from third-party directory only
-cd "${0%/*}" || exit
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : current directory is not \$WM_THIRD_PARTY_DIR"
     echo "    Check your OpenFOAM environment and installation"
@@ -67,7 +65,7 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
-    -h | -help) usage   ;;
+    -h | -help*) usage   ;;
 
     *)
         pkgconfigAdjust "$1"

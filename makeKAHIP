@@ -6,11 +6,10 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2017-2019 OpenCFD Ltd.
+#     Copyright (C) 2017-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     makeKAHIP
@@ -109,7 +108,7 @@ do
         targetType="$1"
         ;;
 
-    kahip-[1-9]* | kahip-git | KaHIP_* |  KaHIP-[1-9]*)
+    kahip-[0-9]* | kahip-git | KaHIP_* |  KaHIP-[0-9]*)
         kahipPACKAGE="${1%%/}"
         unset KAHIP_ARCH_PATH  # Avoid inconsistency
         ;;

@@ -152,7 +152,7 @@ echo
 
     if [ "$targetType" = libso ]
     then
-        configOpt="--with-shared-libraries"
+        configOpt="$configOpt --with-shared-libraries"
     fi
 
     if [ "$WM_LABEL_SIZE" = 64 ]
@@ -169,25 +169,36 @@ echo
         configOpt="$configOpt --with-precision=double"
     fi
 
+    # We export compiler settings (above) but actually use the
+    # --with-cc and --with-cxx. So ignore them and flags
+
+    unset CC CXX
+    unset CFLAGS CXXFLAGS
+
     cd "$PETSC_SOURCE_DIR" || exit
     export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
 
     rm -rf "$PETSC_ARCH_PATH"
 
+    ## without tests?  --testdir=..
+
+    set -x
     ./configure \
        --prefix="$PETSC_ARCH_PATH" \
        --with-petsc-arch="$archOpt" \
        --with-clanguage=C \
+       --with-fc=0 \
        --with-scalapack=0 \
        --with-superlu_dist=0 \
        --with-suitesparse=0 \
        --download-f2cblaslapack=1 \
        $configOpt \
+     && set +x \
      && echo "Configured: petsc" \
      && make PETSC_DIR="$PETSC_SOURCE_DIR" PETSC_ARCH="$archOpt" all \
      && echo "Built: petsc" \
      && make PETSC_DIR="$PETSC_SOURCE_DIR" PETSC_ARCH="$archOpt" install \
-     && echo "Installed: petsc"
+     && echo "Installed: petsc - may require etc/pkgconfigPrefix to relocate"
 ) || {
     echo "Error building: petsc"
     exit 1
