@@ -2,35 +2,43 @@
 
 For building some particular third-party libraries from source,
 the normal [OpenFOAM System Requirements][link openfoam-require]
-will be insufficient.
+may not be sufficient.
 
 This is most notably the case for ParaView and/or QT compilation.
-As duly noted in [BUILD][link third-build] and [README][link third-readme] and information,
+As duly noted in [BUILD][link third-build] and [README][link third-readme] information,
 building ParaView from source tends to be the most difficult part of
 any third-party compilation.
 
 For general functionality, the paraview version distributed with
 the operating system or a [binary package][download ParaView]
-may be sufficient for your needs.
+is likely adequate for your needs.
 
 
-**Please help us with keeping the information here up-to-date and accurate.**
+***Please help us with keeping the information here up-to-date and accurate.***
 
 ### Ubuntu
 
-Dependencies:
+The full dependency list for building ParaView can be
+found from the corresponding [debian/control](https://salsa.debian.org/science-team/paraview/-/blob/master/debian/control)
+file.
+The following subset may be enough:
 ```
-sudo apt-get install qt4-dev-tools libqt4-dev libqt4-opengl-dev freeglut3-dev libqtwebkit-dev  libxt-dev
+sudo apt install cmake qt5base-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev libqt5x11extras5-dev libxt-dev
 ```
+
 
 ### openSUSE
 
-Dependencies:
+The full dependency list for building ParaView can be
+found from the corresponding [rpm spec](https://build.opensuse.org/package/view_file/science/paraview/paraview.spec)
+file.
+The following subset may be enough:
+```
+sudo zypper install Mesa-libEGL-devel
+sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel libqt5-qttools-devel libqt5-qtx11extras
+sudo zypper install libXt-devel
+```
 
-```
-sudo zypper install glu-devel
-sudo zypper install libQtWebKit-devel libqt4-devel qt4-assistant-adp-devel qt4-x11-tools
-```
 
 <!-- Quick links -->
 

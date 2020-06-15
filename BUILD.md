@@ -450,7 +450,8 @@ The minimum CMake requirements for building various components.
 2.8.12.2    llvm-3.7.0
 2.8.12.2    llvm-3.8.0
 2.8.4       cmake-3.6.0
-3.3         ParaView-5.6.0
+3.3         ParaView-5.6.3
+3.10        ParaView-5.7.0 - ParaView-5.8.0
 3.4.3       llvm-3.9.1
 3.4.3       llvm-4.0.0 - llvm-6.0.0
 3.6         ADIOS2
