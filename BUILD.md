@@ -148,11 +148,8 @@ export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mp
    - Builds an mpi library (openmpi or mpich), scotch decomposition, boost, CGAL, FFTW.
    - If the optional kahip or metis  directories are found, they will also be compiled.
 2. `makeParaView`  *(optional)*
-   - This is optional, but extremely useful for visualization and for
-     run-time post-processing function objects.
-     You can build this at a later point in time, but then you should
-     remember to rebuild the post-processing function objects and the
-     reader module as well.
+   - Can be useful for visualization and for run-time post-processing function objects.
+     You can build this at a later point in time, and rebuild the visualization modules.
 3. Make any additional optional components
 
 
@@ -175,6 +172,12 @@ export GMP_ARCH_PATH=$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER_ARCH/$mp
 - Builds [KaHIP](#parallel) decomposition library.
   Automatically invoked from the ThirdParty `Allwmake`,
   but can be invoked directly to resolve possible build errors.
+
+`makeOPENMPI`
+- Builds [OPENMPI](#parallel) library.
+
+`makePETSC`
+- Only required for [PETSC](#general-packages) support.
 
 `makeMETIS`
 - Builds [METIS](#parallel) decomposition library.
@@ -416,6 +419,7 @@ you may have additional hurdles to using the newest versions of clang.
 | [boost][page boost]   | [download][link boost]
 | [CGAL][page CGAL]     | [download][link CGAL]
 | [FFTW][page FFTW]     | [download][link FFTW]
+| [PETSC][page PETSC]   | [download][link PETSC]
 | [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio]
 | gperftools            | [repo][repo gperftools] or [download][link gperftools]
 
@@ -424,7 +428,7 @@ you may have additional hurdles to using the newest versions of clang.
 
 | Name                  | Location
 |-----------------------|------------------------
-| [openmpi][page openmpi] | [download][link openmpi]. The newer [openmpi][newer openmpi] make exhibit stability issues.
+| [openmpi][page openmpi] | [download][link openmpi]. ***Some openmpi2/openmpi3 versions exhibit [stability issues](https://github.com/open-mpi/ompi/issues/5375)***
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios]
 | [scotch, ptscotch][page scotch] | [download][link scotch] or [older][older scotch] or [even older][oldest scotch]
 | [kahip][page kahip] | [download][link kahip] or [older][older kahip]
@@ -497,8 +501,8 @@ easier to use `grep` and find the relevant pages and links.
 [page mpc]:       http://www.multiprecision.org/
 
 [link gcc]:       http://gcc.gnu.org/releases.html
-[link gmp]:       ftp://ftp.gnu.org/gnu/gmp/gmp-6.1.2.tar.xz
-[link mpfr]:      ftp://ftp.gnu.org/gnu/mpfr/mpfr-4.0.1.tar.xz
+[link gmp]:       ftp://ftp.gnu.org/gnu/gmp/gmp-6.2.0.tar.xz
+[link mpfr]:      ftp://ftp.gnu.org/gnu/mpfr/mpfr-4.0.2.tar.xz
 [link mpc]:       ftp://ftp.gnu.org/gnu/mpc/mpc-1.1.0.tar.gz
 
 
@@ -536,28 +540,30 @@ easier to use `grep` and find the relevant pages and links.
 [link metis]:     http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz
 
 [page openmpi]:   http://www.open-mpi.org/
-[link openmpi]:   https://www.open-mpi.org/software/ompi/v1.10/downloads/openmpi-1.10.7.tar.bz2
-[newer openmpi]:  https://www.open-mpi.org/software/ompi/v2.1/downloads/openmpi-2.1.1.tar.bz2
+[older openmpi]:  https://download.open-mpi.org/release/open-mpi/v1.10/openmpi-1.10.7.tar.bz2
+[link openmpi]:   https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.3.tar.bz2
 
 [page mpich]:     http://www.mpich.org/
 [link mpich]:     http://www.mpich.org/static/downloads/3.3/mpich-3.3.tar.gz
 
-[page mvpapich]:   http://mvapich.cse.ohio-state.edu/
-[link mvpapich]:   http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.tar.gz
-
+[page mvpapich]:  http://mvapich.cse.ohio-state.edu/
+[link mvpapich]:  http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.tar.gz
 
 <!-- general -->
 [page cmake]:     http://www.cmake.org/
-[link cmake]:     http://www.cmake.org/files/v3.5/cmake-3.5.2.tar.gz
+[link cmake]:     https://cmake.org/files/v3.8/cmake-3.8.2.tar.gz
 
 [page boost]:     http://boost.org
-[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.64.0/boost_1_64_0.tar.bz2
+[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.bz2
 
 [page CGAL]:      http://cgal.org
-[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases%2FCGAL-4.9.1/CGAL-4.9.1.tar.xz
+[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.12.2/CGAL-4.12.2.tar.xz
 
 [page FFTW]:      http://www.fftw.org/
 [link FFTW]:      http://www.fftw.org/fftw-3.3.7.tar.gz
+
+[page petsc]:     https://www.mcs.anl.gov/petsc/
+[link petsc]:     http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.13.2.tar.gz
 
 [page cgns]:      http://cgns.github.io/
 [link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
@@ -591,4 +597,4 @@ easier to use `grep` and find the relevant pages and links.
 
 ---
 
-Copyright 2016-2019 OpenCFD Ltd
+Copyright 2016-2020 OpenCFD Ltd
