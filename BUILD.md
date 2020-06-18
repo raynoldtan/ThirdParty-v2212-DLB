@@ -420,6 +420,7 @@ you may have additional hurdles to using the newest versions of clang.
 | [CGAL][page CGAL]     | [download][link CGAL]
 | [FFTW][page FFTW]     | [download][link FFTW]
 | [PETSC][page PETSC]   | [download][link PETSC]
+| [HYPRE][page HYPRE]   | [repo][repo HYPRE] or [download][link HYPRE]
 | [ADF/CGNS][page CGNS], ccm | [link ccmio][link ccmio]
 | gperftools            | [repo][repo gperftools] or [download][link gperftools]
 
@@ -564,6 +565,10 @@ easier to use `grep` and find the relevant pages and links.
 
 [page petsc]:     https://www.mcs.anl.gov/petsc/
 [link petsc]:     http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.13.2.tar.gz
+
+[page hypre]:     https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods/
+[repo hypre]:     https://github.com/hypre-space/hypre/
+[link hypre]:     https://github.com/hypre-space/hypre/archive/v2.19.0.tar.gz
 
 [page cgns]:      http://cgns.github.io/
 [link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
