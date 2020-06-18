@@ -78,6 +78,10 @@ options:
       ${gccPACKAGE:-'unspecified GCC version'}
 
 USAGE
+    showDownloadHint GCC
+    showDownloadHint GMP
+    showDownloadHint MPFR
+    showDownloadHint MPC
     exit 1
 }
 #------------------------------------------------------------------------------

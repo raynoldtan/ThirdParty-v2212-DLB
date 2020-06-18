@@ -80,6 +80,7 @@ options:
       ${mpiPACKAGE:-'unspecified mpich version'}
 
 USAGE
+    showDownloadHint MPICH
     exit 1
 }
 #------------------------------------------------------------------------------

@@ -431,7 +431,7 @@ you may have additional hurdles to using the newest versions of clang.
 |-----------------------|------------------------
 | [openmpi][page openmpi] | [download][link openmpi]. ***Some openmpi2/openmpi3 versions exhibit [stability issues](https://github.com/open-mpi/ompi/issues/5375)***
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios]
-| [scotch, ptscotch][page scotch] | [download][link scotch] or [older][older scotch] or [even older][oldest scotch]
+| [scotch, ptscotch][page scotch] | [repo][repo scotch] or [download][link scotch] or [older][older scotch] or [even older][oldest scotch]
 | [kahip][page kahip] | [download][link kahip] or [older][older kahip]
 | [metis][page metis] | [download][link metis]
 
@@ -529,9 +529,10 @@ easier to use `grep` and find the relevant pages and links.
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
-[oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
-[older scotch]:   https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
+[repo scotch]:    https://gitlab.inria.fr/scotch/scotch
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz
+[older scotch]:   https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
+[oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
 [older kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz

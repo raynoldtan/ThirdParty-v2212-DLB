@@ -102,6 +102,7 @@ For finer control, the build stages can be selected or deselected individually:
   ->  \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/VTK-$VTK_VERSION$BUILD_SUFFIX
 
 USAGE
+    # showDownloadHint VTK
     exit 1
 }
 #------------------------------------------------------------------------------

@@ -126,6 +126,7 @@ For example,
 Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 
 USAGE
+    showDownloadHint PARAVIEW
     exit 1
 }
 #------------------------------------------------------------------------------

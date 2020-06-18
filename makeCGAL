@@ -108,6 +108,8 @@ simply specify a 'system' version. For example,
 Use gmp-none to disable use of gmp/mpfr (eg, not available)
 
 USAGE
+    showDownloadHint BOOST
+    showDownloadHint CGAL
     exit 1
 }
 #------------------------------------------------------------------------------

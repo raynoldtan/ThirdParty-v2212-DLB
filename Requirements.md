@@ -18,10 +18,15 @@ is likely adequate for your needs.
 
 ### Ubuntu
 
-The full dependency list for building ParaView can be
-found from the corresponding [debian/control](https://salsa.debian.org/science-team/paraview/-/blob/master/debian/control)
-file.
-The following subset may be enough:
+The full dependency list for building ParaView can be found from the
+corresponding [debian/control][debian control] file.
+
+A ***quick*** way to get these dependencies on to your system is to
+use the paraview development package:
+```
+sudo apt install paraview-dev
+```
+Depending on your setup, the following subset may also be enough:
 ```
 sudo apt install cmake qt5base-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev libqt5x11extras5-dev libxt-dev
 ```
@@ -29,10 +34,16 @@ sudo apt install cmake qt5base-dev qttools5-dev qttools5-dev-tools libqt5opengl5
 
 ### openSUSE
 
-The full dependency list for building ParaView can be
-found from the corresponding [rpm spec](https://build.opensuse.org/package/view_file/science/paraview/paraview.spec)
-file.
-The following subset may be enough:
+The full dependency list for building ParaView can be found from the
+corresponding [rpm spec][suse spec] file.
+
+A ***quick*** way to get these dependencies on to your system is to
+use the paraview development package:
+```
+sudo zypper install paraview-devel
+```
+
+Depending on your setup, the following subset may also be enough:
 ```
 sudo zypper install Mesa-libEGL-devel
 sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel libqt5-qttools-devel libqt5-qtx11extras
@@ -43,6 +54,8 @@ sudo zypper install libXt-devel
 <!-- Quick links -->
 
 [download ParaView]: https://www.paraview.org/download/
+[debian control]: https://salsa.debian.org/science-team/paraview/-/blob/master/debian/control
+[suse spec]: https://build.opensuse.org/package/view_file/science/paraview/paraview.spec
 
 
 <!-- OpenFOAM -->
@@ -56,4 +69,4 @@ sudo zypper install libXt-devel
 [link third-require]: https://develop.openfoam.com/Development/ThirdParty-common/blob/develop/Requirements.md
 
 ---
-Copyright 2019 OpenCFD Ltd
+Copyright 2019-2020 OpenCFD Ltd

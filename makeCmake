@@ -53,6 +53,7 @@ options:
       ${cmakePACKAGE:-'unspecified'}
 
 USAGE
+    showDownloadHint CMAKE
     exit 1
 }
 #------------------------------------------------------------------------------

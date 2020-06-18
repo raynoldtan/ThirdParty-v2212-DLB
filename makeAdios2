@@ -67,6 +67,7 @@ options:
       $adiosPACKAGE
 
 USAGE
+    showDownloadHint ADIOS2
     exit 1
 }
 #------------------------------------------------------------------------------

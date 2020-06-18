@@ -60,6 +60,7 @@ options:
       ${mesaPACKAGE:-'unspecified MESA version'}
 
 USAGE
+    showDownloadHint MESA
     exit 1
 }
 #------------------------------------------------------------------------------

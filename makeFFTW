@@ -68,6 +68,7 @@ options:
       ${fftwPACKAGE:-'unspecified FFTW version'}
 
 USAGE
+    showDownloadHint FFTW
     exit 1
 }
 #------------------------------------------------------------------------------

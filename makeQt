@@ -44,6 +44,7 @@ options:
 * build $qtTYPE, version ${qtVERSION:-undefined}
 
 USAGE
+    showDownloadHint QT
     exit 1
 }
 #------------------------------------------------------------------------------

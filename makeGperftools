@@ -51,6 +51,7 @@ options:
       $gperftoolsPACKAGE
 
 USAGE
+    showDownloadHint GPERFTOOLS
     exit 1
 }
 #------------------------------------------------------------------------------

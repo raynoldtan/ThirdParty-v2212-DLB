@@ -84,6 +84,7 @@ The additional configure-options could include, for example,
     ${0##*/} -- --disable-mcast
 
 USAGE
+    showDownloadHint MVAPICH
     exit 1
 }
 #------------------------------------------------------------------------------

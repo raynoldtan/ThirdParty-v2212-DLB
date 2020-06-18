@@ -85,6 +85,7 @@ options:
       $kahipPACKAGE
 
 USAGE
+    showDownloadHint KAHIP
     exit 1
 }
 #------------------------------------------------------------------------------

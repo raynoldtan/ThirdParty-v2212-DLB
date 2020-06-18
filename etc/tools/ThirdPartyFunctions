@@ -339,7 +339,8 @@ showDownloadHint()
         if [ -f "$WM_THIRD_PARTY_DIR/BUILD.md" ]
         then
             grep -i "$package" "$WM_THIRD_PARTY_DIR/BUILD.md" | \
-            grep -E '(http|ftp)' | sed -ne 's/^ *\[.*\]: */    /p'
+            grep -E '(http|ftp)' | sed -ne 's/^ *\[.*\]: */    /p' | \
+            uniq
         fi
     fi
 }

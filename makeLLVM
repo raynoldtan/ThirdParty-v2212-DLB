@@ -73,6 +73,7 @@ options:
       ${llvmPACKAGE:-'unspecified LLVM version'}
 
 USAGE
+    showDownloadHint LLVM
     exit 1
 }
 #------------------------------------------------------------------------------

@@ -82,6 +82,7 @@ options:
       ${mpiPACKAGE:-'unspecified openmpi version'}
 
 USAGE
+    showDownloadHint OPENMPI
     exit 1
 }
 #------------------------------------------------------------------------------

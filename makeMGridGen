@@ -51,9 +51,9 @@ options:
       $mgridgenPACKAGE
 
 USAGE
+    # showDownloadHint GRIDGEN
     exit 1
 }
-
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 

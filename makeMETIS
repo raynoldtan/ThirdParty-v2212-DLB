@@ -83,6 +83,7 @@ options:
       ${metisPACKAGE:-'unspecified metis version'}
 
 USAGE
+    showDownloadHint METIS
     exit 1
 }
 #------------------------------------------------------------------------------

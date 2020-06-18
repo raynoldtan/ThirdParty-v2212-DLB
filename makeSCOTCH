@@ -63,6 +63,7 @@ options:
       $scotchPACKAGE
 
 USAGE
+    showDownloadHint SCOTCH
     exit 1
 }
 #------------------------------------------------------------------------------

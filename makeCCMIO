@@ -70,6 +70,7 @@ options:
   prior to running this script.
 
 USAGE
+    showDownloadHint CCMIO
     exit 1
 }
 #------------------------------------------------------------------------------
