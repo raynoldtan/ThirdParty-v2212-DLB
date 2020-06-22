@@ -51,7 +51,7 @@ usage: ${0##*/} [OPTION] [lib|libso] [HYPRE-VERSION] [PETSC-VERSION] [-- configu
 options:
   -gcc          Force use of gcc/g++
   -inplace      Build/install inplace (expert option)
-  -no-hype      Disable automatic hypre detection
+  -no-hypre     Disable automatic hypre detection
   -help
 
 * build PETSC with
@@ -59,6 +59,11 @@ options:
 
 USAGE
     showDownloadHint PETSC
+
+    echo
+    echo "Many people who have downloaded PETSC have also downloaded HYPRE :"
+    showDownloadHint HYPRE
+
     exit 1
 }
 #------------------------------------------------------------------------------
