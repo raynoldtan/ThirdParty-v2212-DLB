@@ -7,11 +7,10 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011 OpenFOAM Foundation
-#     Copyright (C) 2016-2019 OpenCFD Ltd.
+#     Copyright (C) 2016-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
 #     Allclean
@@ -35,10 +34,10 @@ usage() {
     exec 1>&2
     while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
-Usage: ${0##*/} [OPTION] [<platform> [ ... <platformN> ]]
+Usage: ${0##*/} [OPTION] [platform [ ... platformN]]
 options:
-  -all              remove all platforms directories.
-  -current          clean the current platform ($WM_OPTIONS).
+  -all              remove all platforms directories
+  -current          clean the current platform ($WM_OPTIONS)
   -help             print the usage
 
 Cleanup intermediate build directories.
@@ -50,10 +49,11 @@ USAGE
 }
 
 # Print help message
-if [ "$1" = "-h" -o "$1" = "-help" ]
-then
+case "$1" in
+(-h | -help*)
     usage
-fi
+    ;;
+esac
 
 #------------------------------------------------------------------------------
 
@@ -124,7 +124,7 @@ fi
 removePlatform()
 {
     local platform="$1"
-    if [ -n "$platform" -a -d "platforms/$platform" ]
+    if [ -n "$platform" ] && [ -d "platforms/$platform" ]
     then
         echo
         echo "Cleaning platform '$platform'"

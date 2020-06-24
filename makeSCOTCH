@@ -20,17 +20,10 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-
-#------------------------------------------------------------------------------
 # Run from third-party directory only
 cd "${0%/*}" || exit
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-[ -n "$FOAM_EXT_LIBBIN" ] || {
-    echo "Error (${0##*/}) : \$FOAM_EXT_LIBBIN not set"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
@@ -53,6 +46,7 @@ usage()
 Usage: ${0##*/} [OPTION] [libso] [scotch-VERSION]
 options:
   -force        Force compilation, even if include/library already exists
+                Also force build attempt of pt-scotch (mingw)
   -gcc          Force use of gcc/g++
   -bin          Create scotch binaries as well (experimental)
   -no-bin       Suppress creation of scotch binaries (default)
@@ -69,6 +63,7 @@ USAGE
 #------------------------------------------------------------------------------
 
 unset optBinaries optForce
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -76,11 +71,11 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
 
-    -force)   optForce=true ;;
-    -bin)     optBinaries=true ;;
-    -no-bin)  unset optBinaries ;;
-    -no-mpi)  unset withMPI ;;
+    -bin)       optBinaries=true ;;
+    -no-bin)    unset optBinaries ;;
+    -no-mpi)    unset withMPI ;;
 
     scotch-[0-9]* | scotch-git | scotch_* )
         scotchPACKAGE="${1%%/}"
@@ -105,6 +100,8 @@ then
     echo "Using scotch-system"
     exit 0
 fi
+
+requireExtLibBin
 
 #------------------------------------------------------------------------------
 
@@ -229,6 +226,19 @@ then
     echo "Skipping pt-scotch (no mpi)"
     exit 0
 fi
+
+# Known build issues for mingw (MS-MPI source code annotations)
+case "$WM_COMPILER" in
+(Mingw*)
+    if [ -z "$optForce" ]
+    then
+        echo "Skipping pt-scotch - known compilation issues with $WM_COMPILER"
+        exit 0
+    else
+        echo "Warning: pt-scotch - known compilation issues with $WM_COMPILER"
+    fi
+    ;;
+esac
 
 
 # Build ptscotch if normal scotch was built (has include and library)

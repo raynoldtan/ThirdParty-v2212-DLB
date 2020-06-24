@@ -43,6 +43,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [lib|libso] [HYPRE-VERSION] [-- configure-options]
 options:
+  -force        Force compilation, even if include/library already exists
   -gcc          Force use of gcc/g++
   -help
 
@@ -56,6 +57,8 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 
+unset optForce
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -63,6 +66,7 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
 
     lib|libso)
         targetType="$1"

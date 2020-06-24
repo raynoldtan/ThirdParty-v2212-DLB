@@ -7,14 +7,13 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011-2016 OpenFOAM Foundation
-#     Copyright (C) 2016-2019 OpenCFD Ltd.
+#     Copyright (C) 2016-2020 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
-#     This file is part of OpenFOAM, licensed under GNU General Public License
-#     <http://www.gnu.org/licenses/>.
+#     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
-#     Allwmake
+#     ThirdParty Allwmake
 #
 # Description
 #     Build script for ThirdParty applications/libraries
@@ -26,11 +25,6 @@
 cd "${0%/*}" || exit
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-[ -n "$FOAM_EXT_LIBBIN" ] || {
-    echo "Error (${0##*/}) : \$FOAM_EXT_LIBBIN not set for ThirdParty"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
@@ -54,7 +48,7 @@ echo Build MPI libraries if required
 echo "    $MPI_ARCH_PATH"
 case "$WM_MPLIB" in
 (OPENMPI | MPICH)
-    ./make$WM_MPLIB -test "$MPI_ARCH_PATH" || ./make$WM_MPLIB
+    ./make"$WM_MPLIB" -test "$MPI_ARCH_PATH" || ./make"$WM_MPLIB"
     ;;
 esac
 
@@ -103,7 +97,7 @@ echo
 echo ========================================
 if [ -n "$CGAL_ARCH_PATH" ]
 then
-    echo "CGAL/boost"
+    echo "cgal/boost"
     ./makeCGAL -test "$CGAL_ARCH_PATH" "$BOOST_ARCH_PATH" || \
     ./makeCGAL || warnBuildIssues CGAL
 else

@@ -49,6 +49,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [lib|libso] [HYPRE-VERSION] [PETSC-VERSION] [-- configure-options]
 options:
+  -force        Force compilation, even if include/library already exists
   -gcc          Force use of gcc/g++
   -inplace      Build/install inplace (expert option)
   -no-hypre     Disable automatic hypre detection
@@ -69,7 +70,7 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 
-unset optInplace
+unset optForce optInplace
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -78,10 +79,8 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
-
-    -inplace)
-        optInplace=true
-        ;;
+    -force)     optForce=true ;;
+    -inplace)   optInplace=true ;;
 
     lib|libso)
         targetType="$1"

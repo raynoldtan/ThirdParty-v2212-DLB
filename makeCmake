@@ -45,6 +45,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] cmake-VERSION
 options:
+  -force        Force compilation, even if binary already exists
   -gcc          Force use of gcc/g++
   -link         Create additional symlink as 'cmake-system'
   -help
@@ -59,7 +60,8 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 
-unset optLink
+unset optForce optLink
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -67,10 +69,9 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
+    -link)      optLink=true ;;
 
-    -link)
-        optLink=true
-        ;;
     cmake-[0-9]*)
         cmakePACKAGE="${1%%/}"
         ;;
@@ -97,7 +98,9 @@ fi
 CMAKE_SOURCE_DIR=$sourceBASE/$cmakePACKAGE
 CMAKE_ARCH_PATH=$installBASE/$cmakePACKAGE
 
-if [ -d "$CMAKE_ARCH_PATH" -a -r "$CMAKE_ARCH_PATH/bin/cmake" ]
+if [ -z "$optForce" ] \
+&& [ -d "$CMAKE_ARCH_PATH" ] \
+&& [ -r "$CMAKE_ARCH_PATH/bin/cmake" ]
 then
     echo "Already built: $cmakePACKAGE"
 else
@@ -124,7 +127,7 @@ else
     }
 fi
 
-if [ "$optLink" = true -a -x "$CMAKE_ARCH_PATH/bin/cmake" ]
+if [ "$optLink" = true ] && [ -x "$CMAKE_ARCH_PATH/bin/cmake" ]
 then
 (
     cd "${CMAKE_ARCH_PATH%/*}" || exit
@@ -135,7 +138,7 @@ then
     then
         exit 2
     fi
-    ln -svf $cmakePACKAGE cmake-system
+    ln -svf "$cmakePACKAGE" cmake-system
 )
 fi
 

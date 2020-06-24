@@ -21,18 +21,10 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Dynamic library ending (default is .so)
-[ "$(uname -s)" = Darwin ] && EXT_SO=.dylib || EXT_SO=.so
-
 # Run from third-party directory only
 cd "${0%/*}" || exit
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-[ -n "$FOAM_EXT_LIBBIN" ] || {
-    echo "Error (${0##*/}) : \$FOAM_EXT_LIBBIN not set"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
@@ -97,6 +89,7 @@ do
 done
 
 requireWMakeToolchain
+requireExtLibBin
 
 #------------------------------------------------------------------------------
 #

@@ -27,7 +27,7 @@
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
-    dir="${2%/}" # <- KAHIP_ARCH_PATH
+    dir="${2%/}" # <- *_ARCH_PATH
     if [ -d "$dir/include" ]
     then
         for lib in \
@@ -56,11 +56,6 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
-[ -n "$FOAM_EXT_LIBBIN" ] || {
-    echo "Error (${0##*/}) : \$FOAM_EXT_LIBBIN not set"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 _foamConfig kahip
@@ -78,6 +73,7 @@ usage()
 Usage: ${0##*/} [OPTION] [lib|libso] [kahip-VERSION]
 options:
   -gcc          Force use of gcc/g++
+  -force        Force build attempt (mingw)
   -cmake PATH   With cmake from the given path
   -help
 
@@ -91,6 +87,8 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler minimal  # Minimal compiler info for CMake/configure
 
+unset optForce
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -98,6 +96,7 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
 
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
@@ -133,7 +132,21 @@ then
     exit 0
 fi
 
+# Known build issues for mingw (uses some non-portable headers)
+case "$WM_COMPILER" in
+(Mingw*)
+    if [ "$optForce" = true ]
+    then
+        echo "Warning: kahip - known compilation issues with $WM_COMPILER"
+    else
+        echo "Skipping kahip - known compilation issues with $WM_COMPILER"
+        exit 0
+    fi
+    ;;
+esac
+
 requireWMakeToolchain
+requireExtLibBin
 
 #------------------------------------------------------------------------------
 #

@@ -267,7 +267,7 @@ addMesaSupport()
         return
     fi
 
-    if [ -d "$MESA_INCLUDE" -a -f "$MESA_LIBRARY" ]
+    if [ -d "$MESA_INCLUDE" ] && [ -f "$MESA_LIBRARY" ]
     then
         addCMakeVariable "VTK_OPENGL_HAS_OSMESA=ON"
         addCMakeVariable "OSMESA_INCLUDE_DIR=$MESA_INCLUDE"
@@ -479,7 +479,7 @@ INFO
     # Non-system installation of QT?
     case "$qtLib" in (/usr/lib | /usr/lib64) unset qtLib ;; esac
 
-    if [ "${qmake%/*}" != /usr/bin -a -d "$qtLib" ]
+    if [ "${qmake%/*}" != /usr/bin ] && [ -d "$qtLib" ]
     then
         /bin/cat<<INFO
 

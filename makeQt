@@ -38,6 +38,7 @@ usage() {
 
 usage: ${0##*/} [OPTION] [qt-VERSION] [-- configure-options]
 options:
+  -force        Force compilation, even if it already exists
   -gcc          Force use of gcc/g++
   -help
 
@@ -50,6 +51,8 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler true     # Compiler info + flags for CMake/configure
 
+unset optForce
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -58,6 +61,7 @@ do
     --) break;; # Extra configure options (leave on $@ for later detection)
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+    -force)     optForce=true ;;
 
     -qt-[0-9]* | [0-9]* | qt-*)
         # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
@@ -95,7 +99,10 @@ echo
 echo ========================================
 echo "Build Qt $qtPACKAGE"
 echo
-if [ -d "$QT_ARCH_PATH" -a -r "$QT_ARCH_PATH/bin/qmake" ]
+
+if [ -z "$optForce" ] \
+&& [ -d "$QT_ARCH_PATH" ] \
+&& [ -r "$QT_ARCH_PATH/bin/qmake" ]
 then
     echo "Already built: Qt-$qtVERSION"
 else

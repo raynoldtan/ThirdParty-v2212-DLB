@@ -27,7 +27,7 @@
 if [ "$1" = "-test" ]
 then
     [ "$#" -eq 2 ] || { echo "${0##*/} -test : needs 1 argument"; exit 1; }
-    dir="${2%/}" # <- METIS_ARCH_PATH
+    dir="${2%/}" # <- *_ARCH_PATH
     if [ -d "$dir/include" ]
     then
         for lib in \
@@ -53,11 +53,6 @@ fi
 cd "${0%/*}" || exit
 wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-[ -n "$FOAM_EXT_LIBBIN" ] || {
-    echo "Error (${0##*/}) : \$FOAM_EXT_LIBBIN not set"
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
@@ -124,6 +119,8 @@ then
     echo "Using metis-system"
     exit 0
 fi
+
+requireExtLibBin
 
 #------------------------------------------------------------------------------
 #

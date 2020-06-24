@@ -326,6 +326,20 @@ requireWMakeToolchain()
 }
 
 
+# Require FOAM_EXT_LIBBIN for some compilations
+requireExtLibBin()
+{
+    [ -n "$FOAM_EXT_LIBBIN" ] || {
+        exec 1>&2
+        echo
+        echo "Error: \$FOAM_EXT_LIBBIN not set for '${0##*/}"
+        echo "    Check your OpenFOAM environment and installation"
+        echo
+        exit 1
+    }
+}
+
+
 # grep for package http or ftp entries in BUILD.md
 # Should be of the form "[link xx]:  http://..."
 showDownloadHint()
@@ -660,7 +674,7 @@ pkgconfigNewPrefix()
         [ -d "$dir/$libdir" ] || continue
         for i in $dir/$libdir/*.pc
         do
-            if [ -f "$i" -a ! -L "$i" ]
+            if [ -f "$i" ] && [ ! -L "$i" ]
             then
                 nfiles="x$nfiles"
                 sed -i~ -e 's@^\(prefix=\).*$@\1'"$dir@" $i
@@ -708,7 +722,7 @@ pkgconfigAdjust()
         [ -d "$dir/$libdir" ] || continue
         for i in $dir/$libdir/*.pc
         do
-            if [ -f "$i" -a ! -L "$i" ]
+            if [ -f "$i" ] && [ ! -L "$i" ]
             then
                 nfiles="x$nfiles"
                 sed -i~ \
