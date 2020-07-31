@@ -258,13 +258,20 @@ whichCXX()
 }
 
 
-# Return <mpicc> by default or <mpiicc> if possible for INTELMPI.
+# Return
+#   <mpicc> by default
+#   <mpifcc> for FJMPI (if possible)
+#   <mpiicc> for INTELMPI (if possible)
+#
 # Cray doesn't have <mpicc>, but its <cc> manages mpi paths directly.
 # NOTE: could further refine based on "wmake -show-c", but not yet needed
 whichMpicc()
 {
     local comp="$(command -v mpicc)"
     case "$WM_MPLIB" in
+    (FJMPI)
+        comp="$(command -v mpifcc)"     # Fujitsu <mpifcc> available?
+        ;;
     (INTELMPI)
         comp="$(command -v mpiicc)"     # Intel <mpiicc> available?
         ;;
@@ -276,13 +283,20 @@ whichMpicc()
 }
 
 
-# Return <mpicxx> by default or <mpiicpc> if possible for INTELMPI.
+# Return
+#   <mpicxx> by default
+#   <mpiFCC> for FJMPI (if possible)
+#   <mpiicpc> for INTELMPI (if possible)
+#
 # Cray doesn't have <mpicxx>, but its <CC> manages mpi paths directly.
 # NOTE: could further refine based on "wmake -show-cxx", but not yet needed
 whichMpicxx()
 {
     local comp="$(command -v mpicxx)"
     case "$WM_MPLIB" in
+    (FJMPI)
+        comp="$(command -v mpiFCC)"     # Fujitsu <mpiFCC> available?
+        ;;
     (INTELMPI)
         comp="$(command -v mpiicpc)"    # Intel <mpiicpc> available?
         ;;
