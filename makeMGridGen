@@ -138,12 +138,13 @@ install()
 # - for shared library
 # - for mpi-specific library locations
 if [ -z "$optForce" ] \
-&& [ -f "$MGRIDGEN_ARCH_PATH/include/mgridgen.h" \
-&& [ -r "$MGRIDGEN_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libmgrid.a" ]
+&& [ -f "$MGRIDGEN_ARCH_PATH/include/mgridgen.h" ] \
+&& {
+     [ -r "$MGRIDGEN_ARCH_PATH/lib/libmgrid.a" ] \
+  || [ -r "$MGRIDGEN_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH/libmgrid.a" ]
+}
 then
-    echo "    MGridGen header in $MGRIDGEN_ARCH_PATH/include"
-    echo "    MGridGen libs   in $MGRIDGEN_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" # static
-    echo
+    echo "    MGridGen already built : $MGRIDGEN_ARCH_PATH"
 else
 (
     cd "$MGRIDGEN_SOURCE_DIR" || exit
