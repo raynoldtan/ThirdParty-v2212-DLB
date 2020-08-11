@@ -60,7 +60,7 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 # FFTW version from OpenFOAM etc/config.sh file:
 _foamConfig FFTW
 
-fftwPACKAGE=${fftw_version:-fftw-system}
+fftwPACKAGE="${fftw_version:-fftw-system}"
 
 #------------------------------------------------------------------------------
 usage() {
@@ -131,8 +131,8 @@ fi
 #   FFTW_SOURCE_DIR : location of the original sources
 #   FFTW_ARCH_PATH  : installation directory
 
-FFTW_SOURCE_DIR=$sourceBASE/$fftwPACKAGE
-FFTW_ARCH_PATH=$installBASE/$fftwPACKAGE
+FFTW_SOURCE_DIR="$sourceBASE/$fftwPACKAGE"
+FFTW_ARCH_PATH="$installBASE/$fftwPACKAGE"
 
 if [ -z "$optForce" ] \
 && {
@@ -150,6 +150,21 @@ else
         # Configuration options:
         unset configOpt
 
+        # Compiler-specific adjustments
+        case "$WM_COMPILER" in
+        (Mingw*)
+            # Cross-compiling
+            # See http://www.fftw.org/install/windows.html
+            configOpt="
+  --host=x86_64-w64-mingw32
+  --with-our-malloc
+  --enable-threads --with-combined-threads
+  --enable-sse2
+  --with-incoming-stack-boundary=2
+"
+            ;;
+        esac
+
         # Additional configure options
         if [ "$1" = "--" ]
         then
@@ -159,20 +174,20 @@ else
 
         # End of configuration options
         # ----------------------------
-        buildDIR=$buildBASE/$fftwPACKAGE
+        buildDIR="$buildBASE/$fftwPACKAGE"
 
         cd "$FFTW_SOURCE_DIR" || exit
         export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
 
-        rm -rf $FFTW_ARCH_PATH
-        rm -rf $buildDIR
-        mkdir -p $buildDIR
-        cd $buildDIR
+        rm -rf "$FFTW_ARCH_PATH"
+        rm -rf "$buildDIR"
+        mkdir -p "$buildDIR"
+        cd "$buildDIR"
 
         set -x
-        $FFTW_SOURCE_DIR/configure \
-            --prefix=$FFTW_ARCH_PATH \
-            --libdir=$FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH \
+        "$FFTW_SOURCE_DIR"/configure \
+            --prefix="$FFTW_ARCH_PATH" \
+            --libdir="$FFTW_ARCH_PATH/lib$WM_COMPILER_LIB_ARCH" \
             --enable-shared --disable-static \
             --disable-fortran \
             $configOpt \
@@ -180,7 +195,7 @@ else
         && make -j $WM_NCOMPPROCS \
         && make install \
         && echo "Built $fftwPACKAGE" \
-        && pkgconfigAdjust $FFTW_ARCH_PATH
+        && pkgconfigAdjust "$FFTW_ARCH_PATH"
     ) || {
         echo "Error building: FFTW"
         exit 1
