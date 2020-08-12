@@ -265,6 +265,10 @@ else
     # Absolute path for --libdir
 
     (
+        # Write user-config.jam into source directory
+        cd "$BOOST_SOURCE_DIR" || exit
+        export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
+
         # Configuration options:
         unset buildOpt
 
@@ -309,9 +313,6 @@ else
 
         # End of configuration options
         # ----------------------------
-
-        cd "$BOOST_SOURCE_DIR" || exit
-        export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
 
         rm -rf "$BOOST_ARCH_PATH"
 
