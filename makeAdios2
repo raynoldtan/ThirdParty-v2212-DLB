@@ -123,6 +123,19 @@ then
     exit 0
 fi
 
+# Known build issues for mingw (various things)
+case "$WM_COMPILER" in
+(Mingw*)
+    if [ "$optForce" = true ]
+    then
+        echo "Warning: adios2 - known compilation issues with $WM_COMPILER"
+    else
+        echo "Skipping adios2 - known compilation issues with $WM_COMPILER"
+        exit 0
+    fi
+    ;;
+esac
+
 #------------------------------------------------------------------------------
 #
 # Build ADIOS

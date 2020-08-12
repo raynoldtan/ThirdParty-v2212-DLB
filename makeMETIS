@@ -121,6 +121,17 @@ then
     exit 0
 fi
 
+# Known build issues for mingw (various things)
+case "$WM_COMPILER" in
+(Mingw*)
+    if :
+    then
+        echo "Skipping metis - known compilation issues with $WM_COMPILER"
+        exit 0
+    fi
+    ;;
+esac
+
 requireExtLibBin
 
 #------------------------------------------------------------------------------
