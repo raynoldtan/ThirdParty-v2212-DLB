@@ -64,6 +64,7 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
     -force)     optForce=true ;;

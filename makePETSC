@@ -30,16 +30,13 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
 }
 . etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-_foamConfig hypre
 _foamConfig petsc
 
-hyprePACKAGE="${hypre_version:-hypre-none}"
 petscPACKAGE="${petsc_version:-petsc-system}"
 targetType=libso
 
-# Should be possible to build with download, but seems to fail
-# hypreURL="https://github.com/hypre-space/hypre/archive/v2.14.0.tar.gz"
-unset hypreURL
+unset hyprePACKAGE
+unset HYPRE_ARCH_PATH   # Avoid inconsistency
 
 #------------------------------------------------------------------------------
 usage() {
@@ -52,7 +49,8 @@ options:
   -force        Force compilation, even if include/library already exists
   -gcc          Force use of gcc/g++
   -inplace      Build/install inplace (expert option)
-  -no-hypre     Disable automatic hypre detection
+  -hypre=URL    Specify hypre download location
+  -no-hypre     Disable automatic hypre download/detection
   -help
 
 * build PETSC with
@@ -70,13 +68,14 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 
-unset optForce optInplace
+unset optForce optInplace optHypre
 
 # Parse options
 while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
+    --) break;; # Extra configure options (leave on $@ for later detection)
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
     -force)     optForce=true ;;
@@ -86,19 +85,24 @@ do
         targetType="$1"
         ;;
 
+    -hypre=*)
+        optHypre="${1#*=}"      # URL for downloadd
+        unset hyprePACKAGE HYPRE_ARCH_PATH
+        ;;
+
     -no-hypre)
-        unset hyprePACKAGE hypreURL
-        unset HYPRE_ARCH_PATH
+        optHypre=false
+        unset hyprePACKAGE HYPRE_ARCH_PATH
         ;;
 
     hypre-[0-9]* | hypre-git)
         hyprePACKAGE="${1%%/}"
-        unset hypreURL
-        unset HYPRE_ARCH_PATH  # Avoid inconsistency
+        unset optHypre
+        unset HYPRE_ARCH_PATH   # Avoid inconsistency
         ;;
     petsc-[0-9]* | petsc-git)
         petscPACKAGE="${1%%/}"
-        unset PETSC_ARCH_PATH  # Avoid inconsistency
+        unset PETSC_ARCH_PATH   # Avoid inconsistency
         ;;
     *)
         die "unknown option/argument: '$1'"
@@ -123,13 +127,11 @@ fi
 #------------------------------------------------------------------------------
 # Integrations
 
-# No hypre
-if _foamIsNone "$hyprePACKAGE"
+# Clunky
+if [ -z "$optHypre" ] && [ -n "$hyprePACKAGE" ] \
+&& ! _foamIsNone "$hyprePACKAGE"
 then
-    :
-elif [ -n "$hyprePACKAGE" ]
-then
-    # Clunky
+    echo "Using $hyprePACKAGE"
     : "${HYPRE_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$hyprePACKAGE}"
 fi
 
@@ -170,27 +172,23 @@ else
 fi
 
 echo "Starting build: $petscPACKAGE ($targetType)"
+if [ "$WM_PRECISION_OPTION" = SP ]
+then
+    optHypre=false  # No single-precision hypre
+    echo "No single-precision hypre"
+fi
+if [ -d "$PETSC_SOURCE_DIR/$archOpt/externalpackages" ]
+then
+    echo "Removing old $archOpt/externalpackages"
+    rm -rf "$PETSC_SOURCE_DIR/$archOpt/externalpackages"
+fi
 echo
 (
     # Configuration options
     configOpt="--with-cc=$(whichMpicc) --with-cxx=$(whichMpicxx)"
-
-    # Normally want hypre but this is really clunky
-    if [ -f "$HYPRE_ARCH_PATH/include/HYPRE.h" ]
-    then
-        echo "Has installed hypre: $hyprePACKAGE"
-        configOpt="$configOpt --with-hypre-dir=$HYPRE_ARCH_PATH"
-    elif [ -n "$urlHypre" ]
-    then
-        configOpt="$configOpt --download-hypre=$urlHypre"
-    fi
-
-    # Additional configure options
-    if [ "$1" = "--" ]
-    then
-        shift
-        configOpt="$configOpt $@"
-    fi
+    configOpt="$configOpt --with-debugging=0"
+    # A reasonable assumption
+    configOpt="$configOpt --COPTFLAGS=-O3 --CXXOPTFLAGS=-O3"
 
     if [ "$targetType" = libso ]
     then
@@ -211,14 +209,40 @@ echo
         configOpt="$configOpt --with-precision=double"
     fi
 
+    case "$optHypre" in
+    false)
+        configOpt="$configOpt --with-hypre=0"
+        ;;
+    ftp:* | git:* | http:* | https:*)
+        configOpt="$configOpt --download-hypre=$optHypre"
+        ;;
+    *)
+        # This is a really clunky way to use ThirdParty hypre
+        if [ -f "$HYPRE_ARCH_PATH/include/HYPRE.h" ]
+        then
+            echo "Has installed hypre: $hyprePACKAGE"
+            configOpt="$configOpt --with-hypre-dir=$HYPRE_ARCH_PATH"
+        else
+            configOpt="$configOpt --download-hypre"
+        fi
+    ;;
+    esac
+
+    # Additional configure options
+    if [ "$1" = "--" ]
+    then
+        shift
+        configOpt="$configOpt $@"
+    fi
+
     # We export compiler settings (above) but actually use the
-    # --with-cc and --with-cxx. So ignore them and flags
+    # --with-cc and --with-cxx. So ignore these environment variables.
 
     unset CC CXX
     unset CFLAGS CXXFLAGS
 
     cd "$PETSC_SOURCE_DIR" || exit
-    export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
+    unset GIT_DIR # No special git-repo handling
 
     rm -rf "$PETSC_ARCH_PATH"
     # No clean here, if we have multiple arch in the same directory
@@ -226,6 +250,7 @@ echo
     ## without tests?  --testdir=..
     ## configOpt="$configOpt --download-f2cblaslapack=1"
 
+    echo
     set -x
     ./configure \
         ${installPrefix:+--prefix="$installPrefix"} \
