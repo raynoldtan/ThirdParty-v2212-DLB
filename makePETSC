@@ -49,6 +49,7 @@ options:
   -force        Force compilation, even if include/library already exists
   -gcc          Force use of gcc/g++
   -inplace      Build/install inplace (expert option)
+  -debug        Build with debugging enabled
   -hypre=URL    Specify hypre download location
   -no-hypre     Disable automatic hypre download/detection
   -help
@@ -68,7 +69,7 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 
-unset optForce optInplace optHypre
+unset optDebug optForce optInplace optHypre
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -80,13 +81,12 @@ do
     -gcc)       useGcc  ;;
     -force)     optForce=true ;;
     -inplace)   optInplace=true ;;
+    -debug)     optDebug=true ;;
 
-    lib|libso)
-        targetType="$1"
-        ;;
+    lib|libso)  targetType="$1" ;;
 
     -hypre=*)
-        optHypre="${1#*=}"      # URL for downloadd
+        optHypre="${1#*=}"      # URL for download
         unset hyprePACKAGE HYPRE_ARCH_PATH
         ;;
 
@@ -186,9 +186,15 @@ echo
 (
     # Configuration options
     configOpt="--with-cc=$(whichMpicc) --with-cxx=$(whichMpicxx)"
-    configOpt="$configOpt --with-debugging=0"
-    # A reasonable assumption
-    configOpt="$configOpt --COPTFLAGS=-O3 --CXXOPTFLAGS=-O3"
+
+    if [ "$optDebug" = true ]
+    then
+        configOpt="$configOpt --with-debugging=1"
+    else
+        # A reasonable assumption for optimization
+        configOpt="$configOpt --with-debugging=0"
+        configOpt="$configOpt --COPTFLAGS=-O3 --CXXOPTFLAGS=-O3"
+    fi
 
     if [ "$targetType" = libso ]
     then
@@ -247,9 +253,6 @@ echo
     rm -rf "$PETSC_ARCH_PATH"
     # No clean here, if we have multiple arch in the same directory
 
-    ## without tests?  --testdir=..
-    ## configOpt="$configOpt --download-f2cblaslapack=1"
-
     echo
     set -x
     ./configure \
@@ -258,9 +261,6 @@ echo
        --with-petsc-arch="$archOpt" \
        --with-clanguage=C \
        --with-fc=0 \
-       --with-scalapack=0 \
-       --with-superlu_dist=0 \
-       --with-suitesparse=0 \
        --with-x=0 \
        $configOpt \
      && set +x \
