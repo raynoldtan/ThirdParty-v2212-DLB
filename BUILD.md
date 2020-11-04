@@ -530,6 +530,7 @@ easier to use `grep` and find the relevant pages and links.
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [repo scotch]:    https://gitlab.inria.fr/scotch/scotch
+[link scotch6_0_10]:  https://gforge.inria.fr/frs/download.php/file/38350/scotch_6.0.10.tar.gz
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz
 [older scotch]:   https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
 [oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz

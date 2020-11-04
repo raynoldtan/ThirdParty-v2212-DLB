@@ -31,9 +31,12 @@ then
 
     package="adios2"
     libName="libadios2"
+    libName2="libadios2_cxx11_mpi"
     for lib in \
         "$dir/lib/$libName$EXT_SO" \
         "$dir/lib$WM_COMPILER_LIB_ARCH/$libName$EXT_SO" \
+        "$dir/lib/$libName2$EXT_SO" \
+        "$dir/lib$WM_COMPILER_LIB_ARCH/$libName2$EXT_SO" \
         ;
     do
         if [ -r "$lib" ]
