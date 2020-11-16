@@ -73,7 +73,7 @@ do
     case "$1" in
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
-    -gcc)       useGcc  ;;
+    -gcc)       useGccWmake ;;
 
     lib|libso)
         targetType="$1"

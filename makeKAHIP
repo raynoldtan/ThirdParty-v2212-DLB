@@ -96,7 +96,7 @@ do
     case "$1" in
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
-    -gcc)       useGcc  ;;
+    -gcc)       useGccWmake ;;
     -force)     optForce=true ;;
 
     -cmake)

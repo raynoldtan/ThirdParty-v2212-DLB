@@ -211,6 +211,16 @@ useGcc()
     export CXX=g++
 }
 
+
+# Force use of system gcc/g++ (wmake compilation) without changing the
+# WM_OPTIONS or output directories
+useGccWmake()
+{
+    export WM_COMPILER=Gcc
+    export WM_COMPILER_TYPE=system
+}
+
+
 # Scan arguments for a '-gcc' option, forcing gcc/g++ when found
 useGccFlag()
 {
