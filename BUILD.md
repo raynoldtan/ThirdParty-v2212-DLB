@@ -524,13 +524,14 @@ easier to use `grep` and find the relevant pages and links.
 <!-- parallel -->
 [page adios]:     https://csmd.ornl.gov/software/adios2
 [repo adios]:     https://github.com/ornladios/ADIOS2
-[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.4.0.tar.gz
+[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.6.0.tar.gz
 
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [repo scotch]:    https://gitlab.inria.fr/scotch/scotch
-[link scotch6_0_10]:  https://gforge.inria.fr/frs/download.php/file/38350/scotch_6.0.10.tar.gz
+[link scotch61]:  https://gforge.inria.fr/frs/download.php/file/38352/scotch_6.1.0.tar.gz
+[link scotch60_10]:  https://gforge.inria.fr/frs/download.php/file/38350/scotch_6.0.10.tar.gz
 [link scotch]:    https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz
 [older scotch]:   https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
 [oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
@@ -566,7 +567,7 @@ easier to use `grep` and find the relevant pages and links.
 [link FFTW]:      http://www.fftw.org/fftw-3.3.7.tar.gz
 
 [page petsc]:     https://www.mcs.anl.gov/petsc/
-[link petsc]:     http://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.13.2.tar.gz
+[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.14.2.tar.gz
 
 [page hypre]:     https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods/
 [repo hypre]:     https://github.com/hypre-space/hypre/
