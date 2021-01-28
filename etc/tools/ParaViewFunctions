@@ -6,7 +6,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011-2016 OpenFOAM Foundation
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -114,15 +114,35 @@ setParaViewVersion()
 #------------------------------------------------------------------------------
 
 #
-# Set CMake cache variables
+# Set CMake cache variables.
+# Automatically adds -D prefix it needed
 #
 addCMakeVariable()
 {
     local i
     for i
     do
-        [ -n "$i" ] && CMAKE_VARIABLES="$CMAKE_VARIABLES -D$i"
+        case "$i" in
+        ('') ;;  # empty
+        (-*) CMAKE_VARIABLES="${CMAKE_VARIABLES} ${i}" ;;
+        (*)  CMAKE_VARIABLES="${CMAKE_VARIABLES} -D${i}" ;;
+        esac
     done
+}
+
+
+#
+# General settings (version-dependent)
+#
+addGeneral()
+{
+    if printf "${ParaView_MAJOR}"'\n%s\n' 5.6 | sort -V -C
+    then
+        # Paraview 5.6 and older
+        addCMakeVariable "BUILD_SHARED_LIBS=ON"
+    else
+        addCMakeVariable "PARAVIEW_BUILD_SHARED_LIBS=ON"
+    fi
 }
 
 
@@ -153,6 +173,10 @@ addMpiSupport()
     then
         addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
     fi
+
+    echo "----"
+    echo "MPI information:"
+    echo "    home           : $MPI_HOME"
 }
 
 
@@ -244,7 +268,13 @@ addPythonSupport()
         exit 1
     }
 
-    addCMakeVariable "PARAVIEW_ENABLE_PYTHON=ON"
+    if printf "${ParaView_MAJOR}"'\n%s\n' 5.7 | sort -V -C
+    then
+        # Paraview 5.7 and older
+        addCMakeVariable "PARAVIEW_ENABLE_PYTHON=ON"
+    else
+        addCMakeVariable "PARAVIEW_USE_PYTHON=ON"
+    fi
     addCMakeVariable "PYTHON_INCLUDE_DIRS=$PYTHON_INCLUDE"
     addCMakeVariable "PYTHON_LIBRARY=$PYTHON_LIBRARY"
 
@@ -304,20 +334,27 @@ addQtSupport()
     QT_VERSION=none
     : ${withQT:=true}  # default is on
 
+    local qmake qtLib
+    local cmakeVarName="PARAVIEW_USE_QT"
+
+    if printf "${ParaView_MAJOR}"'\n%s\n' 5.7 | sort -V -C
+    then
+        # Paraview 5.7 and older
+        cmakeVarName="PARAVIEW_BUILD_QT_GUI"
+    fi
+
     if [ "$withQT" = false ]
     then
         # Explicitly disabled
-        addCMakeVariable "PARAVIEW_BUILD_QT_GUI=OFF"
+        addCMakeVariable "$cmakeVarName=OFF"
         return
     fi
-
-    local qmake qtLib
 
     # Check qmake can be found and handle version differences
     qmake=$(findQMake)
     if QT_VERSION=$($qmake -query QT_VERSION 2>/dev/null)
     then
-        addCMakeVariable "PARAVIEW_BUILD_QT_GUI=ON"
+        addCMakeVariable "$cmakeVarName=ON"
 
         case "$QT_VERSION" in
         (3.* | 4.[0-4]*)
@@ -495,7 +532,9 @@ INFO
 #------------------------------------------------------------------------------
 
 # Start with these general settings
-addCMakeVariable "BUILD_SHARED_LIBS=ON" "BUILD_TESTING=OFF"
+
+# No testing
+addCMakeVariable "BUILD_TESTING=OFF"
 
 # Include development files in "make install"
 addCMakeVariable "PARAVIEW_INSTALL_DEVELOPMENT_FILES=ON"

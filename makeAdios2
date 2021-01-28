@@ -63,6 +63,12 @@ _foamConfig adios2
 
 adiosPACKAGE=${adios2_version:-adios-none}
 
+# Hint for cmake findMPI
+if [ -d "$MPI_ARCH_PATH" ]
+then
+    export MPI_HOME="$MPI_ARCH_PATH"
+fi
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -71,9 +77,10 @@ usage() {
 
 usage: ${0##*/} [OPTION] [adios-VERSION]
 options:
-  -force        Force compilation, even if include/library already exists
-  -gcc          Force use of gcc/g++
-  -cmake PATH   With cmake from the given path
+  -force            Force compilation, even if include/library already exists
+  -gcc              Force use of gcc/g++
+  -cmake PATH       With cmake from the given path
+  -mpi-home PATH    With hint for MPI_HOME
   -help
 
 * Build ADIOS2
@@ -100,6 +107,12 @@ do
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
         CMAKE_PATH="${2%%/}"
+        shift
+        ;;
+    -mpi-home) # mpi with hint
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        export MPI_HOME="${2%%/}"
+        case "${MPI_HOME:-none}" in (false|none) unset MPI_HOME;; esac
         shift
         ;;
     ADIOS2-[0-9]* | ADIOS2-git* | ADIOS-[0-9]* | ADIOS-git* | \

@@ -5,7 +5,7 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -168,6 +168,10 @@ addMpiSupport()
     then
         addCMakeVariable "VTK_MPI_MAX_NUMPROCS=$MPI_MAX_PROCS"
     fi
+
+    echo "----"
+    echo "MPI information:"
+    echo "    home           : $MPI_HOME"
 }
 
 

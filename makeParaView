@@ -7,7 +7,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011-2016 OpenFOAM Foundation
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -64,6 +64,12 @@ setParaViewVersion ${ParaView_VERSION:-none}
 # New rendering backend (starting with paraview 5.0).
 withGL2=auto # auto-config based on version
 
+# Hint for cmake findMPI
+if [ -d "$MPI_ARCH_PATH" ]
+then
+    export MPI_HOME="$MPI_ARCH_PATH"
+fi
+
 #------------------------------------------------------------------------------
 usage() {
     exec 1>&2
@@ -83,6 +89,7 @@ options:
   -mesa-lib PATH    path to mesa library     (current: ${MESA_LIBRARY:-none})
   -mpi              with mpi
   -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
+  -mpi-home PATH    with mpi and hint for MPI_HOME
   -python | -python2 | -python3
                     with python
   -python-include DIR
@@ -90,13 +97,14 @@ options:
   -python-lib PATH  path to python library (current: ${PYTHON_LIBRARY:-none})
   -qmake PATH       with QT version corresponding to the qmake in given path
   -qt               with extra Qt gui support (if not already enabled)
-  -qt-VER           with QT version corresponding to
+  -qt-<VER>         with QT version corresponding to
                         \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/qt-VER/bin/qmake
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current: $ParaView_VERSION)
   -major   VER      specify an alternative major version for special builds
   -buildType NAME   specify the build type (default: Release)
   -suffix NAME      specify a suffix to distinguish the build
+  -DNAME=VALUE      add cmake variable
   -help
 
 The -no-FEATURE option can be used to forcibly disable these features:
@@ -147,7 +155,7 @@ do
     [0-9]* | paraview-[0-9]* | ParaView-[0-9]*) # paraview version
         setParaViewVersion "${1%%/}"
         ;;
-    [A-Z]*=*)            # cmake variables
+    -D[A-Z]*=* | [A-Z]*=*)  # cmake variables
         addCMakeVariable "$1"
         ;;
     -patch)              # stage 0: patch sources
@@ -230,6 +238,13 @@ do
     -mpi=[0-9]*) # mpi and max mpi processes
         withMPI=true
         MPI_MAX_PROCS="${1##*=}"
+        ;;
+    -mpi-home) # mpi with hint
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withMPI=true
+        export MPI_HOME="${2%%/}"
+        case "${MPI_HOME:-none}" in (false|none) unset MPI_HOME;; esac
+        shift
         ;;
     -no-mpi)
         withMPI=false
@@ -359,6 +374,7 @@ fi
 
 # Set configure options
 #~~~~~~~~~~~~~~~~~~~~~~
+addGeneral          # general settings (version-dependent)
 addVerbosity        # verbose makefiles
 addMpiSupport       # set MPI-specific options
 addPythonSupport    # set Python-specific options

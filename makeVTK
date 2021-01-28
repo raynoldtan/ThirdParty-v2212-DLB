@@ -6,7 +6,7 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -53,9 +53,14 @@ case "$VTK_VERSION" in
 esac
 VTK_VERSION="${VTK_VERSION%%-*}"            # Without suffix (eg, -mesa)
 
-
 # New rendering backend (starting with vtk 7?).
 withGL2=auto # auto-config based on version
+
+# Hint for cmake findMPI
+if [ -d "$MPI_ARCH_PATH" ]
+then
+    export MPI_HOME="$MPI_ARCH_PATH"
+fi
 
 #------------------------------------------------------------------------------
 usage() {
@@ -76,10 +81,12 @@ options:
   -osmesa           with off-screen mesa only
   -mpi              with mpi (VTK_Group_MPI=ON)
   -mpi=N            with max 'N' mpi processes. N=0 for no upper-limit.
+  -mpi-home PATH    with mpi and hint for MPI_HOME
   -verbose          verbose output in Makefiles
   -version VER      specify an alternative version (current: $VTK_VERSION)
   -buildType NAME   specify the build type (default: Release)
   -suffix NAME      specify a suffix to distinguish the build
+  -DNAME=VALUE      add cmake variable
   -help
 
 The -no-FEATURE option can be used to forcibly disable these features:
@@ -123,7 +130,7 @@ do
     [0-9]* | vtk-[0-9]* | VTK-[0-9]*) # VTK version
         setVtkVersion "${1%%/}"
         ;;
-    [A-Z]*=*)            # cmake variables
+    -D[A-Z]*=* | [A-Z]*=*)  # cmake variables
         addCMakeVariable "$1"
         ;;
     -patch)              # stage 0: patch sources
@@ -203,6 +210,13 @@ do
     -mpi=[0-9]*) # mpi and max mpi processes
         withMPI=true
         MPI_MAX_PROCS="${1##*=}"
+        ;;
+    -mpi-home) # mpi with hint
+        [ "$#" -ge 2 ] || die "'$1' option requires an argument"
+        withMPI=true
+        export MPI_HOME="${2%%/}"
+        case "${MPI_HOME:-none}" in (false|none) unset MPI_HOME;; esac
+        shift
         ;;
     -no-mpi)
         withMPI=false
