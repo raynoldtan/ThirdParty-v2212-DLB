@@ -6,7 +6,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011-2016 OpenFOAM Foundation
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -430,12 +430,15 @@ setBuildSuffix()
 #
 # Mostly building without wmake
 # - disable wmakeScheduler variables
-# - use max number of cores for building
+# - use max number of cores for building, unless already defined
 #
 unset WM_HOSTS WM_SCHEDULER
 
-WM_NCOMPPROCS=$(getconf _NPROCESSORS_ONLN 2>/dev/null) || WM_NCOMPPROCS=1
-: ${WM_NCOMPPROCS:=1}
+if [ -z "$WM_NCOMPPROCS" ]
+then
+    WM_NCOMPPROCS=$(getconf _NPROCESSORS_ONLN 2>/dev/null)
+    : "${WM_NCOMPPROCS:=1}"
+fi
 export WM_NCOMPPROCS
 
 
