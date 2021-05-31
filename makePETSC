@@ -6,7 +6,7 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2018-2020 OpenCFD Ltd.
+#     Copyright (C) 2018-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -185,7 +185,14 @@ fi
 echo
 (
     # Configuration options
-    configOpt="--with-cc=$(whichMpicc) --with-cxx=$(whichMpicxx)"
+
+    # Compiler or MPI (but not both)
+    # if [ -d "$MPI_ARCH_PATH" ]
+    # then
+    #     configOpt="--with-mpi-dir=$MPI_ARCH_PATH"
+    # else
+        configOpt="--with-cc=$(whichMpicc) --with-cxx=$(whichMpicxx)"
+    # fi
 
     if [ "$optDebug" = true ]
     then

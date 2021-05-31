@@ -441,7 +441,7 @@ you may have additional hurdles to using the newest versions of clang.
 | Name                  | Location
 |-----------------------|------------------------
 | [MESA][page mesa]     | [download][link mesa] or [older 13][link mesa13], [older 11][link mesa11]
-| [ParaView][page ParaView] | [download][link ParaView] or older [paraview-56][link ParaView56], [paraview-55][link ParaView55] or [binaries][download ParaView]
+| [ParaView][page ParaView] | [download][link ParaView] or older [paraview-56][link ParaView56] or [binaries][download ParaView]
 | [Qt][page Qt]         | [QT5][link Qt5] for ParaView-5.3.0 and later, or the [older qt-56][link Qt56] for older systems.
 
 
@@ -530,9 +530,9 @@ easier to use `grep` and find the relevant pages and links.
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [repo scotch]:    https://gitlab.inria.fr/scotch/scotch
-[link scotch61]:  https://gforge.inria.fr/frs/download.php/file/38352/scotch_6.1.0.tar.gz
+[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38352/scotch_6.1.0.tar.gz
 [link scotch60_10]:  https://gforge.inria.fr/frs/download.php/file/38350/scotch_6.0.10.tar.gz
-[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz
+[link scotch60_9]:   https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz
 [older scotch]:   https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
 [oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
 
@@ -548,10 +548,10 @@ easier to use `grep` and find the relevant pages and links.
 [link openmpi]:   https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.3.tar.bz2
 
 [page mpich]:     http://www.mpich.org/
-[link mpich]:     http://www.mpich.org/static/downloads/3.3/mpich-3.3.tar.gz
+[link mpich]:     http://www.mpich.org/static/downloads/3.4.2/mpich-3.4.2.tar.gz
 
 [page mvpapich]:  http://mvapich.cse.ohio-state.edu/
-[link mvpapich]:  http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.tar.gz
+[link mvpapich]:  http://mvapich.cse.ohio-state.edu/download/mvapich/mv2/mvapich2-2.3.6.tar.gz
 
 <!-- general -->
 [page cmake]:     http://www.cmake.org/
@@ -567,7 +567,7 @@ easier to use `grep` and find the relevant pages and links.
 [link FFTW]:      http://www.fftw.org/fftw-3.3.7.tar.gz
 
 [page petsc]:     https://www.mcs.anl.gov/petsc/
-[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.14.2.tar.gz
+[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.15.0.tar.gz
 
 [page hypre]:     https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods/
 [repo hypre]:     https://github.com/hypre-space/hypre/
@@ -589,9 +589,11 @@ easier to use `grep` and find the relevant pages and links.
 [page ParaView]:  http://www.paraview.org/
 [download ParaView]: https://www.paraview.org/download/
 [link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
-[link ParaView55]:   http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.gz
-[link ParaView56]: http://www.paraview.org/files/v5.6/ParaView-v5.6.3.tar.gz
-[link ParaView]: http://www.paraview.org/files/v5.7/ParaView-v5.7.0.tar.gz
+[link ParaView55]: http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.xz
+[link ParaView56]: http://www.paraview.org/files/v5.6/ParaView-v5.6.3.tar.xz
+[link ParaView57]: http://www.paraview.org/files/v5.7/ParaView-v5.7.0.tar.xz
+[link ParaView58]: http://www.paraview.org/files/v5.8/ParaView-v5.8.1.tar.xz
+[link ParaView]:   http://www.paraview.org/files/v5.9/ParaView-v5.9.1.tar.xz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
@@ -605,4 +607,4 @@ easier to use `grep` and find the relevant pages and links.
 
 ---
 
-Copyright 2016-2020 OpenCFD Ltd
+Copyright 2016-2021 OpenCFD Ltd

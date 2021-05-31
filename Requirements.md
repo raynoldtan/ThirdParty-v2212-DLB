@@ -11,7 +11,7 @@ any third-party compilation.
 
 For general functionality, the paraview version distributed with
 the operating system or a [binary package][download ParaView]
-is likely adequate for your needs.
+is likely [fully adequate for your needs][FAQ ParaView].
 
 
 ***Please help us with keeping the information here up-to-date and accurate.***
@@ -28,11 +28,11 @@ sudo apt install paraview-dev
 ```
 Depending on your setup, the following subset may also be enough:
 ```
-sudo apt install cmake qt5base-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev libqt5x11extras5-dev libxt-dev
+sudo apt install cmake qtbase5-dev qttools5-dev qttools5-dev-tools libqt5opengl5-dev libqt5x11extras5-dev libxt-dev
 ```
 
 
-### openSUSE
+### openSUSE (eg, Leap-15.2)
 
 The full dependency list for building ParaView can be found from the
 corresponding [rpm spec][suse spec] file.
@@ -46,8 +46,8 @@ sudo zypper install paraview-devel
 Depending on your setup, the following subset may also be enough:
 ```
 sudo zypper install Mesa-libEGL-devel
-sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel libqt5-qttools-devel libqt5-qtx11extras
-sudo zypper install libXt-devel
+sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel libqt5-qttools-devel libqt5-qtx11extras-devel
+sudo zypper install libxcb-devel libXt-devel
 ```
 
 
@@ -56,6 +56,7 @@ sudo zypper install libXt-devel
 [download ParaView]: https://www.paraview.org/download/
 [debian control]: https://salsa.debian.org/science-team/paraview/-/blob/master/debian/control
 [suse spec]: https://build.opensuse.org/package/view_file/science/paraview/paraview.spec
+[FAQ ParaView]: https://discourse.paraview.org/t/i-want-to-visualize-my-openfoam-simulation-results-with-paraview-but-im-confused-which-version-should-i-use
 
 
 <!-- OpenFOAM -->
@@ -69,4 +70,4 @@ sudo zypper install libXt-devel
 [link third-require]: https://develop.openfoam.com/Development/ThirdParty-common/blob/develop/Requirements.md
 
 ---
-Copyright 2019-2020 OpenCFD Ltd
+Copyright 2019-2021 OpenCFD Ltd

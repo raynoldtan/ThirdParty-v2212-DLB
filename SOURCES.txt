@@ -1,5 +1,18 @@
 Third-party software versions for recent OpenFOAM versions
 
+OpenFOAM-2106
+---------------
+
+ADIOS-2.6.0
+CGAL-4.12.2
+ParaView-5.9.1     *update*
+boost_1_66_0
+fftw-3.3.7
+openmpi-4.0.3
+scotch_6.1.0       *update*
+kahip-2.12
+
+
 OpenFOAM-2012
 ---------------
 
