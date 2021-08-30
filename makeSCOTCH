@@ -6,7 +6,7 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2019-2020 OpenCFD Ltd.
+#     Copyright (C) 2019-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -48,12 +48,14 @@ options:
   -force        Force compilation, even if include/library already exists
                 Also force build attempt of pt-scotch (mingw)
   -gcc          Force use of gcc/g++
-  -bin          Create scotch binaries as well (experimental)
+  -int32        Use SCOTCH_Num 32
+  -int64        Use SCOTCH_Num 64
+  -bin          Create scotch binaries as well
   -no-bin       Suppress creation of scotch binaries (default)
   -no-mpi       Suppress build of pt-scotch
   -help
 
-* Compile SCOTCH
+* Build SCOTCH (default: -int${WM_LABEL_SIZE:-32}) with
       $scotchPACKAGE
 
 USAGE
@@ -62,7 +64,9 @@ USAGE
 }
 #------------------------------------------------------------------------------
 
-unset optBinaries optForce
+unset optForce
+optBinaries=false
+optIntSize="${WM_LABEL_SIZE:-32}"
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -72,9 +76,9 @@ do
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
     -force)     optForce=true ;;
-
+    -int32 | -int64) optIntSize="${1#-int}" ;;
     -bin)       optBinaries=true ;;
-    -no-bin)    unset optBinaries ;;
+    -no-bin)    optBinaries=false ;;
     -no-mpi)    unset withMPI ;;
 
     scotch-[0-9]* | scotch-git | scotch_* )
@@ -145,6 +149,12 @@ prefixDIR="$SCOTCH_ARCH_PATH"
 binDIR="$prefixDIR"/bin
 incDIR="$prefixDIR"/include
 libDIR="$FOAM_EXT_LIBBIN"
+
+if [ "$optIntSize" != "$WM_LABEL_SIZE" ]
+then
+    echo "Using int-$optIntSize instead of int-$WM_LABEL_SIZE"
+    export WM_LABEL_SIZE="$optIntSize"
+fi
 
 # Test installation. May or may not have libscotcherrexit.so
 if [ -z "$optForce" ] \

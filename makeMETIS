@@ -6,7 +6,7 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2017-2020 OpenCFD Ltd.
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -73,9 +73,13 @@ usage() {
 usage: ${0##*/} [OPTION] [lib|libso] [METIS-VERSION]
 options:
   -gcc          Force use of gcc/g++
+  -int32        Use IDXTYPEWIDTH 32
+  -int64        Use IDXTYPEWIDTH 64
+  -bin          Create metis binaries as well (default)
+  -no-bin       Suppress creation of metis binaries
   -help
 
-* build METIS with
+* Build METIS (default: -int${WM_LABEL_SIZE:-32}) with
       ${metisPACKAGE:-'unspecified metis version'}
 
 USAGE
@@ -85,6 +89,10 @@ USAGE
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
 
+unset optForce
+optBinaries=true
+optIntSize="${WM_LABEL_SIZE:-32}"
+
 # Parse options
 while [ "$#" -gt 0 ]
 do
@@ -92,6 +100,10 @@ do
     '') ;;      # Ignore empty
     -h | -help) usage   ;;
     -gcc)       useGcc  ;;
+    -force)     echo "ignoring $1" ;;
+    -int32 | -int64) optIntSize="${1#-int}" ;;
+    -bin)       optBinaries=true ;;
+    -no-bin)    optBinaries=false ;;
 
     lib|libso)
         targetType="$1"
@@ -155,19 +167,30 @@ METIS_SOURCE_DIR=$sourceBASE/$metisPACKAGE
 #
 install()
 {
-    local libdir=$METIS_ARCH_PATH/lib
+    local bindir="$METIS_ARCH_PATH"/bin
+    local libdir="$METIS_ARCH_PATH"/lib
 
+    if [ "$optBinaries" = false ]
+    then
+        echo "Removing binaries: $bindir"
+        rm -rf "$bindir" 2>/dev/null # Failed removal is uncritical
+    fi
     if [ "$targetType" = libso ]
     then
-        \mv $libdir/libmetis$EXT_SO $FOAM_EXT_LIBBIN
-        rmdir $libdir 2>/dev/null # Failed rmdir is uncritical
+        mv "$libdir/libmetis$EXT_SO" "$FOAM_EXT_LIBBIN"
+        rmdir "$libdir" 2>/dev/null # Failed rmdir is uncritical
 
         echo "Installing: $FOAM_EXT_LIBBIN/libmetis$EXT_SO"
     fi
+
     return 0
 }
 
 echo "Starting build: $metisPACKAGE ($targetType)"
+if [ "$optIntSize" != "$WM_LABEL_SIZE" ]
+then
+    echo "Using int-$optIntSize instead of int-$WM_LABEL_SIZE"
+fi
 echo
 (
     # Configuration options:
@@ -180,17 +203,17 @@ echo
     cd "$METIS_SOURCE_DIR" || exit
     export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
 
-    rm -rf $METIS_ARCH_PATH
-    rm -f $FOAM_EXT_LIBBIN/libmetis$EXT_SO
+    rm -rf "$METIS_ARCH_PATH"
+    rm -f "$FOAM_EXT_LIBBIN"/libmetis*
 
-    # Adjust metis integer size to match OpenFOAM label-size
-    sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '$WM_LABEL_SIZE'=' \
+    # Adjust metis IDXTYPEWIDTH (integer size)
+    sed -i -e 's=\(#define IDXTYPEWIDTH\).*=\1 '"$optIntSize"'=' \
         include/metis.h
 
     # No config option for the library location.
     # - build normally and use mv to relocate it
 
-    make config $configOpt prefix=$METIS_ARCH_PATH \
+    make config $configOpt prefix="$METIS_ARCH_PATH" \
     && make -j $WM_NCOMPPROCS install \
     && echo "Built: metis" \
     && install

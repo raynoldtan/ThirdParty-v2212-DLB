@@ -6,7 +6,7 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2017-2020 OpenCFD Ltd.
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -78,7 +78,7 @@ options:
   -cmake PATH   With cmake from the given path
   -help
 
-* Compile KaHIP
+* Build KaHIP (int32_t only)
       $kahipPACKAGE
 
 USAGE
@@ -98,6 +98,8 @@ do
     -h | -help) usage   ;;
     -gcc)       useGccWmake ;;
     -force)     optForce=true ;;
+    -int32 | -int64) echo "ignoring $1" ;;
+    -bin | -no-bin)  echo "ignoring $1" ;;
 
     -cmake)
         [ "$#" -ge 2 ] || die "'$1' option requires an argument"
