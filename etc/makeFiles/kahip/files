@@ -1,4 +1,6 @@
-/* NOTE: make any changes to this file in etc/wmakeFiles/ */
+/*
+ * NOTE: make any changes to this file in ThirdParty etc/wmakeFiles/
+ */
 
 interface/kaHIP_interface.cpp
 
@@ -66,5 +68,4 @@ algorithms/cycle_search.cpp
 partition/uncoarsening/refinement/cycle_improvements/cycle_refinement.cpp
 partition/uncoarsening/refinement/tabu_search/tabu_search.cpp
 
-
-LIB = $(FOAM_EXT_LIBBIN)/libkahip
+LIB = $(KAHIP_LIB_DIR)/libkahip
