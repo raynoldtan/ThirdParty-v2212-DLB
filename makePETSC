@@ -20,31 +20,36 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-
-# Run from third-party directory only
-cd "${0%/*}" || exit
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 _foamConfig petsc
 
-petscPACKAGE="${petsc_version:-petsc-system}"
+PETSC_PACKAGE="${petsc_version:-none}"
 targetType=libso
 
-unset hyprePACKAGE
+unset HYPRE_PACKAGE
 unset HYPRE_ARCH_PATH   # Avoid inconsistency
 
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset PETSC_ARCH_PATH
+fi
+
 #------------------------------------------------------------------------------
-usage() {
-    exec 1>&2
-    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+printVersions() { listPackageVersions petsc; exit 0; }
+printHelp() {
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [lib|libso] [HYPRE-VERSION] [PETSC-VERSION] [-- configure-options]
+Usage: ${0##*/} [OPTION] [lib|libso] [HYPRE-VERSION] [PETSC-VERSION] [-- configure-options]
 options:
   -force        Force compilation, even if include/library already exists
   -gcc          Force use of gcc/g++
@@ -52,19 +57,20 @@ options:
   -debug        Build with debugging enabled
   -hypre=URL    Specify hypre download location
   -no-hypre     Disable automatic hypre download/detection
-  -help
+  -list         List available unpacked source versions
+  -help         Display usage help
 
 * build PETSC with
-      ${petscPACKAGE:-'unspecified petsc version'}
+      ${PACKAGE:-[unspecified]}
 
 USAGE
-    showDownloadHint PETSC
+    showDownloadHint petsc
 
     echo
     echo "Many people who have downloaded PETSC have also downloaded HYPRE :"
-    showDownloadHint HYPRE
+    showDownloadHint hypre
 
-    exit 1
+    exit 0  # Clean exit
 }
 #------------------------------------------------------------------------------
 exportCompiler          # Compiler info for CMake/configure
@@ -77,7 +83,8 @@ do
     case "$1" in
     '') ;;      # Ignore empty
     --) break;; # Extra configure options (leave on $@ for later detection)
-    -h | -help) usage   ;;
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
     -gcc)       useGcc  ;;
     -force)     optForce=true ;;
     -inplace)   optInplace=true ;;
@@ -87,21 +94,23 @@ do
 
     -hypre=*)
         optHypre="${1#*=}"      # URL for download
-        unset hyprePACKAGE HYPRE_ARCH_PATH
+        unset HYPRE_PACKAGE HYPRE_ARCH_PATH
         ;;
 
     -no-hypre)
         optHypre=false
-        unset hyprePACKAGE HYPRE_ARCH_PATH
+        unset HYPRE_PACKAGE HYPRE_ARCH_PATH
         ;;
 
     hypre-[0-9]* | hypre-git)
-        hyprePACKAGE="${1%%/}"
+        HYPRE_PACKAGE="${1%%/}"
         unset optHypre
         unset HYPRE_ARCH_PATH   # Avoid inconsistency
         ;;
+
+    petsc/* | sources/petsc* |\
     petsc-[0-9]* | petsc-git)
-        petscPACKAGE="${1%%/}"
+        PETSC_PACKAGE="${1%%/}"
         unset PETSC_ARCH_PATH   # Avoid inconsistency
         ;;
     *)
@@ -111,16 +120,12 @@ do
     shift
 done
 
-[ -n "$petscPACKAGE" ] || die "The petsc-VERSION was not specified"
-
-# Nothing to build
-if _foamIsNone "$petscPACKAGE"
+if [ -z "$PETSC_PACKAGE" ]
 then
-    echo "Using petsc-none (skip ThirdParty build of PETSC)"
-    exit 0
-elif _foamIsSystem "$petscPACKAGE"
+    die "The PETSC package/version not specified"
+elif _foamIsNone "$PETSC_PACKAGE" || _foamIsSystem "$PETSC_PACKAGE"
 then
-    echo "Using petsc-system"
+    echo "Using none/system (skip ThirdParty build of PETSC)"
     exit 0
 fi
 
@@ -128,11 +133,11 @@ fi
 # Integrations
 
 # Clunky
-if [ -z "$optHypre" ] && [ -n "$hyprePACKAGE" ] \
-&& ! _foamIsNone "$hyprePACKAGE"
+if [ -z "$optHypre" ] && [ -n "$HYPRE_PACKAGE" ] \
+&& ! _foamIsNone "$HYPRE_PACKAGE"
 then
-    echo "Using $hyprePACKAGE"
-    : "${HYPRE_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$hyprePACKAGE}"
+    echo "Using $HYPRE_PACKAGE"
+    : "${HYPRE_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$HYPRE_PACKAGE}"
 fi
 
 
@@ -140,15 +145,22 @@ fi
 #
 # Build PETSC
 #
-#   PETSC_ARCH_PATH  : installation directory
-#   PETSC_SOURCE_DIR : location of the original sources
+#   PETSC_ARCH_PATH : installation directory (as per config file)
+#
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
 
-PETSC_SOURCE_DIR="$sourceBASE/$petscPACKAGE"
-: "${PETSC_ARCH_PATH:=$installBASE$WM_SIZE_OPTIONS/$petscPACKAGE}"
+PETSC_SOURCE="$(findSourceDir "$PETSC_PACKAGE")"
+PETSC_PACKAGE="$(basename "$PETSC_PACKAGE")"
+PETSC_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PETSC_PACKAGE"
 
-[ -d "$PETSC_SOURCE_DIR" ] || {
-    echo "Missing sources: '$petscPACKAGE'"
-    showDownloadHint PETSC
+# Override as per config file (if any)
+[ -n "$PETSC_ARCH_PATH" ] && PETSC_PREFIX="$PETSC_ARCH_PATH"
+
+[ -d "$PETSC_SOURCE" ] || {
+    echo "Missing sources: '$PETSC_PACKAGE'"
+    showDownloadHint petsc
     exit 2
 }
 
@@ -158,29 +170,28 @@ archOpt="$WM_SIZE_OPTIONS"
 
 if [ -n "$optInplace" ]
 then
-    unset installPrefix
-    # No install stage requires
+    # Inplace installation. No install stage required
+    unset PETSC_PREFIX
     makeInstall() { true; }
 else
-
-    # Regular installation location
-    installPrefix="$PETSC_ARCH_PATH"
+    # Regular installation location (PETSC_PREFIX)
 
     makeInstall() {
-        make PETSC_DIR="$PETSC_SOURCE_DIR" PETSC_ARCH="$archOpt" install
+        make PETSC_DIR="$PETSC_SOURCE" PETSC_ARCH="$archOpt" install
+        pkgconfigAdjust "$PETSC_PREFIX"
     }
 fi
 
-echo "Starting build: $petscPACKAGE ($targetType)"
+echo "Starting build: $PETSC_PACKAGE ($targetType)"
 if [ "$WM_PRECISION_OPTION" = SP ]
 then
     optHypre=false  # No single-precision hypre
     echo "No single-precision hypre"
 fi
-if [ -d "$PETSC_SOURCE_DIR/$archOpt/externalpackages" ]
+if [ -d "$PETSC_SOURCE/$archOpt/externalpackages" ]
 then
     echo "Removing old $archOpt/externalpackages"
-    rm -rf "$PETSC_SOURCE_DIR/$archOpt/externalpackages"
+    rm -rf "$PETSC_SOURCE/$archOpt/externalpackages"
 fi
 echo
 (
@@ -233,7 +244,7 @@ echo
         # This is a really clunky way to use ThirdParty hypre
         if [ -f "$HYPRE_ARCH_PATH/include/HYPRE.h" ]
         then
-            echo "Has installed hypre: $hyprePACKAGE"
+            echo "Has installed hypre: $HYPRE_PACKAGE"
             configOpt="$configOpt --with-hypre-dir=$HYPRE_ARCH_PATH"
         else
             configOpt="$configOpt --download-hypre"
@@ -254,17 +265,20 @@ echo
     unset CC CXX
     unset CFLAGS CXXFLAGS
 
-    cd "$PETSC_SOURCE_DIR" || exit
+    cd "$PETSC_SOURCE" || exit
     unset GIT_DIR # No special git-repo handling
 
-    rm -rf "$PETSC_ARCH_PATH"
+    if [ -n "$PETSC_PREFIX" ]
+    then
+        rm -rf "$PETSC_PREFIX"
+    fi
     # No clean here, if we have multiple arch in the same directory
 
     echo
     set -x
     ./configure \
-        ${installPrefix:+--prefix="$installPrefix"} \
-       --PETSC_DIR="$PETSC_SOURCE_DIR" \
+        ${PETSC_PREFIX:+--prefix="$PETSC_PREFIX"} \
+       --PETSC_DIR="$PETSC_SOURCE" \
        --with-petsc-arch="$archOpt" \
        --with-clanguage=C \
        --with-fc=0 \
@@ -273,12 +287,12 @@ echo
      && set +x \
      && echo "Configured: petsc" \
      && make ${WM_NCOMPPROCS:+-j $WM_NCOMPPROCS} \
-            PETSC_DIR="$PETSC_SOURCE_DIR" PETSC_ARCH="$archOpt" all \
+            PETSC_DIR="$PETSC_SOURCE" PETSC_ARCH="$archOpt" all \
      && echo "Built: petsc" \
      && makeInstall \
-     && echo "Installed: petsc - may require etc/pkgconfigPrefix to relocate"
+     && echo "Installed: $PETSC_PACKAGE"
 ) || {
-    echo "Error building: petsc"
+    echo "Error building: $PETSC_PACKAGE"
     exit 1
 }
 

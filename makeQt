@@ -7,7 +7,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011 OpenFOAM Foundation
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -21,37 +21,40 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-cd "${0%/*}" || exit
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
-. etc/tools/QtFunctions
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/QtFunctions
 #------------------------------------------------------------------------------
-usage() {
-    exec 1>&2
-    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+printVersions() { listPackageVersions qt; exit 0; }
+printHelp() {
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [qt-VERSION] [-- configure-options]
+Usage: ${0##*/} [OPTION] [qt-VERSION] [-- configure-options]
 options:
   -force        Force compilation, even if it already exists
   -gcc          Force use of gcc/g++
-  -help
+  -list         List available unpacked source versions
+  -help         Display usage help
 
 * build $qtTYPE, version ${qtVERSION:-undefined}
 
 USAGE
-    showDownloadHint QT
-    exit 1
+    showDownloadHint qt
+    exit 0  # Clean exit
 }
 #------------------------------------------------------------------------------
 exportCompiler true     # Compiler info + flags for CMake/configure
 
 unset optForce
+unset PACKAGE qtVERSION
 
 # Parse options
 while [ "$#" -gt 0 ]
@@ -59,14 +62,22 @@ do
     case "$1" in
     '') ;;      # Ignore empty
     --) break;; # Extra configure options (leave on $@ for later detection)
-    -h | -help) usage   ;;
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
     -gcc)       useGcc  ;;
     -force)     optForce=true ;;
+
+    qt/* | sources/qt*)
+        # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
+        PACKAGE="${1%%/}";
+        qtVERSION="$(basename "$PACKAGE" | sed 's#^.*-##')"
+        ;;
 
     -qt-[0-9]* | [0-9]* | qt-*)
         # -qt-VERSION, VERSION, qt-VERSION, qt-everywhere-opensource-src-VERSION
         qtVERSION="${1%%/}";
         qtVERSION="${qtVERSION##*-}"
+        PACKAGE="$qtTYPE-$qtVERSION"
         ;;
 
     *)
@@ -75,38 +86,41 @@ do
     esac
     shift
 done
-qtPACKAGE=$qtTYPE-$qtVERSION
 
-# Nothing to build
-if _foamIsNone "$qtPACKAGE"
+if [ -z "$PACKAGE" ]
 then
-    echo "Using qt-none (skip ThirdParty build of QT)"
-    exit 0
-elif _foamIsSystem "$qtPACKAGE"
+    die "The QT package/version not specified"
+elif _foamIsNone "$PACKAGE" || _foamIsSystem "$PACKAGE"
 then
-    echo "Using qt-system"
+    echo "Using none/system (skip ThirdParty build of QT)"
     exit 0
 fi
 
 #------------------------------------------------------------------------------
 #
 # Build QT
+#
+#   *PACKAGE : name-version of the package
+#   *SOURCE  : location of original sources
+#   *PREFIX  : installation directory
 
-QT_SOURCE_DIR=$sourceBASE/$qtPACKAGE
-QT_ARCH_PATH=$installBASE/qt-$qtVERSION
+PKG_SOURCE="$(findSourceDir "$PACKAGE" "$qtTYPE-$qtVERSION")"
+PACKAGE="qt-$qtVERSION"
+PKG_PREFIX="$installBASE/$PACKAGE"
+export GIT_DIR="$PKG_SOURCE/.git"
 
 echo
 echo ========================================
-echo "Build Qt $qtPACKAGE"
+echo "Build Qt $PACKAGE"
 echo
 
 if [ -z "$optForce" ] \
-&& [ -d "$QT_ARCH_PATH" ] \
-&& [ -r "$QT_ARCH_PATH/bin/qmake" ]
+&& [ -d "$PKG_PREFIX" ] \
+&& [ -r "$PKG_PREFIX"/bin/qmake ]
 then
-    echo "Already built: Qt-$qtVERSION"
+    echo "Already built: $PACKAGE"
 else
-    echo "Starting build: Qt-$qtVERSION"
+    echo "Starting build: $PACKAGE"
     (
         # Configuration options:
         unset configOpt
@@ -140,35 +154,34 @@ else
 
         # End of configuration options
         # ----------------------------
-        buildDIR=$buildBASE/$qtPACKAGE
+        PKG_BUILD="$buildBASE/$PACKAGE"
 
-        cd "$QT_SOURCE_DIR" || exit
-        export GIT_DIR="$PWD/.git" # Mask seeing our own git-repo
+        cd "$PKG_SOURCE" || exit
         [ -e Makefile ] && make distclean 2>/dev/null
 
         # Remove any existing build folder and recreate
-        rm -rf $QT_ARCH_DIR
-        rm -rf $buildDIR 2>/dev/null
-        mkdir -p $buildDIR
+        rm -rf "$PKG_PREFIX"
+        rm -rf "$PKG_BUILD"
+        mkdir -p "$PKG_BUILD"
 
         # Remove any remnants from a previous shadow build
-        rm -f "$QT_SOURCE_DIR/.qmake.cache" 2>/dev/null
-        rm -f "$QT_SOURCE_DIR/src/corelib/global/qconfig.h" 2>/dev/null
-        rm -f "$QT_SOURCE_DIR/src/corelib/global/qconfig.cpp" 2>/dev/null
+        rm -f "$PKG_SOURCE"/.qmake.cache
+        rm -f "$PKG_SOURCE"/src/corelib/global/qconfig.h
+        rm -f "$PKG_SOURCE"/src/corelib/global/qconfig.cpp
 
-        cd "$buildDIR" || exit
+        cd "$PKG_BUILD" || exit
 
         # Compile as opensource, accepting LGPL conditions (yes)
-        echo yes | $QT_SOURCE_DIR/configure \
-            -prefix $QT_ARCH_PATH \
+        echo yes | "$PKG_SOURCE"/configure \
+            -prefix "$PKG_PREFIX" \
             -opensource \
             $configOpt \
         && time make -j $WM_NCOMPPROCS \
         && make install \
-        && echo "Built: Qt-$qtVERSION" \
-        && finalizeQt
+        && echo "Built: $PACKAGE" \
+        && finalizeQt "$PKG_PREFIX"
     ) || {
-        echo "Error building: Qt-$qtVERSION"
+        echo "Error building: $PACKAGE"
         exit 1
     }
 fi

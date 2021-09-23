@@ -38,6 +38,85 @@ installBASE="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
 # Synthetic value combining precision and label size (Eg, DPInt32)
 WM_SIZE_OPTIONS="${WM_PRECISION_OPTION}Int${WM_LABEL_SIZE}"
 
+#------------------------------------------------------------------------------
+# Make adjustments for non-standard build locations
+
+# Specified a build-root
+if [ -n "$FOAM_THIRD_PARTY_BUILDROOT" ]
+then
+    if [ ! -d "$FOAM_THIRD_PARTY_BUILDROOT" ]
+    then
+        dir="$(dirname "$FOAM_THIRD_PARTY_BUILDROOT")"
+        if [ -d "$dir" ] && [ -w "$dir" ]
+        then
+            mkdir -m 0755 -p "$FOAM_THIRD_PARTY_BUILDROOT"
+        fi
+        # Also checks for failure of previous mkdir
+        if [ ! -d "$FOAM_THIRD_PARTY_BUILDROOT" ]
+        then
+            echo "Build-root: $FOAM_THIRD_PARTY_BUILDROOT" 1>&2
+            echo "Has invalid parent: $dir" 1>&2
+            exit 2
+        fi
+    fi
+    echo "Using build-root: $FOAM_THIRD_PARTY_BUILDROOT" 1>&2
+
+    # build/
+    _buildDir="${FOAM_THIRD_PARTY_BUILDROOT}/build"
+    mkdir -m 0755 -p "$_buildDir"
+
+    # Fully resolved
+    dir="$(cd "$_buildDir" 2>/dev/null && pwd -L)"
+    if [ -n "$dir" ]
+    then
+        buildBASE="$dir/$WM_ARCH$WM_COMPILER"
+        echo "Using build-dir: $dir" 1>&2
+    else
+        echo "Invalid build-dir: $_buildDir" 1>&2
+        exit 2
+    fi
+
+    # platforms/
+    _platformsDir="${FOAM_THIRD_PARTY_BUILDROOT}/platforms"
+    mkdir -m 0755 -p "$_platformsDir"
+
+    # Fully resolved
+    dir="$(cd "$_platformsDir" 2>/dev/null && pwd -L)"
+    if [ -n "$dir" ]
+    then
+        installBASE="$dir/$WM_ARCH$WM_COMPILER"
+        echo "Using platforms-dir: $dir" 1>&2
+    else
+        echo "Invalid platforms-dir: $_platformsDir" 1>&2
+        exit 2
+    fi
+
+    # Installation with non-standard platforms location
+    nonStandardPlatforms() { true; }
+else
+    # Installation with standard platforms location
+    nonStandardPlatforms() { false; }
+fi
+
+
+# sources/
+if [ -n "$FOAM_THIRD_PARTY_SOURCES" ]
+then
+    # Fully resolved
+    dir="$(cd "$FOAM_THIRD_PARTY_SOURCES" 2>/dev/null && pwd -L)"
+    if [ -n "$dir" ]
+    then
+        sourceBASE="$dir"
+        echo "Using sources-dir: $dir" 1>&2
+    else
+        echo "Invalid sources-dir: $FOAM_THIRD_PARTY_SOURCES" 1>&2
+        exit 2
+    fi
+fi
+
+
+#------------------------------------------------------------------------------
+
 # Dynamic library ending (default is .so)
 EXT_SO="$(wmake -show-ext-so 2>/dev/null)"
 if [ -z "$EXT_SO" ]
@@ -53,6 +132,13 @@ then
     esac
 fi
 
+# True if OS is <darwin>.
+# Test EXT_SO for ".dylib" - avoid repeated uname system call
+isDarwin()
+{
+    [ "$EXT_SO" = .dylib ]
+}
+
 
 # Fallback values, needed for our scotch Makefile which uses
 # WM_CFLAGS and WM_LDFLAGS for arch information
@@ -67,6 +153,7 @@ then
 fi
 
 unset BUILD_SUFFIX
+
 
 #------------------------------------------------------------------------------
 # Check for existence of shared library (without .so extension)
@@ -237,15 +324,29 @@ useGccFlag()
 # Final fallback is <gcc>
 whichCC()
 {
+    local fallback='gcc'
     local comp="$CC"
+    local warn
 
     if [ -z "$comp" ]
     then
         comp="$(wmake -show-c 2>/dev/null)" || comp="$WM_CC"
-        test -n "$comp" && command -v "$comp" >/dev/null || unset comp
+        if [ -n "$comp" ]
+        then
+            if ! command -v "$comp" >/dev/null
+            then
+                warn="C compiler '$comp' not found in path."
+                unset comp
+            fi
+        else
+            warn="No C compiler found via wmake."
+        fi
+        if [ -n "$warn" ]
+        then
+            echo "${warn} Defaulting to '${fallback}'" 1>&2
+        fi
     fi
-
-    echo "${comp:-gcc}"
+    echo "${comp:-$fallback}"
 }
 
 
@@ -254,15 +355,29 @@ whichCC()
 # Final fallback is <g++>
 whichCXX()
 {
+    local fallback='g++'
     local comp="$CXX"
+    local warn
 
     if [ -z "$comp" ]
     then
         comp="$(wmake -show-cxx 2>/dev/null)" || comp="$WM_CXX"
-        test -n "$comp" && command -v "$comp" >/dev/null || unset comp
+        if [ -n "$comp" ]
+        then
+            if ! command -v "$comp" >/dev/null
+            then
+                warn="CXX compiler '$comp' not found in path."
+                unset comp
+            fi
+        else
+            warn="No CXX compiler found via wmake."
+        fi
+        if [ -n "$warn" ]
+        then
+            echo "${warn} Defaulting to '${fallback}'" 1>&2
+        fi
     fi
-
-    echo "${comp:-g++}"
+    echo "${comp:-$fallback}"
 }
 
 
@@ -275,7 +390,8 @@ whichCXX()
 # NOTE: could further refine based on "wmake -show-c", but not yet needed
 whichMpicc()
 {
-    local comp="$(command -v mpicc)"
+    local fallback='mpicc'
+    local comp="$(command -v $fallback)"
     case "$WM_MPLIB" in
     (FJMPI)
         comp="$(command -v mpifcc)"     # Fujitsu <mpifcc> available?
@@ -287,7 +403,7 @@ whichMpicc()
         : "${comp:=cc}"                 # Cray <cc> if there is no <mpicc>
         ;;
     esac
-    echo "${comp:-mpicc}"
+    echo "${comp:-$fallback}"
 }
 
 
@@ -300,7 +416,8 @@ whichMpicc()
 # NOTE: could further refine based on "wmake -show-cxx", but not yet needed
 whichMpicxx()
 {
-    local comp="$(command -v mpicxx)"
+    local fallback='mpicxx'
+    local comp="$(command -v $fallback)"
     case "$WM_MPLIB" in
     (FJMPI)
         comp="$(command -v mpiFCC)"     # Fujitsu <mpiFCC> available?
@@ -309,10 +426,10 @@ whichMpicxx()
         comp="$(command -v mpiicpc)"    # Intel <mpiicpc> available?
         ;;
     (CRAY-MPI*)
-        : "${comp:=CC}"                 # Cray <CC> if there is no <mpicc>
+        : "${comp:=CC}"                 # Cray <CC> if there is no <mpicxx>
         ;;
     esac
-    echo "${comp:-mpicxx}"
+    echo "${comp:-$fallback}"
 }
 
 # Require wmkdepend etc when building with wmake
@@ -426,6 +543,7 @@ findSourceDir()
 
         for check in \
             "$package" \
+            "$subdir/$package" \
             "sources/$package" \
             "sources/$subdir/$package" \
         ;
@@ -501,7 +619,7 @@ listPackageVersions()
 
             [ -n "$package" ] || continue
 
-            for dir in . sources sources/"$package"
+            for dir in . ./"$package" sources sources/"$package"
             do
                 # Find package-version (ie, when it has separators)
                 find "$dir" -maxdepth 1 \

@@ -27,21 +27,21 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-cd "${0%/*}" || exit
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
-. etc/tools/ParaViewFunctions
-. etc/tools/vtkFunctions
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ParaViewFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/vtkFunctions
 #------------------------------------------------------------------------------
-
-unset vtk_version mesa_version                           # Purge current values
-
-# vtk version from OpenFOAM etc/config.sh file:
+# Obtain version from OpenFOAM etc/config.sh file:
+unset vtk_version mesa_version              # Purge current values
 _foamConfig vtk
 
 VTK_VERSION="$vtk_version"
@@ -63,12 +63,11 @@ then
 fi
 
 #------------------------------------------------------------------------------
-usage() {
-    exec 1>&2
-    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+printVersions() { listPackageVersions vtk; exit 0; }
+printHelp() {
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [vtk-VERSION] [CMAKE-OPTION]
+Usage: ${0##*/} [OPTION] [vtk-VERSION] [CMAKE-OPTION]
 options:
   -gcc              Force use of gcc/g++
   -cmake PATH       with cmake from the given path
@@ -87,7 +86,8 @@ options:
   -buildType NAME   specify the build type (default: Release)
   -suffix NAME      specify a suffix to distinguish the build
   -DNAME=VALUE      add cmake variable
-  -help
+  -list             List available unpacked source versions
+  -help             Display usage help
 
 The -no-FEATURE option can be used to forcibly disable these features:
   -no-gl2 | -no-mesa | -no-mpi
@@ -109,8 +109,8 @@ For finer control, the build stages can be selected or deselected individually:
   ->  \$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER/VTK-$VTK_VERSION$BUILD_SUFFIX
 
 USAGE
-    # showDownloadHint VTK
-    exit 1
+    # showDownloadHint vtk
+    exit 0  # Clean exit
 }
 #------------------------------------------------------------------------------
 exportCompiler minimal  # Minimal compiler info for CMake/configure
@@ -124,11 +124,14 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
-    -h | -help) usage   ;;
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
     -gcc)       useGcc  ;;
 
-    [0-9]* | vtk-[0-9]* | VTK-[0-9]*) # VTK version
-        setVtkVersion "${1%%/}"
+    # VTK version
+    paraview/* | vtk/* | sources/paraview* | sources/vtk* |\
+    [0-9]* | vtk-[0-9]* | VTK-[0-9]*)
+        setVtkVersion "$(basename "$1")"
         ;;
     -D[A-Z]*=* | [A-Z]*=*)  # cmake variables
         addCMakeVariable "$1"

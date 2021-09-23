@@ -50,13 +50,15 @@ then
     exit 2
 fi
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-cd "${0%/*}" || exit
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
 . "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 # Obtain version from OpenFOAM etc/config.sh file:
@@ -69,6 +71,11 @@ targetType=libso
 if [ -d "$MPI_ARCH_PATH" ]
 then
     export MPI_HOME="$MPI_ARCH_PATH"
+fi
+
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset KAHIP_ARCH_PATH
 fi
 
 #------------------------------------------------------------------------------
@@ -134,6 +141,7 @@ do
         targetType="$1"
         ;;
 
+    kahip/* | sources/kahip* | sources/KaHIP* |\
     kahip-[0-9]* | kahip-git | KaHIP_* |  KaHIP-[0-9]*)
         PACKAGE="${1%%/}"
         unset KAHIP_ARCH_PATH  # Avoid inconsistency
@@ -184,7 +192,7 @@ fi
 #   *SOURCE  : location of original sources
 #   *PREFIX  : installation directory
 
-PKG_SOURCE="$sourceBASE/$PACKAGE"
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
 PACKAGE="$(basename "$PACKAGE")"
 # Future:  PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
 PKG_PREFIX="$installBASE/$PACKAGE"
@@ -395,7 +403,6 @@ install_wmake()
     return 0
 }
 
-
 if [ "${useWmakeWorkaround:-false}" = false ]
 then
 (
@@ -418,13 +425,15 @@ then
 
     cmake=$(findCMake)
 
-    cd "$PKG_BUILD" && $cmake \
+    cd "$PKG_BUILD" && set -x && \
+    ${cmake:?} \
         -B "$PKG_BUILD" \
         -S "$PKG_SOURCE" \
         -DCMAKE_INSTALL_PREFIX="$PKG_PREFIX" \
         -DCMAKE_BUILD_TYPE=Release \
         $buildOpt \
         ${WM_QUIET:+-DCMAKE_RULE_MESSAGES=OFF} \
+     && set +x \
      && make -j $WM_NCOMPPROCS \
      && make install \
      && install \
@@ -458,7 +467,7 @@ then
     && echo "Built: $PACKAGE" \
     && install_wmake
 ) || {
-    echo "Error building: kahip"
+    echo "Error building: $PACKAGE"
     exit 1
 }
 fi

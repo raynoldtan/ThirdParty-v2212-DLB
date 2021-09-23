@@ -7,7 +7,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011 OpenFOAM Foundation
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -28,93 +28,172 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
-# . etc/tools/ThirdPartyFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-usage() {
-    exec 1>&2
-    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+printHelp() {
     cat<<USAGE
-Usage: ${0##*/} [OPTION] [platform [ ... platformN]]
+Usage: ${0##*/} [OPTION]
 options:
-  -all              remove all platforms directories
-  -current          clean the current platform ($WM_OPTIONS)
-  -help             print the usage
+  -build            Remove all 'build' directories
+  -current          Clean the current platform ($WM_OPTIONS)
+  -platform=NAME    Clean the named platform
+  -src | -sources   Clean sources (eg, with make distclean)
+  -full             Same as -build -src -current
+  -n | -dry-run     Do not perform actions
+  -help             Display usage help
 
 Cleanup intermediate build directories.
 Optionally remove specified platform(s) from the ThirdParty platforms
-directory $WM_THIRD_PARTY_DIR/platforms
+directory \$WM_THIRD_PARTY_DIR/platforms
 
 USAGE
-    exit 1
+    exit 0  # Clean exit
 }
 
-# Print help message
-case "$1" in
-(-h | -help*)
-    usage
-    ;;
-esac
+#------------------------------------------------------------------------------
+unset optDryRun optCleanType optPlatformName
+
+# Parse options
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    --) shift; break;; # End option processing
+    (-h | -help*) printHelp ;;
+    (-n | -dry-run) optDryRun="(dry-run) " ;;
+
+    (-build)
+        optCleanType="${optCleanType}:build"
+        ;;
+
+    (-src | -source*)
+        optCleanType="${optCleanType}:sources"
+        ;;
+
+    (-full)
+        optCleanType="full"
+        ;;
+
+    (-current)
+        optCleanType="${optCleanType}:current"
+        ;;
+
+    (-platform=*)
+        optCleanType="${optCleanType}:platform"
+        optPlatformName="${1#*=}"
+        ;;
+
+    *) echo "Ignore unknown option/argument" 1>&2 ;;
+    esac
+    shift
+done
 
 #------------------------------------------------------------------------------
+[ -n "$optCleanType" ] || die "No clean operation specified"
 
-# Clean various packages via 'distclean'
-for i in \
-    openmpi-* metis-* adios-* ADIOS-* gperftools-* qt-* \
-    gmp-* mpfr-* mpc-* gcc-* llvm-* \
-;
-do
-    if [ -d "$i" ]
-    then
-    (
-        echo
-        echo "${i%/*}"
-        echo "    make distclean"
-        echo
-        cd $i && make distclean
+# sources
+case "$optCleanType" in (*full* | *source*)
+
+    # Clean various packages via 'distclean'
+    for dir in \
+    $(etc/list-available -dirs \
+        gcc \
+        gmp \
+        gperftools \
+        llvm \
+        metis \
+        mpc \
+        mpfr \
+        openmpi \
+        qt \
     )
-    fi
-done
+    do
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}make distclean"
+        elif [ -d "$dir" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "$dir : make distclean"
+            echo
+            make distclean || true
+        )
+        fi
+    done
 
+    # Clean scotch (src) with 'realclean'
+    for dir in $(etc/list-available -dirs scotch)
+    do
+        dir="$dir/src"  # Within the src directory!
 
-# Clean various packages via 'realclean'
-for i in scotch*/src
-do
-    if [ -d "$i" ]
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}make realclean"
+        elif [ -d "$dir" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "$dir : make realclean"
+            echo
+            make realclean || true
+        )
+        fi
+    done
+
+    # Clean various packages via 'wclean'
+    for dir in $(etc/list-available -dirs ccmio libccmio)
+    do
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}wclean"
+        elif [ -f "$dir/Make/files" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "${dir}: wclean"
+            echo
+            wclean || true
+        )
+        fi
+    done
+
+    # Clean various packages via 'wclean'
+    for dir in $(etc/list-available -dirs kahip)
+    do
+        dir="$dir/lib"
+        if [ -n "$optDryRun" ]
+        then
+            echo "$dir : ${optDryRun}wclean"
+        elif [ -f "$dir/Make/files" ]
+        then
+        (
+            cd "$dir" 2>/dev/null || exit
+            echo
+            echo "${dir}: wclean"
+            echo
+            wclean || true
+        )
+        fi
+    done
+esac
+
+# -----------------------------------------------------------------------------
+
+# build
+case "$optCleanType" in (*full* | *build*)
+    # Clean out-of-source build directories
+    if [ -d build ]
     then
-    (
         echo
-        echo "${i%/*}"
-        echo "    make realclean"
-        echo
-        cd $i && make realclean
-    )
+        echo "${optDryRun}Remove build/ directory contents"
+        [ -z "$optDryRun" ] && rm -rf build/*
     fi
-done
+esac
 
-
-# Clean various packages via 'wclean'
-for i in libccmio*/Make kahip*/lib/Make
-do
-    if [ -d "$i" ]
-    then
-    (
-        echo
-        echo "${i%/Make}"
-        echo "    wclean"
-        echo
-        cd ${i%/Make} && wclean
-    )
-    fi
-done
-
-
-# Clean out-of-source build directories
-if [ -d build ]
-then
-    echo
-    echo "Clean build/ directory"
-    rm -rf build/*
-fi
 
 # -----------------------------------------------------------------------------
 
@@ -127,42 +206,28 @@ removePlatform()
     if [ -n "$platform" ] && [ -d "platforms/$platform" ]
     then
         echo
-        echo "Cleaning platform '$platform'"
-        rm -rf "platforms/$platform"
+        echo "${optDryRun}Cleaning platform '$platform'"
+        [ -z "$optDryRun" ] && "platforms/$platform"
     else
         echo
-        echo "Platform '$platform' not built"
+        echo "${optDryRun}Platform '$platform' not built"
     fi
 }
 
-if [ "$#" -ge 1 ]
-then
-    echo
-    echo "Clean platforms/sub-directories"
-fi
 
-# Optionally cleanup platforms specified from the arguments
-while [ "$#" -ge 1 ]
-do
-    case "$1" in
-    -all)
-        echo
-        echo "Removing all platforms/sub-directories"
-        echo
-        rm -rf platforms/*
-        break
-        ;;
+# -----------------------------------------------------------------------------
 
-    -current)
-        echo "Current platform '$WM_OPTIONS'"
-        removePlatform "$WM_OPTIONS"
-        ;;
+# current platform
+case "$optCleanType" in (*full* | *current*)
+    echo "${optDryRun}Remove current platform: '$WM_OPTIONS'"
+    removePlatform "$WM_OPTIONS"
+esac
 
-    *)
-        removePlatform "$1"
-        ;;
-    esac
-    shift
-done
+
+# named platform
+case "$optCleanType" in (*platform*)
+    echo "${optDryRun}Remove platform: '$optPlatformName'"
+    removePlatform "$optPlatformName"
+esac
 
 #------------------------------------------------------------------------------

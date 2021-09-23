@@ -50,13 +50,15 @@ then
     exit 2
 fi
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-cd "${0%/*}" || exit
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
 . "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 # Obtain version from OpenFOAM etc/config.sh file:
@@ -64,6 +66,11 @@ _foamConfig metis
 
 PACKAGE="${METIS_VERSION:-system}"
 targetType=libso
+
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset METIS_ARCH_PATH
+fi
 
 #------------------------------------------------------------------------------
 printVersions() { listPackageVersions metis; exit 0; }
@@ -114,6 +121,7 @@ do
         targetType="$1"
         ;;
 
+    metis/* | sources/metis* | \
     metis-[0-9]*)
         PACKAGE="${1%%/}"
         unset METIS_ARCH_PATH  # Avoid inconsistency
@@ -161,7 +169,7 @@ fi
 #   *SOURCE  : location of original sources
 #   *PREFIX  : installation directory
 
-PKG_SOURCE="$sourceBASE/$PACKAGE"
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
 PACKAGE="$(basename "$PACKAGE")"
 PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
 export GIT_DIR="$PKG_SOURCE/.git"

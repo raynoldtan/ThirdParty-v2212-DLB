@@ -20,13 +20,15 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-cd "${0%/*}" || exit
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
 . "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
 _foamConfig scotch  # Get SCOTCH_ARCH_PATH, SCOTCH_VERSION
@@ -35,6 +37,11 @@ PACKAGE="${SCOTCH_VERSION:-system}"
 
 unset withMPI
 case "$WM_MPLIB" in (*MPI*) [ "$FOAM_MPI" = dummy ] || withMPI=true ;; esac
+
+if nonStandardPlatforms  # Possibly unreliable inherited values
+then
+    unset SCOTCH_ARCH_PATH
+fi
 
 #------------------------------------------------------------------------------
 printVersions() { listPackageVersions scotch; exit 0; }
@@ -82,7 +89,8 @@ do
     -no-mpi)    unset withMPI ;;
     -no-extlib) optNoExtlib=true ;;  # Hidden option
 
-    scotch-[0-9]* | scotch-git | scotch_* )
+    scotch/ | sources/scotch* |\
+    scotch-[0-9]* | scotch-v[0-9]* | scotch-git | scotch_* )
         PACKAGE="${1%%/}"
         unset SCOTCH_ARCH_PATH  # Avoid inconsistency
         ;;
@@ -118,7 +126,7 @@ fi
 #   *SOURCE  : location of original sources
 #   *PREFIX  : installation directory
 
-PKG_SOURCE="$sourceBASE/$PACKAGE"
+PKG_SOURCE="$(findSourceDir "$PACKAGE")"
 PACKAGE="$(basename "$PACKAGE")"
 PKG_PREFIX="$installBASE$WM_SIZE_OPTIONS/$PACKAGE"
 export GIT_DIR="$PKG_SOURCE/.git"

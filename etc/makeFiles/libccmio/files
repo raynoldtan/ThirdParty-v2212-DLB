@@ -1,4 +1,6 @@
-/* NOTE: make any changes to this file in etc/makeFiles/ */
+/*
+ * NOTE: make any changes to this file in ThirdParty etc/makeFiles/
+*/
 
 libadf/ADF_interface.c
 libadf/ADF_internals.c
@@ -19,4 +21,4 @@ libccmio/ccmioversion.c
  libcgns/cgnslib.c
 */
 
-LIB = $(FOAM_EXT_LIBBIN)/libccmio
+LIB = $(CCMIO_LIB_DIR)/libccmio

@@ -26,20 +26,21 @@
 # ----------------------------------------------
 # NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-cd "${0%/*}" || exit
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
-. etc/tools/ThirdPartyFunctions
-. etc/tools/ParaViewFunctions
+if :    # Run from third-party directory
+then
+    cd "${0%/*}" || exit
+    wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
+        echo "Error (${0##*/}) : not located in \$WM_THIRD_PARTY_DIR"
+        echo "    Check your OpenFOAM environment and installation"
+        exit 1
+    }
+fi
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ParaViewFunctions
 #------------------------------------------------------------------------------
 
-unset ParaView_VERSION                                   # Purge current values
-
 # ParaView_VERSION from etc/config.sh file:
+unset ParaView_VERSION                  # Purge current values
 _foamConfig paraview
 
 # Avoid any potential conflicts (especially if building from git)
@@ -71,13 +72,12 @@ then
 fi
 
 #------------------------------------------------------------------------------
-usage() {
-    exec 1>&2
+printVersions() { listPackageVersions paraview; exit 0; }
+printHelp() {
     : ${ParaView_VERSION:=none} # some dummy value for usage information
-    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [paraview-VERSION] [CMAKE-OPTION]
+Usage: ${0##*/} [OPTION] [paraview-VERSION] [CMAKE-OPTION]
 options:
   -gcc              Force use of gcc/g++
   -cmake PATH       with cmake from the given path
@@ -105,7 +105,8 @@ options:
   -buildType NAME   specify the build type (default: Release)
   -suffix NAME      specify a suffix to distinguish the build
   -DNAME=VALUE      add cmake variable
-  -help
+  -list             List available unpacked source versions
+  -help             Display usage help
 
 The -no-FEATURE option can be used to forcibly disable these features:
   -no-gl2 | -no-mesa | -no-mpi | -no-python | -no-qt
@@ -134,8 +135,8 @@ For example,
 Or change the \$WM_PROJECT_DIR/etc/config.sh/paraview settings.
 
 USAGE
-    showDownloadHint PARAVIEW
-    exit 1
+    showDownloadHint paraview
+    exit 0  # Clean exit
 }
 #------------------------------------------------------------------------------
 exportCompiler minimal  # Minimal compiler info for CMake/configure
@@ -149,11 +150,14 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
-    -h | -help) usage   ;;
+    -h | -help*) printHelp;;
+    -list)      printVersions;;
     -gcc)       useGcc  ;;
 
-    [0-9]* | paraview-[0-9]* | ParaView-[0-9]*) # paraview version
-        setParaViewVersion "${1%%/}"
+    # paraview version
+    paraview/* | vtk/* | sources/paraview* | sources/vtk* |\
+    [0-9]* | paraview-[0-9]* | ParaView-[0-9]* | ParaView-v[0-9]*)
+        setParaViewVersion "$(basename "$1")"
         ;;
     -D[A-Z]*=* | [A-Z]*=*)  # cmake variables
         addCMakeVariable "$1"
