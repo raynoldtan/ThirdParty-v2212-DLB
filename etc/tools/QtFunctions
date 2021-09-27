@@ -6,7 +6,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011 OpenFOAM Foundation
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -33,18 +33,17 @@ unset qtVERSION # No default version
 #
 createQtConf()
 {
-    local confFile="$QT_ARCH_PATH/bin/qt.conf"
-
-    if [ -n "$QT_ARCH_PATH" ] && [ -d "$QT_ARCH_PATH/bin" ]
+    local prefix="$1"
+    if [ -n "$prefix" ] && [ -d "$prefix/bin" ]
     then
-        /bin/cat << QT_CONF > $confFile
+        /bin/cat << QT_CONF > "$prefix/bin/qt.conf"
 [Paths]
-Prefix=$QT_ARCH_PATH
+Prefix="$prefix"
 QT_CONF
         echo "    created qt.conf"
 
     else
-        echo "Error: QT_ARCH_PATH not correctly set"
+        echo "Error: qt-prefix <$prefix> not correctly set"
     fi
 }
 
@@ -56,9 +55,10 @@ QT_CONF
 #
 finalizeQt()
 {
+    local prefix="$1"
     echo "Create/Edit files to ease later relocation of a QT installation"
-    createQtConf
-    pkgconfigAdjust $QT_ARCH_PATH
+    createQtConf "$prefix"
+    pkgconfigAdjust "$prefix"
 }
 
 

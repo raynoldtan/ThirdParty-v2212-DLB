@@ -7,7 +7,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2011 OpenFOAM Foundation
-#     Copyright (C) 2016-2020 OpenCFD Ltd.
+#     Copyright (C) 2016-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -27,15 +27,13 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
-. etc/tools/ThirdPartyFunctions
-. etc/tools/QtFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/QtFunctions
 #------------------------------------------------------------------------------
-usage() {
-    exec 1>&2
-    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+printHelp() {
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [qt-VERSION]
+Usage: ${0##*/} [OPTION] [qt-VERSION]
 options:
   -force            Create qt.conf and edit pkgconfig to use \${prefix}
   -help
@@ -46,7 +44,7 @@ with a QT installation.
 * adjust relocation prefix for $qtVERSION
 
 USAGE
-    exit 1
+    exit 0 # Clean exit
 }
 #------------------------------------------------------------------------------
 unset optForce
@@ -56,7 +54,7 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
-    -h | -help*) usage   ;;
+    -h | -help*) printHelp;;
 
     -f | -force)
         optForce=true
@@ -74,16 +72,17 @@ do
 done
 
 #------------------------------------------------------------------------------
-QT_ARCH_PATH=$installBASE/qt-$qtVERSION
 
-[ -n "$qtVERSION" ]    || die "No QT version specified"
-[ -d "$QT_ARCH_PATH" ] || die "No QT installation"
+PKG_PREFIX="$installBASE/qt-$qtVERSION"
+
+[ -n "$qtVERSION" ]  || die "No QT version specified"
+[ -d "$PKG_PREFIX" ] || die "No QT installation"
 
 if [ "${optForce:-false}" = true ]
 then
     # Create qt.conf and adjust locations to use '${prefix}' internally
-    finalizeQt
+    finalizeQt "$PKG_PREFIX"
 fi
-pkgconfigNewPrefix "$QT_ARCH_PATH"
+pkgconfigNewPrefix "$PKG_PREFIX"
 
 # -----------------------------------------------------------------------------

@@ -6,41 +6,57 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2019-2021 OpenCFD Ltd.
+#     Copyright (C) 2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
-#     etc/testThirdPartyFunctions
+#     etc/list-download
 #
 # Description
-#     Simple ad hoc tests of etc/tools/ThirdPartyFunctions
+#     List known download hints. Required BUILD.md
+#
+# Example usage
+#     etc/list-download paraview
 #
 #------------------------------------------------------------------------------
-
-echo ========================================
-echo "Calling environment"
-echo "CC=$CC"
-echo "CXX=$CXX"
-echo
-echo ========================================
-
 . "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 
 #------------------------------------------------------------------------------
+printHelp() {
+    cat<<USAGE
 
-echo "CC=$(whichCC)"
-echo "CXX=$(whichCXX)"
-echo "mpicc=$(whichMpicc)"
-echo "mpicxx=$(whichMpicxx)"
+Usage: ${0##*/} [OPTION] [package1 .. [packageN]]
+Options:
+  -help    Display usage help
 
-exportCompiler
+List known download hints.
 
-echo ========================================
-echo "using:  $CC $CFLAGS"
-echo "using:  $CXX $CXXFLAGS"
-echo
-echo ========================================
+USAGE
+    exit 0  # Clean exit
+}
+#------------------------------------------------------------------------------
+
+# Process options/arguments
+while [ "$#" -gt 0 ]
+do
+    case "$1" in
+    '') ;;      # Ignore empty
+    -h | -help*) printHelp;;
+
+    -*) echo "Ignore unknown option" 1>&2 ;;
+    *)  break ;;
+    esac
+    shift
+done
+
+if [ "$#" -gt 0 ]
+then
+    showDownloadHint "$@"
+else
+    die "Did not specify any package(s)"
+fi
+
 
 #------------------------------------------------------------------------------

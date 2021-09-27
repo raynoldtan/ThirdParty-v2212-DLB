@@ -49,43 +49,62 @@ BUILD_TYPE=Release  # The cmake build type
 # Where things are or should be put
 #   ParaView_VERSION and ParaView_MAJOR should already have been set
 #
-#   ParaView_SOURCE_DIR : location of the original sources
-#   ParaView_BUILD_DIR  : location of the build
-#   ParaView_DIR        : location of the installed program
+#   PARAVIEW_SOURCEDIR : location of the original sources
+#   PARAVIEW_BUILDDIR  : location of the build
+#   ParaView_DIR       : location of the installed program
 #
 setParaViewDirs()
 {
     set -- "ParaView-$ParaView_VERSION" "ParaView-v$ParaView_VERSION"
+    unset PARAVIEW_SOURCEDIR PARAVIEW_BUILDDIR
 
-    unset ParaView_SOURCE_DIR
-    for i
+    # search
+    # - ThirdParty/PACKAGE
+    # - ThirdParty/sources/PACKAGE
+    # - ThirdParty/sources/paraview/PACKAGE
+    # - ThirdParty/sources/vtk/PACKAGE
+    for package in "$@"
     do
-        ParaView_SOURCE_DIR="$sourceBASE/$i"
-        [ -d "$ParaView_SOURCE_DIR" ] && break
+        for check in \
+            "$package" \
+            "sources/$package" \
+            "sources/paraview/$package" \
+            "sources/vtk/$package" \
+        ;
+        do
+            if [ -d "$sourceBASE/$check" ]
+            then
+                echo "Found sources: $check" 1>&2
+                PARAVIEW_SOURCEDIR="$sourceBASE/$check"
+                break 2
+            fi
+        done
     done
 
-    [ -d "$ParaView_SOURCE_DIR" ] || {
+    [ -d "$PARAVIEW_SOURCEDIR" ] || {
         echo "Did not locate ParaView version:"
         while [ "$#" -ge 1 ]; do echo "    $1"; shift; done
         echo
         echo "In the directory:"
         echo "    $sourceBASE"
+        echo "    \-- sources/paraview"
+        echo "       |-- paraview"
+        echo "       \\-- vtk"
         echo
         echo "abort build"
         exit 1
     }
 
-    ParaView_BUILD_DIR=$buildBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
-    ParaView_DIR=$installBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX
+    PARAVIEW_BUILDDIR="$buildBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX"
+    ParaView_DIR="$installBASE/ParaView-$ParaView_VERSION$BUILD_SUFFIX"
+    export GIT_DIR="$PARAVIEW_SOURCEDIR/.git"  # Avoid seeing our own git-repo
 
-    export ParaView_SOURCE_DIR ParaView_BUILD_DIR ParaView_DIR
+    export PARAVIEW_SOURCEDIR PARAVIEW_BUILDDIR ParaView_DIR
 
     echo
-    echo "ParaView_SOURCE_DIR=$ParaView_SOURCE_DIR"
-    echo "ParaView_BUILD_DIR=$ParaView_BUILD_DIR"
     echo "ParaView_DIR=$ParaView_DIR"
-
-    export GIT_DIR="$ParaView_SOURCE_DIR/.git" # Mask seeing our own git-repo
+    echo "PARAVIEW_SOURCEDIR=$PARAVIEW_SOURCEDIR"
+    echo "PARAVIEW_BUILDDIR=$PARAVIEW_BUILDDIR"
 }
 
 
@@ -411,7 +430,7 @@ ERROR
 #
 patchParaView()
 {
-    applyPatch "paraview-$ParaView_VERSION" "$ParaView_SOURCE_DIR"
+    applyPatch "paraview-$ParaView_VERSION" "$PARAVIEW_SOURCEDIR"
 }
 
 
@@ -423,17 +442,17 @@ configParaView()
     local cmake=$(findCMake)
 
     # Remove any existing build folder and recreate
-    if [ -d $ParaView_BUILD_DIR ]
+    if [ -d "$PARAVIEW_BUILDDIR" ]
     then
         echo "removing old build directory"
-        echo "    $ParaView_BUILD_DIR"
-        rm -rf $ParaView_BUILD_DIR
+        echo "    $PARAVIEW_BUILDDIR"
+        rm -rf "$PARAVIEW_BUILDDIR"
     fi
-    mkdir -p $ParaView_BUILD_DIR
+    mkdir -p "$PARAVIEW_BUILDDIR"
 
     addCMakeVariable "CMAKE_BUILD_TYPE=$BUILD_TYPE"
 
-    cd "$ParaView_BUILD_DIR" || exit  # Change to build folder
+    cd "$PARAVIEW_BUILDDIR" || exit  # Change to build folder
 
     echo "----"
     echo "Configuring paraview-$ParaView_VERSION (major version: $ParaView_MAJOR)"
@@ -442,26 +461,26 @@ configParaView()
     echo "    MESA   support : ${withMESA:-false}"
     echo "    GL2  rendering : ${withGL2:-false}"
     echo "    QT dev support : ${withQT:-true}"
-    echo "    Source         : $ParaView_SOURCE_DIR"
-    echo "    Build          : $ParaView_BUILD_DIR"
+    echo "    Source         : $PARAVIEW_SOURCEDIR"
+    echo "    Build          : $PARAVIEW_BUILDDIR"
     echo "    Target         : $ParaView_DIR"
     echo "    cmake          : $cmake"
     echo "    Build suffix   : ${BUILD_SUFFIX:-none}"
     echo "----"
     echo
     echo "$cmake" \
-        -DCMAKE_INSTALL_PREFIX=$ParaView_DIR \
+        -DCMAKE_INSTALL_PREFIX="$ParaView_DIR" \
         $CMAKE_VARIABLES \
-        $ParaView_SOURCE_DIR
+        "$PARAVIEW_SOURCEDIR"
     echo
     echo "----"
     echo
 
     # Run cmake to create Makefiles
     $cmake \
-        -DCMAKE_INSTALL_PREFIX=$ParaView_DIR \
+        -DCMAKE_INSTALL_PREFIX="$ParaView_DIR" \
         $CMAKE_VARIABLES \
-        $ParaView_SOURCE_DIR
+        "$PARAVIEW_SOURCEDIR"
 }
 
 
@@ -471,7 +490,7 @@ configParaView()
 #
 makeParaView()
 {
-    cd "$ParaView_BUILD_DIR" || exit  # Change to build folder
+    cd "$PARAVIEW_BUILDDIR" || exit  # Change to build folder
     echo "    Starting make"
     time make -j $WM_NCOMPPROCS
     echo "    Done make"
@@ -490,7 +509,7 @@ makeParaView()
 #
 installParaView()
 {
-    cd "$ParaView_BUILD_DIR" || exit  # Change to build folder
+    cd "$PARAVIEW_BUILDDIR" || exit  # Change to build folder
     echo "    Installing ParaView to $ParaView_DIR"
 
     make install

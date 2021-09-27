@@ -28,14 +28,12 @@
 #     CMAKE_ARCH_PATH that may specify a possible cmake/bin directory.
 #
 #------------------------------------------------------------------------------
+umask 0022  # Created files to be readable by all
 
 # The normal locations for source, build and installation (prefix-dir)
 sourceBASE="$WM_THIRD_PARTY_DIR"
 buildBASE="$WM_THIRD_PARTY_DIR/build/$WM_ARCH$WM_COMPILER"
 installBASE="$WM_THIRD_PARTY_DIR/platforms/$WM_ARCH$WM_COMPILER"
-
-# Commonly used names
-unset sourceDIR buildDIR prefixDIR binDIR incDIR libDIR
 
 # Synthetic value combining precision and label size (Eg, DPInt32)
 WM_SIZE_OPTIONS="${WM_PRECISION_OPTION}Int${WM_LABEL_SIZE}"
@@ -368,18 +366,163 @@ requireExtLibBin()
 # Should be of the form "[link xx]:  http://..."
 showDownloadHint()
 {
-    local package="$1"
+    local package
 
-    if [ -n "$package" ]
+    if [ -f "$WM_THIRD_PARTY_DIR/BUILD.md" ]
     then
-        echo "Possible download locations for $package :"
+        for package in "$@"
+        do
+            echo "Possible download locations for $package :" 1>&2
 
-        if [ -f "$WM_THIRD_PARTY_DIR/BUILD.md" ]
-        then
-            grep -i "$package" "$WM_THIRD_PARTY_DIR/BUILD.md" | \
-            grep -E '(http|ftp)' | sed -ne 's/^ *\[.*\]: */    /p' | \
-            uniq
-        fi
+            if [ -f "$WM_THIRD_PARTY_DIR/BUILD.md" ]
+            then
+                grep -i "$package" "$WM_THIRD_PARTY_DIR/BUILD.md" | \
+                grep -E '(http|ftp)' | sed -ne 's/^ *\[.*\]: */    /p' | \
+                uniq
+            fi
+        done
+    else
+        echo "No BUILD.md available" 1>&2
+    fi
+}
+
+
+#
+# Resolve the appropriate source directory for the given PACKAGE
+#
+# checks:
+# - ThirdParty/PACKAGE
+# - ThirdParty/sources/PACKAGE
+# - ThirdParty/sources/canonical/PACKAGE
+#
+# Where the 'canonical' name is simply the lowercase version of PACKAGE
+# without any version information.
+# Eg, "ParaView-5.9.0" -> "paraview"
+# but also accept "0config-v1.2" -> "0config"
+#
+# Optional flags:
+#   -absolute : report absolute path [default]
+#   -relative : report path relative to sourceBASE (ThirdParty)
+#
+findSourceDir()
+{
+    local package subdir optRelative
+
+    case "$1" in
+    (-abs*)
+        optRelative=false
+        shift
+        ;;
+    (-rel*)
+        optRelative=true
+        shift
+        ;;
+    esac
+
+    for package in "$@"
+    do
+        subdir="$(basename "$package" | tr '[:upper:]' '[:lower:]' |\
+            sed -ne 's#^\([0-9]*[a-z]*\).*#\1#p')"
+
+        for check in \
+            "$package" \
+            "sources/$package" \
+            "sources/$subdir/$package" \
+        ;
+        do
+            if [ -d "$sourceBASE/$check" ]
+            then
+                echo "Found sources: $check" 1>&2
+
+                if [ "${optRelative:-false}" = true ]
+                then
+                    echo "$check"
+                else
+                    echo "$sourceBASE/$check"
+                fi
+                return 0
+            fi
+        done
+    done
+
+    # Fallback. Report if missing (unless none or system)
+    case "${1##*-}" in
+    (none | system)
+        ;;
+    (*)
+        echo "Did not find ... $@" 1>&2
+    esac
+
+    echo "$sourceBASE/${1:-missing-package-name}"
+}
+
+
+# List available unpacked source versions
+#
+# checks:
+# - ThirdParty/PACKAGE
+# - ThirdParty/sources/PACKAGE
+# - ThirdParty/sources/canonical/PACKAGE
+#
+# Output style
+#  -dirs  : report the names with relative directory
+#  -names : report the names only (without directory)
+#  -long  : report the names with full (absolute) directory
+listPackageVersions()
+{
+    local package
+
+    local optOutput=short
+    case "$1" in
+    (-long | -full)
+        optOutput=long
+        shift
+        ;;
+    (-dirs | -short)
+        optOutput=dirs
+        shift
+        ;;
+    (-names)
+        optOutput=names
+        shift
+        ;;
+    esac
+
+    if [ "$#" -gt 0 ]
+    then
+    (
+        cd "$sourceBASE" 2>/dev/null || exit
+
+        for package in "$@"
+        do
+            # Canonical short name
+            package="$(basename "$package" | tr '[:upper:]' '[:lower:]' |\
+                sed -ne 's#^\([0-9]*[a-z]*\).*$#\1#p')"
+
+            [ -n "$package" ] || continue
+
+            for dir in . sources sources/"$package"
+            do
+                # Find package-version (ie, when it has separators)
+                find "$dir" -maxdepth 1 \
+                -iname "${package}*[-_]*" -type d 2>/dev/null | \
+                sed -e 's#^[./]*##' | sort
+            done | \
+            case "$optOutput" in
+            (long)
+                sed -e "s#^#$sourceBASE/#"  # Add source-dir prefix
+                ;;
+            (names)
+                # Basenames only. Squash out potential duplicates
+                sed -e 's#^.*/##' | sort | uniq
+                ;;
+            (*)
+                # Relative - no change
+                sed -e ''
+                ;;
+            esac
+        done
+    )
     fi
 }
 
@@ -794,23 +937,23 @@ downloadFile()
 # $2 = TARGET DIRECTORY (optional)
 cpMakeFiles()
 {
-    [ "$#" -eq 1 -o "$#" -eq 2 ] || {
+    [ "$#" -eq 1 ] || [ "$#" -eq 2 ] || {
         echo "cpMakeFiles called with incorrect number of arguments $@"
         return 1
     }
 
-    local pkg=$1
+    local pkg="$1"
     local dst="${2:-.}"
-    echo "cpMakeFiles" $pkg $dst
+    echo "cpMakeFiles" "$pkg" "$dst"
 
-    wmakeFiles=$WM_THIRD_PARTY_DIR/etc/makeFiles/$pkg
+    wmakeFiles="$WM_THIRD_PARTY_DIR/etc/makeFiles/$pkg"
 
     for i in $(cd $wmakeFiles && find . -type f)
     do
-        d=${i%/*}   # dirname
-        b=${i##*/}   # basename
+        d="${i%/*}"   # dirname
+        b="${i##*/}"   # basename
 
-        mkdir -p $dst/$d/Make 2>/dev/null
+        mkdir -p "$dst/$d"/Make 2>/dev/null
 
         # NOTE the behaviour of '-nt' can cause problems
         #
@@ -820,9 +963,9 @@ cpMakeFiles()
         # - dash, zsh (and maybe others)
         #   False, if file1 or file2 does not exist
         #
-        if [ ! -e $dst/$d/Make/$b -o $wmakeFiles/$i -nt $dst/$d/Make/$b ]
+        if [ ! -e "$dst/$d/Make/$b" -o "$wmakeFiles/$i" -nt "$dst/$d/Make/$b" ]
         then
-            cp $wmakeFiles/$i $dst/$d/Make/$b
+            cp "$wmakeFiles/$i" "$dst/$d/Make/$b"
         fi
     done
 }

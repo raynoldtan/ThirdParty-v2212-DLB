@@ -31,7 +31,7 @@ variety of versions of the third-party libraries, with the software
 version specified on the command-line. For example,
 ```
 $ ./makeFFTW -help
-usage: makeFFTW [OPTION] [fftw-VERSION]
+Usage: makeFFTW [OPTION] [fftw-VERSION]
 ```
 
 ---

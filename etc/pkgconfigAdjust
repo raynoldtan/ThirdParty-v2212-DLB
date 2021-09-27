@@ -6,7 +6,7 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2017-2020 OpenCFD Ltd.
+#     Copyright (C) 2017-2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -40,23 +40,21 @@ wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
     echo "    Check your OpenFOAM environment and installation"
     exit 1
 }
-. etc/tools/ThirdPartyFunctions
+. "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
 #------------------------------------------------------------------------------
-usage() {
-    exec 1>&2
-    while [ "$#" -ge 1 ]; do echo "$1"; shift; done
+printHelp() {
     cat<<USAGE
 
-usage: ${0##*/} [OPTION] [directory1 [... directoryN]]
+Usage: ${0##*/} [OPTION] [dir1 [... dirN]]
 options:
   -help
 
 Adjust pkgconfig files after relocating third-party files.
 Locates pkgconfig files under the lib/ or lib64/ directories and adjusts them
-to use '${prefix}' instead of absolute directory paths where possible.
+to use '\${prefix}' instead of absolute directory paths where possible.
 
 USAGE
-    exit 1
+    exit 0  # Clean exit
 }
 #------------------------------------------------------------------------------
 
@@ -65,7 +63,8 @@ while [ "$#" -gt 0 ]
 do
     case "$1" in
     '') ;;      # Ignore empty
-    -h | -help*) usage   ;;
+    -h | -help*) printHelp;;
+    -*) echo "Ignore unknown option" 1>&2 ;;
 
     *)
         pkgconfigAdjust "$1"

@@ -12,9 +12,13 @@
 *.tgz
 *.gtgz
 
-# Ignore build and platforms folders
-build/
-platforms/
+# Ignore standard input/output folders
+/build/
+/download/
+/opt/
+/platforms/
+/sources/
+/unpack/
 
 # Generated files in the main directory
 /*.html

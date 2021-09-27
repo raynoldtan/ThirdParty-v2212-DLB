@@ -6,54 +6,46 @@
 #   \\  /    A nd           | www.openfoam.com
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
-#     Copyright (C) 2017-2021 OpenCFD Ltd.
+#     Copyright (C) 2021 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
 #
 # Script
-#     etc/pkgconfigPrefix
+#     etc/list-available
 #
 # Description
-#     Set the prefix= entry for pkgconfig files to account for a new location.
+#     List available unpacked source versions
 #
-#     The specified directory can be any of the following:
-#         - base-dir
-#         - base-dir/bin
-#         - base-dir/lib
-#         - base-dir/lib64
-#         - base-dir/lib/pkgconfig
-#         - base-dir/lib64/pkgconfig
+#     checks:
+#     - ThirdParty/PACKAGE
+#     - ThirdParty/sources/PACKAGE
+#     - ThirdParty/sources/canonical/PACKAGE
 #
-#     This allows this type of shell command
+# Example usage
+#     etc/list-available paraview
 #
-#        etc/pkgconfigPrefix $(find platforms -name pkgconfig -type d)
-#
-# ----------------------------------------------
-# NO USER-CONFIGURABLE SETTINGS WITHIN THIS FILE
 #------------------------------------------------------------------------------
-# Run from third-party directory only
-wmakeCheckPwd "$WM_THIRD_PARTY_DIR" 2>/dev/null || {
-    echo "Error (${0##*/}) : current directory is not \$WM_THIRD_PARTY_DIR"
-    echo "    Check your OpenFOAM environment and installation"
-    exit 1
-}
 . "${WM_THIRD_PARTY_DIR:?}"/etc/tools/ThirdPartyFunctions
+
 #------------------------------------------------------------------------------
 printHelp() {
     cat<<USAGE
 
-Usage: ${0##*/} [OPTION] [dir1 [... dirN]]
-options:
-  -help
+Usage: ${0##*/} [OPTION] [package1 .. [packageN]]
+Options:
+  -dirs    List with relative source directories
+  -names   List names only [default]
+  -full    List with absolute source directories
+  -help    Display usage help
 
-Set the 'prefix=' entry for pkgconfig files.
-The pkgconfig files are located under lib/pkgconfig or lib64/pkgconfig.
+List available (unpacked) source packages.
 
 USAGE
     exit 0  # Clean exit
 }
 #------------------------------------------------------------------------------
+optOutput="-names"
 
 # Process options/arguments
 while [ "$#" -gt 0 ]
@@ -62,11 +54,33 @@ do
     '') ;;      # Ignore empty
     -h | -help*) printHelp;;
 
-    *)
-        pkgconfigNewPrefix "$1"
+    # Resolve with (relative) dirs
+    -dir*)
+        optOutput="-dirs"
         ;;
+
+    # Resolve packages names only (without directory)
+    -name*)
+        optOutput="-names"
+        ;;
+
+    # Resolve with full (absolute) dirs
+    -full | -long)
+        optOutput="-long"
+        ;;
+
+    -*) echo "Ignore unknown option" 1>&2 ;;
+    *)  break ;;
     esac
     shift
 done
+
+if [ "$#" -gt 0 ]
+then
+    listPackageVersions $optOutput "$@"
+else
+    die "Did not specify any package(s)"
+fi
+
 
 #------------------------------------------------------------------------------
