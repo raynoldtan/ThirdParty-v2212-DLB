@@ -127,9 +127,6 @@ fi
 #
 # For 64-bit
 # - FFTW itself will normally build into 'lib64',
-#   but provide --libdir on configure to be 100% certain
-# - Third-Party builds into 'lib64'
-# - system is normally built into 'lib64'
 
 PKG_SOURCE="$(findSourceDir "$PACKAGE")"
 PACKAGE="$(basename "$PKG_SOURCE")"
@@ -186,7 +183,6 @@ else
         cd "$PKG_BUILD" && set -x && \
         "$PKG_SOURCE"/configure \
             --prefix="$PKG_PREFIX" \
-            --libdir="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH" \
             --enable-shared --disable-static \
             --disable-fortran \
             $configOpt \
@@ -199,6 +195,17 @@ else
         echo "Error building: $PACKAGE"
         exit 1
     }
+
+    # Unneeded generated files
+    for dir in share/doc share/info share/man
+    do
+        if [ -d "$PKG_PREFIX/$dir" ]
+        then
+            echo "Discard $dir files to save space: $PACKAGE"
+            rm -rf "$PKG_PREFIX/$dir"
+        fi
+    done
+    rmdir "$PKG_PREFIX"/share 2>/dev/null || true
 
 fi
 

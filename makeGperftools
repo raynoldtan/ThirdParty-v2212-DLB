@@ -132,6 +132,17 @@ else
         exit 1
     }
 
+    # Unneeded generated files
+    for dir in share/doc share/info share/man
+    do
+        if [ -d "$PKG_PREFIX/$dir" ]
+        then
+            echo "Discard $dir files to save space: $PACKAGE"
+            rm -rf "$PKG_PREFIX/$dir"
+        fi
+    done
+    rmdir "$PKG_PREFIX"/share 2>/dev/null || true
+
 fi
 
 #------------------------------------------------------------------------------

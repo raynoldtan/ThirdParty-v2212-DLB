@@ -64,7 +64,7 @@ _foamAddMan()  { true; }
 _foamAddPath() { true; }
 #------------------------------------------------------------------------------
 # Obtain version from OpenFOAM etc/config.sh file:
-WM_MPLIB=MV2MPI     # Ensure we get the correct MPI
+WM_MPLIB=MVA2MPI    # Ensure we get the correct MPI
 _foamConfig mpi
 
 PACKAGE="${FOAM_MPI:-system}"
@@ -185,7 +185,6 @@ else
         cd "$PKG_BUILD" && set -x && \
         "$PKG_SOURCE"/configure \
             --prefix="$PKG_PREFIX" \
-            --libdir="$PKG_PREFIX/lib$WM_COMPILER_LIB_ARCH" \
             --disable-fortran --disable-g \
             --enable-shared --disable-static \
             $configOpt \
