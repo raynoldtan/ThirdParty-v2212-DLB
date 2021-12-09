@@ -130,6 +130,7 @@ options:
   -no-lib       Configure CGAL for headers-only mode (default OpenFOAM >= 2006)
   -with-lib     Configure CGAL with library
   -toolset=NAME Use named toolset in bootstrap
+                (use 'none' to let boost determine everything).
   -system       Use system versions for boost/gmp/mpfr
   -list         List available unpacked source versions
   -help         Display usage help
@@ -322,44 +323,69 @@ else
         # Configuration options:
         unset buildOpt
 
-        # Compiler-specific adjustments
-        case "$WM_COMPILER" in
-        (Arm*)
-            # Toolset for bootstrap
-            optToolset="gcc"
+        if [ "$optToolset" = none ]
+        then
+            # Let boost determine everything
+            unset optToolset
 
-            echo "using clang : arm : $(whichCC) ;" > user-config.jam
-            echo "using mpi ;" >> user-config.jam
-
-            # Toolset for build
-            buildOpt="--user-config=user-config.jam toolset=clang"
-            ;;
-
-        (Mingw*)
-            # Toolset for bootstrap
-            optToolset="gcc"
-
-            echo "using gcc : mingw : $(whichCC) ;" > user-config.jam
-
-            # Toolset for build
-            buildOpt="--user-config=user-config.jam toolset=gcc"
-            buildOpt="$buildOpt target-os=windows release"
-            ;;
-
-        (*)
-            # Toolset for bootstrap and build
-            if [ -z "$optToolset" ]
-            then
-                optToolset="$(whichCC)"
-                # Base names for gcc-8, clang-9 etc.
-                case "$optToolset" in
-                (clang*)  optToolset=clang;;
-                (gcc*)    optToolset=gcc;;
-                esac
-            fi
+        elif [ -n "$optToolset" ]
+        then
+            # Assume same toolset for bootstrap and build
             buildOpt="toolset=$optToolset"
-            ;;
-        esac
+
+        else
+            # No toolset specified, attempt some guesses
+            c_compiler="$(whichCC)"
+
+            # Compiler-specific adjustments
+            case "$WM_COMPILER" in
+            (Arm*)
+                optToolset=gcc      # For boostrap
+
+                # For build
+                echo "using clang : arm : ${c_compiler} ;" > user-config.jam
+                echo "using mpi ;" >> user-config.jam
+                buildOpt="--user-config=user-config.jam toolset=clang"
+                ;;
+
+            (Mingw*)
+                optToolset=gcc      # For boostrap
+
+                # For build
+                echo "using gcc : mingw : ${c_compiler} ;" > user-config.jam
+                buildOpt="--user-config=user-config.jam toolset=gcc"
+                buildOpt="$buildOpt target-os=windows release"
+                ;;
+
+            (*)
+                # For gcc-8, clang-9 etc.
+
+                case "${c_compiler}" in
+                (clang*)
+                    optToolset=clang    # For boostrap
+
+                    # For build
+                    echo "using clang : : ${c_compiler} ;" > user-config.jam
+                    buildOpt="--user-config=user-config.jam toolset=clang"
+                    ;;
+                (gcc* | g++*)
+                    optToolset=gcc      # For boostrap
+
+                    # For build
+                    echo "using gcc : : ${c_compiler} ;" > user-config.jam
+                    buildOpt="--user-config=user-config.jam toolset=gcc"
+                    ;;
+                (ic[cx]* | icp[cx]*)    # intel
+                    optToolset=gcc      # For boostrap
+
+                    # For build
+                    echo "using intel : : ${c_compiler} ;" > user-config.jam
+                    buildOpt="--user-config=user-config.jam toolset=intel"
+                    ;;
+                esac
+                ;;
+            esac
+        fi
 
         # End of configuration options
         # ----------------------------
@@ -371,7 +397,7 @@ else
             --libdir="$boostLib" \
             --with-libraries=thread \
             --with-libraries=system \
-            --with-toolset="$optToolset" \
+            ${optToolset:+--with-toolset="$optToolset"} \
         && ./b2 $buildOpt -j $WM_NCOMPPROCS install \
         && echo "Built: $BOOST_PACKAGE"
     ) || {
