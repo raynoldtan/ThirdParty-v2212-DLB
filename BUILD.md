@@ -524,7 +524,7 @@ easier to use `grep` and find the relevant pages and links.
 <!-- parallel -->
 [page adios]:     https://csmd.ornl.gov/software/adios2
 [repo adios]:     https://github.com/ornladios/ADIOS2
-[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.6.0.tar.gz
+[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.7.1.tar.gz
 
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
@@ -537,15 +537,15 @@ easier to use `grep` and find the relevant pages and links.
 [oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
-[older kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.00.tar.gz
-[link kahip]:     http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.12.tar.gz
+[older kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.12.tar.gz
+[link kahip]:     https://github.com/KaHIP/KaHIP/archive/v3.14.tar.gz
 
 [page metis]:     http://glaros.dtc.umn.edu/gkhome/metis/metis/overview
 [link metis]:     http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz
 
 [page openmpi]:   http://www.open-mpi.org/
 [older openmpi]:  https://download.open-mpi.org/release/open-mpi/v1.10/openmpi-1.10.7.tar.bz2
-[link openmpi]:   https://download.open-mpi.org/release/open-mpi/v4.0/openmpi-4.0.3.tar.bz2
+[link openmpi]:   https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.2.tar.bz2
 
 [page mpich]:     http://www.mpich.org/
 [link mpich]:     http://www.mpich.org/static/downloads/3.4.2/mpich-3.4.2.tar.gz
@@ -558,20 +558,20 @@ easier to use `grep` and find the relevant pages and links.
 [link cmake]:     https://cmake.org/files/v3.8/cmake-3.8.2.tar.gz
 
 [page boost]:     http://boost.org
-[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.66.0/boost_1_66_0.tar.bz2
+[link boost]:     https://sourceforge.net/projects/boost/files/boost/1.74.0/boost_1_74_0.tar.bz2
 
 [page CGAL]:      http://cgal.org
-[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.12.2/CGAL-4.12.2.tar.xz
+[link CGAL]:      https://github.com/CGAL/cgal/releases/download/releases/CGAL-4.14.3/CGAL-4.14.3.tar.xz
 
 [page FFTW]:      http://www.fftw.org/
-[link FFTW]:      http://www.fftw.org/fftw-3.3.7.tar.gz
+[link FFTW]:      http://www.fftw.org/fftw-3.3.10.tar.gz
 
 [page petsc]:     https://www.mcs.anl.gov/petsc/
-[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.15.0.tar.gz
+[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.16.2.tar.gz
 
 [page hypre]:     https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods/
 [repo hypre]:     https://github.com/hypre-space/hypre/
-[link hypre]:     https://github.com/hypre-space/hypre/archive/v2.19.0.tar.gz
+[link hypre]:     https://github.com/hypre-space/hypre/archive/v2.23.0.tar.gz
 
 [page cgns]:      http://cgns.github.io/
 [link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
@@ -593,7 +593,8 @@ easier to use `grep` and find the relevant pages and links.
 [link ParaView56]: http://www.paraview.org/files/v5.6/ParaView-v5.6.3.tar.xz
 [link ParaView57]: http://www.paraview.org/files/v5.7/ParaView-v5.7.0.tar.xz
 [link ParaView58]: http://www.paraview.org/files/v5.8/ParaView-v5.8.1.tar.xz
-[link ParaView]:   http://www.paraview.org/files/v5.9/ParaView-v5.9.1.tar.xz
+[link ParaView59]: http://www.paraview.org/files/v5.9/ParaView-v5.9.1.tar.xz
+[link ParaView]:   http://www.paraview.org/files/v5.10/ParaView-v5.10.0.tar.xz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
