@@ -354,7 +354,7 @@ else
                 # For build
                 echo "using gcc : mingw : ${c_compiler} ;" > user-config.jam
                 buildOpt="--user-config=user-config.jam toolset=gcc"
-                buildOpt="$buildOpt target-os=windows release"
+                buildOpt="$buildOpt address-model=64 target-os=windows release"
                 ;;
 
             (*)
