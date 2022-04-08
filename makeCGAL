@@ -7,7 +7,7 @@
 #    \\/     M anipulation  |
 #------------------------------------------------------------------------------
 #     Copyright (C) 2012-2016 OpenFOAM Foundation
-#     Copyright (C) 2016-2021 OpenCFD Ltd.
+#     Copyright (C) 2016-2022 OpenCFD Ltd.
 #------------------------------------------------------------------------------
 # License
 #     This file is part of OpenFOAM, distributed under GPL-3.0-or-later.
@@ -472,7 +472,7 @@ fi
 
 CGAL_SOURCE="$(findSourceDir "$CGAL_PACKAGE")"
 CGAL_PACKAGE="$(basename "$CGAL_PACKAGE")"
-CGAL_PREFIX="$installBASE$WM_SIZE_OPTIONS/$CGAL_PACKAGE"
+CGAL_PREFIX="$installBASE/$CGAL_PACKAGE"
 
 # Override as per config file (if any)
 [ -n "$CGAL_ARCH_PATH" ] && CGAL_PREFIX="$CGAL_ARCH_PATH"
