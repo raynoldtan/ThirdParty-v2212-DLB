@@ -567,15 +567,15 @@ easier to use `grep` and find the relevant pages and links.
 [link FFTW]:      http://www.fftw.org/fftw-3.3.10.tar.gz
 
 [page petsc]:     https://www.mcs.anl.gov/petsc/
-[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.16.2.tar.gz
+[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.17.2.tar.gz
 
 [page hypre]:     https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods/
 [repo hypre]:     https://github.com/hypre-space/hypre/
-[link hypre]:     https://github.com/hypre-space/hypre/archive/v2.23.0.tar.gz
+[link hypre]:     https://github.com/hypre-space/hypre/archive/v2.24.0.tar.gz
 
 [page cgns]:      http://cgns.github.io/
 [link ccmio]:     http://portal.nersc.gov/project/visit/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
-[altlink ccmio]:  http://portal.nersc.gov/svn/visit/trunk/third_party/libccmio-2.6.1.tar.gz (check usage conditions)
+[altlink ccmio]:  https://sourceforge.net/projects/foam-extend/files/ThirdParty/libccmio-2.6.1.tar.gz (check usage conditions)
 
 [repo gperftools]: https://github.com/gperftools/gperftools
 [link gperftools]: https://github.com/gperftools/gperftools/releases/download/gperftools-2.5/gperftools-2.5.tar.gz
@@ -594,7 +594,7 @@ easier to use `grep` and find the relevant pages and links.
 [link ParaView57]: http://www.paraview.org/files/v5.7/ParaView-v5.7.0.tar.xz
 [link ParaView58]: http://www.paraview.org/files/v5.8/ParaView-v5.8.1.tar.xz
 [link ParaView59]: http://www.paraview.org/files/v5.9/ParaView-v5.9.1.tar.xz
-[link ParaView]:   http://www.paraview.org/files/v5.10/ParaView-v5.10.0.tar.xz
+[link ParaView]:   http://www.paraview.org/files/v5.10/ParaView-v5.10.1.tar.xz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz
@@ -608,4 +608,4 @@ easier to use `grep` and find the relevant pages and links.
 
 ---
 
-Copyright 2016-2021 OpenCFD Ltd
+Copyright 2016-2022 OpenCFD Ltd
