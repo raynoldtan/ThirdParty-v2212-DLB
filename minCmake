@@ -68,7 +68,7 @@ $(
     for dir in sources/*
     do
         [ -d "$dir" ] || continue
-        ## echo "search <$dir>" 1>&2
+        echo "search <$dir>" 1>&2
         depth=1
         # Is sources/pkg/pkg-version ?
         if [ "$(echo "$dir" | sed -e 's#.*/[a-z][a-z]*##' | wc -w)" = 0 ]

@@ -32,7 +32,7 @@ sudo apt install cmake qtbase5-dev qttools5-dev qttools5-dev-tools libqt5opengl5
 ```
 
 
-### openSUSE (eg, Leap-15.2)
+### openSUSE (eg, Leap-15.3)
 
 The full dependency list for building ParaView can be found from the
 corresponding [rpm spec][suse spec] file.
@@ -48,6 +48,19 @@ Depending on your setup, the following subset may also be enough:
 sudo zypper install Mesa-libEGL-devel
 sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel libqt5-qttools-devel libqt5-qtx11extras-devel
 sudo zypper install libxcb-devel libXt-devel
+```
+
+For building paraview with ffmpeg support (components: avformat
+avcodec avutil swscale), the packman repository may be required, with a
+variety of additional packages:
+```
+sudo zypper install ffmpeg-3
+sudo zypper install ffmpeg-3-libavcodec-devel
+sudo zypper install ffmpeg-3-libavformat-devel
+sudo zypper install ffmpeg-3-libavresample-devel
+sudo zypper install ffmpeg-3-libavutil-devel
+sudo zypper install ffmpeg-3-libswresample-devel
+sudo zypper install ffmpeg-3-libswscale-devel
 ```
 
 
@@ -70,4 +83,4 @@ sudo zypper install libxcb-devel libXt-devel
 [link third-require]: https://develop.openfoam.com/Development/ThirdParty-common/blob/develop/Requirements.md
 
 ---
-Copyright 2019-2021 OpenCFD Ltd
+Copyright 2019-2022 OpenCFD Ltd

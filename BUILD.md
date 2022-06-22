@@ -452,14 +452,16 @@ The minimum CMake requirements for building various components.
 2.8         llvm-3.4.2
 2.8.11      CGAL-4.9
 2.8.11      CGAL-4.11
+3.1         CGAL-4.12 -> CGAL-4.14.3
 2.8.12.2    llvm-3.7.0
 2.8.12.2    llvm-3.8.0
 2.8.4       cmake-3.6.0
 3.3         ParaView-5.6.3
 3.10        ParaView-5.7.0 - ParaView-5.8.0
+3.12 - 3.16 ParaView-5.9.0 - ParaView-5.10.1
 3.4.3       llvm-3.9.1
 3.4.3       llvm-4.0.0 - llvm-6.0.0
-3.6         ADIOS2
+3.12        ADIOS2
 ```
 
 ### GCC Minimum Requirements <a name="min-gcc"></a>
