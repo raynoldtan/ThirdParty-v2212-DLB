@@ -76,7 +76,9 @@ MKDIR       = mkdir
 MV          = mv
 RANLIB      = echo
 
-LEX         = flex "-Pscotchyy$(SCOTCH_NAME_SUFFIX)" -olex.yy.c
-YACC        = bison "-pscotchyy$(SCOTCH_NAME_SUFFIX)" -y -b y
+FLEX        = flex "-Pscotchyy$(SCOTCH_NAME_SUFFIX)" -olex.yy.c
+BISON       = bison "-pscotchyy$(SCOTCH_NAME_SUFFIX)" -y -b y
+LEX         = $(FLEX)
+YACC        = $(BISON)
 
 #------------------------------------------------------------------------------
