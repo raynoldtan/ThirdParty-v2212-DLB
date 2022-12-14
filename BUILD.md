@@ -431,7 +431,7 @@ you may have additional hurdles to using the newest versions of clang.
 |-----------------------|------------------------
 | [openmpi][page openmpi] | [download][link openmpi]. ***Some openmpi2/openmpi3 versions exhibit [stability issues](https://github.com/open-mpi/ompi/issues/5375)***
 | [adios][page adios]   | [repo][repo adios] or [github download][link adios]
-| [scotch, ptscotch][page scotch] | [repo][repo scotch] or [download][link scotch] or [older][older scotch] or [even older][oldest scotch]
+| [scotch, ptscotch][page scotch] | [repo][repo scotch] or [download][link scotch] or [older][older scotch]
 | [kahip][page kahip] | [download][link kahip] or [older][older kahip]
 | [metis][page metis] | [download][link metis]
 
@@ -526,17 +526,19 @@ easier to use `grep` and find the relevant pages and links.
 <!-- parallel -->
 [page adios]:     https://csmd.ornl.gov/software/adios2
 [repo adios]:     https://github.com/ornladios/ADIOS2
-[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.7.1.tar.gz
+[link adios]:     https://github.com/ornladios/ADIOS2/archive/v2.8.3.tar.gz
 
 [page zfp]:       http://computation.llnl.gov/projects/floating-point-compression/zfp-versions
 
 [page scotch]:    https://www.labri.fr/perso/pelegrin/scotch/
 [repo scotch]:    https://gitlab.inria.fr/scotch/scotch
-[link scotch]:    https://gforge.inria.fr/frs/download.php/file/38352/scotch_6.1.0.tar.gz
+[link scotch]:    https://gitlab.inria.fr/scotch/scotch/-/archive/v6.1.3/scotch-v6.1.3.tar.gz
 [link scotch60_10]:  https://gforge.inria.fr/frs/download.php/file/38350/scotch_6.0.10.tar.gz
 [link scotch60_9]:   https://gforge.inria.fr/frs/download.php/file/38187/scotch_6.0.9.tar.gz
-[older scotch]:   https://gforge.inria.fr/frs/download.php/file/38114/scotch_6.0.8.tar.gz
-[oldest scotch]:  https://gforge.inria.fr/frs/download.php/file/37622/scotch_6.0.6.tar.gz
+[link scotch61_0]:   https://gforge.inria.fr/frs/download.php/file/38352/scotch_6.1.0.tar.gz
+[link scotch61_3]:   https://gitlab.inria.fr/scotch/scotch/-/archive/v6.1.3/scotch-v6.1.3.tar.gz
+[older scotch]:   https://gforge.inria.fr/frs/download.php/file/38352/scotch_6.1.0.tar.gz
+[newer scotch]:   https://gitlab.inria.fr/scotch/scotch/-/archive/v7.0.1/scotch-v7.0.1.tar.gz
 
 [page kahip]:     http://algo2.iti.kit.edu/documents/kahip/
 [older kahip]:    http://algo2.iti.kit.edu/schulz/software_releases/KaHIP_2.12.tar.gz
@@ -569,7 +571,7 @@ easier to use `grep` and find the relevant pages and links.
 [link FFTW]:      http://www.fftw.org/fftw-3.3.10.tar.gz
 
 [page petsc]:     https://www.mcs.anl.gov/petsc/
-[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.17.2.tar.gz
+[link petsc]:     https://ftp.mcs.anl.gov/pub/petsc/release-snapshots/petsc-lite-3.18.2.tar.gz
 
 [page hypre]:     https://computing.llnl.gov/projects/hypre-scalable-linear-solvers-multigrid-methods/
 [repo hypre]:     https://github.com/hypre-space/hypre/
@@ -590,13 +592,12 @@ easier to use `grep` and find the relevant pages and links.
 
 [page ParaView]:  http://www.paraview.org/
 [download ParaView]: https://www.paraview.org/download/
-[link ParaView54]: http://www.paraview.org/files/v5.4/ParaView-v5.4.1.tar.gz
-[link ParaView55]: http://www.paraview.org/files/v5.5/ParaView-v5.5.2.tar.xz
 [link ParaView56]: http://www.paraview.org/files/v5.6/ParaView-v5.6.3.tar.xz
 [link ParaView57]: http://www.paraview.org/files/v5.7/ParaView-v5.7.0.tar.xz
 [link ParaView58]: http://www.paraview.org/files/v5.8/ParaView-v5.8.1.tar.xz
 [link ParaView59]: http://www.paraview.org/files/v5.9/ParaView-v5.9.1.tar.xz
-[link ParaView]:   http://www.paraview.org/files/v5.10/ParaView-v5.10.1.tar.xz
+[link ParaView510]: http://www.paraview.org/files/v5.10/ParaView-v5.10.1.tar.xz
+[link ParaView]:   http://www.paraview.org/files/v5.11/ParaView-v5.11.0.tar.xz
 
 [page mesa]:  http://mesa3d.org/
 [link mesa]:  ftp://ftp.freedesktop.org/pub/mesa/mesa-17.1.1.tar.xz

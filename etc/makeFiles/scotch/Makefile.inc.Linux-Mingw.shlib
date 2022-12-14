@@ -26,7 +26,8 @@ OBJ         = .o
 # Separate the cross-compilation flags from regular CFLAGS to ensure that
 # system gcc does not use them for the scotch build toolchain
 
-CFLAGS_CROSS = -DCOMMON_WINDOWS -DCOMMON_STUB_FORK
+# cross-compile broken for scotch-v7
+CFLAGS_CROSS = -DCOMMON_STUB_FORK -DCOMMON_WINDOWS
 
 # Flags for including windows MPI information (MSMPI)
 CFLAGS_WINMPI = -I$(MPI_ARCH_PATH)/include \
