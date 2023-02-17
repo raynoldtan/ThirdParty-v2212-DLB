@@ -95,6 +95,24 @@ fi
 #------------------------------------------------------------------------------
 echo
 echo ========================================
+# Get PARMETIS_ARCH_PATH
+if settings=$($WM_PROJECT_DIR/bin/foamEtcFile config.sh/parmetis)
+then
+    . $settings
+fi
+if [ -n "$PARMETIS_ARCH_PATH" ]
+then
+    echo PARMETIS decomposition
+    ./makePARMETIS -test "$PARMETIS_ARCH_PATH" || \
+    ./makePARMETIS || warnBuildIssues PARMETIS
+else
+    warnNotFound PARMETIS   # is optional
+fi
+
+
+#------------------------------------------------------------------------------
+echo
+echo ========================================
 if [ -n "$CGAL_ARCH_PATH" ]
 then
     echo "cgal/boost"

@@ -50,7 +50,7 @@ CFLAGS     += -DINTSIZE64
 endif
 
 CLIBFLAGS   = -shared
-LDFLAGS     = -Xlinker --no-as-needed $(WM_LDFLAGS) -lm -lrt
+LDFLAGS     = -Xlinker --no-as-needed  -lm -lrt
 
 MAKE        = make
 CP          = cp
